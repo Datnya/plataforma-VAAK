@@ -1,0 +1,17 @@
+const assert=require('node:assert/strict'),fs=require('node:fs'),path=require('node:path');
+const app=fs.readFileSync(path.join(__dirname,'app.js'),'utf8'),runtime=fs.readFileSync(path.join(__dirname,'access-runtime.js'),'utf8'),control=fs.readFileSync(path.join(__dirname,'access-control.js'),'utf8');
+const assertions=[],test=(key,fn)=>{fn();assertions.push(key)};
+test('single-dispatch',()=>assert.equal((runtime.match(/function dispatchAction\(/g)||[]).length,1));
+test('single-render',()=>assert.equal((app.match(/function renderCurrentRoute\(/g)||[]).length,1));
+test('single-navigate',()=>assert.equal((runtime.match(/function navigateTo\(/g)||[]).length,1));
+test('single-open',()=>assert.equal((app.match(/function openAuthorizedOperation\(/g)||[]).length,1));
+test('single-commit',()=>assert.equal((runtime.match(/function commitState\(/g)||[]).length,1));
+test('zero-legacy',()=>assert.doesNotMatch(app+runtime,/legacyHandler|legacyLayer|aclLegacy|oldAction|actionWith|oldRender|renderWith/));
+test('zero-action-reassign',()=>assert.doesNotMatch(app+runtime+control,/(^|;)\s*(action|render|open)\s*=/m));
+test('one-store-write',()=>assert.equal((runtime.match(/setItem\(STORE/g)||[]).length,1));
+test('no-store-write-app',()=>assert.doesNotMatch(app,/setItem\(['"]vaak-preview-v6/));
+test('no-collection-replacement',()=>assert.doesNotMatch(app,/state\.(orders|suppliers|specs)\s*=/));
+test('no-external-url',()=>assert.doesNotMatch(app+runtime+control,/https?:\/\//));
+test('private-policy',()=>assert.doesNotMatch(control,/return freeze\(\{ACTION_POLICY[,}]/));
+test('private-handlers',()=>assert.doesNotMatch(runtime,/return freeze\(\{HANDLERS[,}]/));
+const report={suite:'access-integration',pass:true,assertions};if(process.argv.includes('--report-json'))console.log(JSON.stringify(report));else console.log('access-integration: all assertions passed');

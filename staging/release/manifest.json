@@ -1,0 +1,16 @@
+{
+  "release_id": "vaak-staging-20260829-002",
+  "vercel_url": "https://vaak-hpg-staging.vercel.app",
+  "vercel_project": "vaak-hpg-staging",
+  "deployment_pointer": "production-alias",
+  "interface_source": "prototype/",
+  "visual_contract": "preserve-canonical-prototype",
+  "schema_revision": "202608280001_staging_foundation",
+  "rls_revision": "202608280001_staging_foundation",
+  "seed_revision": "20260828-demo-v1",
+  "storage_buckets": 6,
+  "demo_identity_roles": ["admin", "worker", "client"],
+  "data_classification": "fictitious-only",
+  "rollback_target": "dpl_DBwyWVRbkrNaHEbK3u9fYp1o6nxR",
+  "teardown_guard": "human-approval-required"
+}

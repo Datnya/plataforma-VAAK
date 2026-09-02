@@ -1,0 +1,140 @@
+DOCUMENTO_LOGICO: LEG-02
+TITULO: Exx-AddingRoomQties-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-AddingRoomQties-Español.docx
+SHA256_ORIGINAL: 7bdc5b214e25f74870e991a02639af55ee38b4d3576474c1b510d0671e41ba65
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=3 tablas_detectadas=1 revision_visual=true]
+Exx-Adición de cantidades de habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+ADICIÓN DE CANTIDADES DE HABITACIÓN – ELEMENTOS DE ESPECIFICACIÓN
+
+Al trabajar en su Listado de artículos de especificación, si está trabajando con artículos que se
+encuentran en áreas que se han desglosado en varios tipos de habitaciones / subáreas (es decir,
+GST- Habitaciones – Tipos de habitación: KNG- King; DBL- Doble; etc. ), querrá cuantificar sus
+artículos utilizando la ruptura Tipos de habitación, de modo que los totales de artículos reflejen
+su distribución entre los diferentes tipos de habitación. Si el área seleccionada tiene Tipos de
+habitación/Subáreas, se le pedirá que introduzca sus cantidades de esta manera en Exxpedite. En
+la lista de artículos de especificación, haga clic en el botón Agregar cantidades de habitación
+situado justo a la izquierda de la sección Cantidad de artículos en su registro. Se abrirá la
+pantalla Cantidad de habitación. Esto no está bien. Ha cambiado – tienes que añadir las
+cantidades de la habitación en la información del proyecto, ¿correcto?
+
+Formulario de cantidad de habitación
+
+CANTIDADES DE habitación: al retirar la lista Tipo de habitación, solo debería ver los tipos de
+habitación/subáreas asociados con el área de proyecto del elemento en el que está trabajando.
+Seleccione el Tipo de habitación y, a continuación, especifique la cantidad de presupuesto individual
+de esa posición necesaria en cada tipo de habitación. El Total de presupuesto se calculará
+automáticamente utilizando las cantidades de tipo de habitación introducidas en la sección
+Información del proyecto. (Si aún no ha configurado Tipos de habitación y cantidades para un
+proyecto o necesita introducir tipos de habitación adicionales, querrá volver a la pantalla
+Información del proyecto... Ficha Zonas de proyecto para agregar nuevos tipos de habitación.)
+Introducirá cantidades para las cantidades de presupuesto y reales. Cuando tenga sus cantidades
+reales, volverá aquí para introducir la cantidad real para cada tipo de habitación y el total real se
+calculará a través. Cuando cierre el formulario Cantidad de habitación, se le devolverá a la lista
+Artículo de especificación y las cantidades de presupuesto/Total real calculadas se transferirán a los
+campos de cantidad del artículo seleccionado.
+DISCREPANCIAS - Debido a las numerosas formas en que se pueden introducir cantidades en el
+sistema de exxpedita en sus artículos, existe la posibilidad de que se introduzcan discrepancias si se
+intentaron dos métodos de entrada en un elemento – se han proporcionado varios informes de
+discrepancia para ayudar a identificar estas entradas (Informes de elementos de especificación –
+Discrepancias de cantidad de habitación; Discrepancias de cantidad de área; y Discrepancias de
+Cantidad de Artículos). Consulte estos informes y la escritura de informes de discrepancia de
+artículos de especificación antes de crear sus presupuestos: si "No hay información disponible" para
+estos informes, indica que no se han encontrado discrepancias.
+INTRODUCCIÓN DE CANTIDADES MASIVAS
+
+Si está introduciendo cantidades en artículos como tela o alfombra, es posible que no tenga que
+considerar la ruptura exacta de sus cantidades dentro de los tipos de habitación/subáreas de esta
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=4 tablas_detectadas=1 revision_visual=true]
+Exx-Adición de cantidades de habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+área. Si ese es el caso, puede crear un nuevo tipo de habitación/subárea para capturar estas
+cantidades masivas en su artículo mientras sigue haciendo uso de la ruptura en sus otros
+elementos de especificación dentro de esta área.
+
+Agregar nuevo tipo de habitación/subárea: vuelva a la pantalla Información del
+proyecto. Ficha Areas/Tipos de habitación.
+
+Información del proyecto-Áreas/Tipos de habitación
+
+En el área que ha asociado tipos de habitación/subáreas, agregue un nuevo registro para sus
+cantidades a granel, es decir, FB- Tejidos, Cantidades a granel, etc.) – asegúrese de introducir
+una cantidad de habitación de 1 en el registro. VUELVA al menú principal y a la lista de
+elementos de especificación.
+En la lista de artículos de especificación, busque las posiciones de especificación para las que
+desea introducir cantidades masivas. En la lista de artículos de especificación, haga clic en
+el botón Agregar cantidades de habitación situado justo a la izquierda de la sección Cantidad
+
+de artículos en su registro. Se abrirá la pantalla Cantidad de habitación.
+
+Página - 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Exx-Adición de cantidades de habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Introduzca el registro Cantidad de habitación utilizando el tipo de habitación "Cantidad
+masiva" e introduzca la cantidad total del artículo de especificación. Este método puede
+evitar tener discrepancias de entrada de datos en sus cantidades.
+
+ocument Título – Trebuchet 14, RGB: 109 187 32
+
+Propósito del documento de esquema (Normal)– Trebuchet 10.5, RGB: 64 64 64
+Párrafo establecido en Espaciado antes de 6pt y Interlineado Al menos 14pt
+
+SUBTÍTULO - TREBUCHET 12, NEGRITA, GORRAS PEQUEÑAS, RGB: 109 187 32
+SUBTÍTULO INFERIOR - TREBUCHET 11, NEGRITA, GORRAS PEQUEÑAS, RGB: 109 187 32
+
+BOTÓN/INCLUSO SUBTÍTULO INFERIOR - TREBUCHET 10.5, TAPAS PEQUEÑAS, RGB: 64 64 64 (USO PARA REF A
+BOTONES Y PARA SUBTÍTULOS DE SIGUIENTE NIVEL )
+
+Cuerpo del documento (Normal)– Trebuchet 10.5, RGB: 64 64 64
+1. Lista numerada – Trebuchet 10.5, RGB: 64 64 64
+a. Secundario en Numerado– Trebuchet 10.5, RGB: 64 64 64
+• Balas – Trebuchet 10.5, RGB: 64 64 64
+
+NOTA *** Extraer-nota -TREBECHAUT 10.5, NEGRITA, TAPAS PEQUEÑAS, RGB: 109 187 32 -asteriscos a
+la normalidad
+ATENCION: TREBUCHET 12 PT, TODAS LAS TAPAS, RGB: 154 51 0 ***
+
+-Para cuadros de mensaje –Drop Shadow Rectangle (4o) – centrado –establecido párrafo a antes
+de 6pt- no retorno duro entre – asegúrese de que el margen establecido en punto cero
+
+-Para otras imágenes – Rectángulo de sombra central (última) – contorno en color apropiado –
+blanco o rojo?, rectángulo redondeado centrado - establecer párrafo en Antes de 6pt- no hay
+retorno duro entre
+
+Página - 3 -
+
+===== PAGINA 4 =====
+[META pagina=4 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Exx-Adición de cantidades de habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Subtítulo – Trebuchet 10.5, centrado, RGB: 64 64 64
+Cita : si se muestra un mensaje del sistema "introducir entrecomillas" – Trebuchet 10.5, cursiva
+
+-Colocar la información de contacto (abajo) al final del documento – cambiar a título del
+documento en el encabezado.
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+
+Y: support@lojikdesign.biz
+
+Página - 4 -

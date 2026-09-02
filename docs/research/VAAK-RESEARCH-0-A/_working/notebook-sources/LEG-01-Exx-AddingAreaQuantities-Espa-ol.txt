@@ -1,0 +1,86 @@
+DOCUMENTO_LOGICO: LEG-01
+TITULO: Exx-AddingAreaQuantities-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-AddingAreaQuantities-Español.docx
+SHA256_ORIGINAL: 691eca4254c344e3597173e2c0e004befa9ddb638b6a8215737d967ea8913625
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=4 tablas_detectadas=1 revision_visual=true]
+Exx-Adición de cantidades de área
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Adición de cantidades de área
+
+Al introducir elementos de ofci Spec (es decir, iluminación cableada, alfombra, revestimiento de
+pared, etc.) en la lista de artículos de especificación, puede tener elementos que se encuentran
+en más de un área de su proyecto. Cualquier elemento OFCI que se haya transferido de un
+usuario de Spexx también tendrá que ser tratado de esta manera para evitar discrepancias de
+entrada de datos (consulte la escritura de discrepancias de elementos de especificación para
+obtener más detalles).
+
+Formulario de cantidades de área y habitación
+CANTIDADES DE ÁREA Y habitación: para introducir las cantidades de área, confirme que el área
+está en blanco en el artículo de especificación ??, ¿no es necesario hacer clic en el botón Agregar
+cantidades para hacer esto? A continuación, haga clic en el botón Agregar cantidades (Rm Qty) de
+la lista de artículos de especificación situado a la derecha de los campos de cantidad/coste del
+registro que está actualizando. Esto abre automáticamente la pantalla Cantidades de área y
+habitación, donde introducirá las cantidades en cada área y desglosará las cantidades de tipo de
+
+habitación.
+En la sección Areas (Áreas) en la parte superior izquierda de la pantalla, seleccione la abreviatura
+Area (Recunda) e introduzca la cantidad de presupuesto y/o real para el artículo a menos que el
+área tenga tipos de habitación/subáreas.
+
+Agregue registros con cantidades para cada área con la que está asociado el artículo. Si alguna de
+las áreas tiene tipos de habitaciones asociados (es decir, habitaciones...), aparecerá una lista de
+tipos de habitación en la parte inferior derecha de la pantalla, deberá introducir cantidades
+individuales para los tipos de habitación asociados utilizando la sección Cantidad de habitación a
+continuación. La cantidad total (presupuesto y real) de estos tipos de habitación se transferirá a las
+cantidades calculadas para esa área.
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=3 tablas_detectadas=1 revision_visual=true]
+Exx-Adición de cantidades de área
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Después de introducir las cantidades de tipo de habitación, puede volver a la sección Cantidad de
+área para agregar áreas adicionales, repitiendo los procedimientos de Cantidades de habitación
+según sea necesario. Haga clic en RETURN para cerrar la pantalla Cantidades de área y habitación
+y volver a la lista de artículos de especificación: las cantidades de área total (presupuesto y/o real)
+se transferirán a los campos de cantidad del artículo y extenderán el coste si ya se ha introducido
+un coste unitario.
+
+ELIMINACIÓN DE CANTIDADES DE ÁREA Y habitación: para eliminar los registros de cantidad de
+espacio y habitación, querrá trabajar en sentido inverso desde los pasos de entrada. Comience
+seleccionando el registro de área en la sección de áreas OFCI de la pantalla – esta es una
+instrucción Spexx, ¿no se aplica aquí?. Haga clic en el botón Agregar cantidades, si hay tipos de
+habitación / subáreas asociadas con esta área, verá que se enumeran a continuación en la pantalla
+Areas & Room Quantities. En primer lugar, debe eliminar los registros de cantidad de habitación de
+la sección inferior. Para eliminar completamente el registro, seleccione los selectores de registros a
+la izquierda y pulse la tecla Eliminar del teclado. Recibirá un mensaje indicando que está a punto
+de eliminar x registro(s).
+
+Haga clic en Sí para eliminar. Acontinuación, seleccione el registro de cantidad de área situado en
+la sección Superior de áreas OFCI y pulse la tecla Des borrar del teclado para eliminar. El mensaje
+de confirmación aparecerá de nuevo. Haga clic en Sí para eliminar. Continúe eliminando sus
+registros de esta manera hasta que haya resuelto sus cantidades.
+DISCREPANCIAS - Debido a las numerosas formas en que se pueden introducir cantidades en el
+sistema de exxpedita en sus artículos, existe la posibilidad de que se introduzcan discrepancias si se
+intentaron dos métodos de entrada en un elemento – se han proporcionado varios informes de
+discrepancia para ayudar a identificar estas entradas (Informes de elementos de especificación –
+Discrepancias de cantidad de habitación; Discrepancias de cantidad de área; y Discrepancias de
+Cantidad de Artículos). Consulte estos informes y la escritura de "Informede discrepancias de
+artículos de especificación" antes de crear sus presupuestos: si selecciona uno de estos informes para
+ejecutarse y recibe un mensaje que dice "No hay información disponible" para estos informes,
+entonces no debería tener discrepancias.
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+Y: support@lojikdesign.biz
+
+Página - 2 -

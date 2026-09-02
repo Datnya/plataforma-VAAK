@@ -1,0 +1,171 @@
+DOCUMENTO_LOGICO: LEG-03
+TITULO: Exx-DetailingSpecItems-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-DetailingSpecItems-Español.docx
+SHA256_ORIGINAL: 6a11e52bbc98e55a41f2e3bdcd4d37b1f41d602f95851534e1bcc7b10736161c
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Exx-Detalle de sus artículos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Detallar sus artículos de especificaciones
+
+Si está introduciendo manualmente sus Elementos de especificación en la lista Elemento de
+especificación, unfter que ha introducido sus Elementos de especificación, (consulte nuestra
+escritura'Introducción de elementos de especificación'), puede introducir tantos detalles como
+necesite en su registro de especificación. Las siguientes instrucciones le guiarán a través de cómo
+hacerlo.
+
+En la lista de artículos de especificación, abra la pantalla Detalle de elemento de especificación
+haciendo doble clic en la barra selectora de registros en el extremo izquierdo del registro que
+desea detallar.
+
+Selector
+de
+registros
+
+En la pantalla Detalle de posición de especificación, introduzca la información necesaria en los
+campos apropiados.
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Exx-Detalle de sus artículos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Para introducir varias entradas de línea en un campo, puede escribir (copiar/pegar)
+directamente en el campo o utilizar la ventana Zoom con los dos métodos siguientes.
+
+EJEMPLO DEL MÉTODO de zoom - Campo de acabado de color como se muestra en el ejemplo
+anterior. Este método le proporciona una mejor visibilidad al introducir varias líneas de texto.
+Estos son los pasos para este método:
+
+▪ Haga doble clic en el campo y se abrirá la ventana Zoom. O bien, puede hacer clic en el
+campo y hacer clic en la tecla 'Mayús+ F2' en su teclado para abrir la ventana de zoom.
+▪ En la ventana Zoom ingrese sus datos.
+NOTA: Para colocar un retorno duro después de una línea de entrada, es posible que tenga
+que hacer clic en las teclas 'Ctrl +Enter' en su teclado (en lugar de 'Enter').
+▪ Haga clic en Aceptar para cerrar la ventana de zoom y completar la entrada en el campo.
+Nota: Puede copiar y pegar rápidamente texto de las especificaciones que se le han
+proporcionado en los detalles del elemento de especificación.
+
+MÉTODO DE PUNTO Y COMA - Desde el example anterior: Campo Detalle delartículo
+
+NOTA: ESTE MÉTODO SE UTILIZA CUANDO LOS detalles del elemento de especificación se importan
+de un usuario Spexx.
+• Utilice la ventana Zoom, o no, lo que prefiera.
+▪ Al introducir la información de especificación, agregue un punto y coma+espacio (;) para
+crear un retorno duro,donde quiera que se muestre en sus informes.
+
+Escriba - 'Material superior:Ceniza; Detalle del borde: Bordesuavizado; PW-12456'
+Estas entradas se mostrarán como entradas de línea independientes, como se muestra en el
+ejemplo siguiente, en todos los informes que muestran los detalles del elemento de
+
+especificación.
+
+Página - 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=7 tablas_detectadas=0 revision_visual=true]
+Exx-Detalle de sus artículos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+ELEMENTOS DE REFERENCIA COM: si tiene referencias de material que realizar en el elemento de
+
+especificación, utilice el menú desplegable Elementos de referencia COM para vincular los
+materiales/tejidos introducidos anteriormente al elemento de especificación. Utilice la lista
+desplegable para seleccionar su especificación de material, introduzca la ubicación en el artículo
+donde se va a aplicar el material, introduzca la cantidad por artículo y, a continuación, haga clic
+en el signo más verde. Esto agregará su referencia de material al campo Referencia COM/COL
+como se muestra en la captura de pantalla a continuación.
+
+Esta referencia no solo le proporciona informes que ayudan a confirmar las referencias y
+cantidades del tejido, sino que también se utilizarán para crear la referencia de Sidemark al
+crear el pedido de compra. Consulte nuestra escritura sobre 'Trabajarcon referencias de tela'
+para obtener más información.
+CAMPOS DE USUARIO (ADMIN; OPCIONAL) – Los campos de usuario se pueden agregar para expandir
+
+su plantilla de especificación. Esto debe hacerse en el área Sistemas y utilidades de Exxpedite
+por su administrador del sistema . Se pueden agregar hasta 10 campos de usuario por tipo de
+elemento. Consulte nuestra escritura, "Campos de usuario" para obtener más detalles.
+
+ELEMENTOS DE ENVÍO (OPCIONAL): cerca de la parte inferior de la pantalla hay casillas de
+
+verificación para que indique qué elementos de envío, si los hay, desea requerir para su elemento
+de especificación. Compruebe cada elemento que necesite. Estas selecciones no solo se
+mostrarán en su artículo de especificación en la orden de compra, sino que también se vincularán
+a una función de seguimiento e informes para sus artículos de envío.
+
+Página - 3 -
+
+===== PAGINA 4 =====
+[META pagina=4 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Exx-Detalle de sus artículos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+INSTRUCCIONES de elemento de ESPECIFICACIÓN (RECOMENDADO): a la izquierda de los elementos
+
+de envío verá un botón INSTRUCCIONES y un campo que indica el número de instrucciones de
+elemento de especificación que están asociadas con este elemento de especificación. El campo
+estará en blanco si no se han introducido instrucciones. Al hacer clic en el botón INSTRUCCIONES,
+abrirá la pantalla donde puede trabajar con sus Instrucciones de Elemento de Especificación. Las
+instrucciones se pueden copiar/pegar desde su informe de especificaciones digitales.
+NOTA: Las instrucciones se transferirían automáticamente a un elemento de especificación
+
+importado de un usuario Spexx. Para obtener información adicional sobre la configuración y el
+uso de instrucciones, consulte nuestra escritura 'Trabajarcon instrucciones de especificación'.
+MARCA LATERAL: la marca lateral de su artículo de especificación se generará automáticamente al
+crear un pedido de compra para este artículo. Puede modificar la marca lateral aquí o en el
+detalle de su orden de compra una vez que se haya rellenado. Consulte nuestra escritura sobre
+"Trabajarcon marcas laterales" para obtener más información.
+
+ENVIAR A (SPEXX IMPORT ONLY) – Esto habría sido importado de Spexx. Este campo debe
+permanecer en blanco si no se ha traído nada de Spexx.
+TIEMPO ESTIMADO DE ENTREGA: esta información se introduce normalmente al introducir cargos en
+
+el elemento de especificación desde la lista de artículos de especificación, pero también se puede
+ver y modificar aquí. El tiempo de entrega se puede mostrar en su pedido de compra (opción de
+alternancia) y se puede utilizar para la función de programación (necesidad por/pedido por) que
+se encuentra en la pantalla Introducir gastos (consulte "Escriturade cargos de artículo de
+especificación").
+ADJUNTAR IMÁGENES: PUEDE adjuntar hasta 4 imágenes a cada elemento de especificación en
+
+Exxpedite. Consulte nuestra escritura 'Saving Images' para obtener instrucciones sobre cómo
+utilizar imágenes en Exxpedite.
+Nota: La imagen 1st o Primary es la utilizada en la mayoría de los informes que se encuentran en
+Exxpedite como una imagen o una miniatura. Hay algunos informes, como la solicitud de
+presupuesto y el conjunto completo de hojas de cálculo vinculadas a su informe de pedido de
+compra que usarán las cuatro imágenes.
+
+VISUALIZACIÓN E IMPRESIÓN DEL INFORME DE ELEMENTOS DE especificación: si desea ver o imprimir el
+informe de especificaciones desde la pantalla Detalle del elemento de especificación, haga clic
+en el botón ESPECIFICACIÓN CON IMAGEN para ver el informe. Una miniatura de la primera imagen
+adjunta (si está incluida) se mostrará en la página principal.
+Nota: Si desea mostrar un desglose de habitación, un precio (presupuestado) o un precio real,
+active esas casillas de verificación debajo del botón ESPECIFICACIÓN CON IMAGEN.
+
+Si desea ver hojas de corte de página completa para imágenes adjuntas individualmente, haga
+
+clic en el BOTÓN DE HOJA DE CORTE para la imagen que desea ver (Imagen 1, 2, 3 4).
+
+Página - 4 -
+
+===== PAGINA 5 =====
+[META pagina=5 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Exx-Detalle de sus artículos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+
+Y: support@lojikdesign.biz
+
+Página - 5 -

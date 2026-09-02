@@ -1,0 +1,103 @@
+DOCUMENTO_LOGICO: LEG-09
+TITULO: Exx-SpecItemCharges-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-SpecItemCharges-Español.docx
+SHA256_ORIGINAL: d29d8f0712540c4a905fede0f668e27c97b29f540f6a4acc465dfb1fdcb7a7ac
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Cargos por artículos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Ingresar los cargos por artículos de especificación
+
+En el sistema Exxpedite, usted estará detallando sus cargos individuales(es decir, flete,
+impuestos de ventas, etc...) en sus artículos deespecificación. Estos cargos se pueden introducir
+al principio del proceso con la distribución en cada artículo si necesita estos cargos disponibles
+para crear presupuestos completos con sus Costes reales, o si están trabajando con el informe
+Propuesta de artículo y desea incluir estos tipos de cargos en su Propuesta de artículo. De lo
+contrario, también podría esperar hasta que haya asociado sus artículos con una orden de compra
+
+e introduzca los cargos en su registro de pedido de compra: se distribuirán de nuevo a los
+artículos individuales POutilizando el porcentaje especificado en la orden de compra.
+INGRESE CARGOS EN SUS ARTÍCULOS DE ESPECIFICACIÓN
+
+Al introducir su coste unitario real, se le dirigirá automáticamente a la pantalla "Introducir
+cargos", o puede hacer clic en el botón ENTER CHARGES situado a la derecha para abrir esta
+pantalla.
+
+INTRODUCIR gastos: en la pantalla Gastos de artículo se le colocará en el campo % de flete para
+principiantes: si tiene un porcentaje de flete proporcionado por su proveedor O va a llevar un
+porcentaje de flete estimado en los informes de proyecto, puede introducirlo aquí utilizando un
+porcentaje o un importe real en dólares. Introduzca los cargos/porcentajes adicionales que se
+
+Por favor, póngase en contacto con Soporte técnico de Lojik con cualquier consulta o inquietud
+Y: support@lojikdesign.biz Página
+- 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Cargos por artículos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+apliquen a este artículo (embalaje, etc.). Su porcentaje de impuestos debe rellenarse
+automáticamente a partir del porcentaje especificado en la Información del proyecto.
+
+IMPORTE DEL DEPÓSITO PARA LA PROPUESTA DE ARTÍCULO (OPCIONAL): si está creando una propuesta
+de artículo para su cliente, puede introducir el porcentaje de depósito para este artículo de
+especificación y determinar qué información desea incluir en su depósito (marque la casilla de
+verificación "Incl in Client Deposit" para cada requerido). VUELVA de la pantalla "Introducir cargos"
+a su lista de artículos de especificación.
+
+INTRODUCIR TIEMPOS DE ENTREGA - NECESIDAD POR/PEDIDO POR FUNCIÓN (OPCIONAL) - También tiene la
+capacidad de introducir su tiempo de entrega para su artículo y utilizarlo para determinar el
+tiempo requerido en la realización de su pedido.
+
+Comience introduciendo su tiempo de entrega (en semanas) – si tiene una duración de semanas(es
+decir, 2-4) elija lo que le gustaría utilizar como su entrada (es decir, 4 semanas (máx.) o 3
+semanas (medio), etc...). A continuación, puede introducir la fecha en la que necesita el pedido
+entregado en el campo Necesidad por para determinar cuándo debe realizar su pedido (Pedido
+por). Estas fechas se reflejarán en dos informes en la pantalla Informes de artículos de
+especificación: los informes Pedido de artículos por listado y Programación de artículos.
+
+Pedido de artículos por listado
+
+Horario de artículos (12 semanas)
+
+Por favor, póngase en contacto con Soporte técnico de Lojik con cualquier consulta o inquietud
+Y: support@lojikdesign.biz Página
+- 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Cargos por artículos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+INGRESE LOS CARGOS EN SU ORDEN DE COMPRA
+
+También puede esperar para introducir sus cargos completos en su registro de pedido de compra.
+Esto puede ser más fácil de hacer si, por ejemplo, tiene una orden de compra con varios artículos
+y se le ha proporcionado un cargo de flete para todo el pedido. Vaya a la pantalla Detalle de
+pedido para trabajar en los detalles de su pedido de compra. Haga clic en la ficha Costes de
+pedido/Depósito en el registro.
+
+PO Pantalla detallada
+Aquí puede introducir los costes reales que le ha dado su Vendedor, o un porcentaje estimado (o
+el monto en dólares) en sus cargos (Carga, Embalaje, etc.) Si es un coste difícil que desee que se
+muestre en su pedido de compra o incluido en el importe de su depósito, debe indicarlo
+comprobando en consecuencia ('Mostrar PO' o 'Incl en depósito'). El impuesto sobre las ventas se
+calculará a partir del porcentaje introducido en la información del proyecto, pero se puede
+
+modificar si este pedido de compra requiere un porcentaje diferente (esdecir, impuesto de uso).
+Todos los cargos introducidos en el registro de pedido de compra se distribuirán de nuevo a los
+artículos de especificación individuales asociados con el pedido utilizando el porcentaje
+determinado aquí. Estos cargos ahora se reflejarán en todos los informes de costes de pedido, así
+como en los informes de posición de especificación y desviación presupuestaria.
+
+Por favor, póngase en contacto con Soporte técnico de Lojik con cualquier consulta o inquietud
+Y: support@lojikdesign.biz Página
+- 3 -

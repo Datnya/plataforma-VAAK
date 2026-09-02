@@ -1,0 +1,131 @@
+DOCUMENTO_LOGICO: LEG-05
+TITULO: Exx-Manufacturers-Sources-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-Manufacturers-Sources-Español.docx
+SHA256_ORIGINAL: 5f4661ee404a1c6dde7bafba5d08d2ad2fe595f502ac87ff929fd5e5a11f1970
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=6 tablas_detectadas=0 revision_visual=true]
+Trabajar con Fabricantes / Fuentes
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+TRABAJAR CON FABRICANTES/FUENTES
+
+DIRECTORIO DEL FABRICANTE
+
+El directorio del fabricante muestra todos los fabricantes alfabéticamente con números de
+teléfono y contactos. Al hacer clic en un botón de letra en la parte superior se filtrará la lista.
+Puede hacer doble clic en el cuadro selector de registros situado a la izquierda del registro para
+ver/editar la información detallada de un fabricante específico. Para añadir un nuevo
+fabricante, haga clic en el botón Agregar nuevo situado en la parte superior de la pantalla para
+abrir una pantalla de entrada de detalles en blanco.
+
+Pantalla de detalles del fabricante
+
+Detalles del fabricante: introduzca los detalles del fabricante en la pantalla Detalles del
+fabricante. Pase por los campos para rellenar su información. Los nuevos fabricantes se
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=4 tablas_detectadas=0 revision_visual=true]
+Trabajar con Fabricantes / Fuentes
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+establecen automáticamente en "Activo". Si elimina la comprobación "Activa" de un fabricante,
+ya no aparecerá en la lista desplegable de las pantallas Listado de elementos de especificación y
+Detalle de especificación. Si el fabricante se encuentra internacionalmente o tiene una
+preferencia en el formato, utilice la casilla internacional (Int'l) para eliminar el formato de
+entrada del teléfono para permitir que se introduzcan números de teléfono internacionales.
+
+Referencia de origen: en la parte inferior de la pantalla de la sección "Orígenes utilizados",
+verá las fuentes o los representantes de ventas locales que se hayan utilizado en cualquier
+elemento de especificación emparejado con este fabricante.
+Copiar en origen: si el fabricante se representa a sí mismo o trabaja directamente con ellos, la
+información del fabricante (una vez rellenada) se puede copiar automáticamente para crear un
+registro de origen haciendo clic en el botón "Copiar a origen" situado a la derecha de la
+dirección.
+**Precaución: Por favor, tenga MUCHO CUIDADO para evitar la introducción de
+duplicados de los fabricantes. El sistema no distingue entre las diferentes ortografías de un
+fabricante. Si no está seguro de si ya existe un fabricante, utilice el filtro Buscar fabricante
+situado en la parte superior de la pantalla para ver si ya aparece antes de introducir un
+nuevo fabricante. Una vez que un fabricante ha sido creado y vinculado a las
+especificaciones, se hace muy difícil eliminar el registro (consulte la escritura de
+"Fabricante - Limpieza de origen").
+
+Biblioteca del fabricante: la lista Biblioteca del fabricante para este fabricante también se
+muestra aquí. A medida que se introducen posiciones de especificación utilizando este
+fabricante para un tipo de artículo específico, se creará un registro. Las referencias adicionales
+a otros tipos de artículo se pueden introducir manualmente (por ejemplo, si un fabricante
+proporciona accesorios ART y AC). Los comentarios o detalles de la entrada de biblioteca, como
+el tipo de producto disponible, se pueden agregar directamente aquí o mediante la pantalla
+Biblioteca del fabricante.
+SOURCES
+
+DIRECTORIO DE ORIGEN
+El Directorio de origen muestra todas las fuentes alfabéticamente con números de teléfono y
+contactos. Al hacer clic en un botón de letra en la parte superior se filtrará la lista. Puede
+hacer doble clic en el cuadro selector de registros situado a la izquierda del registro para
+ver/editar la información detallada de un origen específico. Para agregar una nueva fuente,
+haga clic en el botón Agregar nuevo situado en la parte superior de la pantalla para abrir una
+pantalla de entrada de detalles de origen en blanco.
+
+Página - 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Trabajar con Fabricantes / Fuentes
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+NOTA: Consulte la escritura en Introducción de elementos de especificación para
+obtener más detalles sobre cómo agregar registros de fabricante/fuente "sobre la marcha" a
+medida que introduce sus elementos de especificación.
+
+Detalles de la fuente
+
+DETALLES DE LA FUENTE
+Introduzca los detalles de su origen en la pantalla Detalles de origen. Pase por los campos para
+rellenar su información. Si la Fuente se encuentra internacionalmente o tiene una preferencia,
+utilice la casilla Internacional para eliminar el formato de entrada de teléfono para permitir que
+se introduzcan números de teléfono internacionales.
+
+REFERENCIA DE LOS FABRICANTES UTILIZADOS - En la parte inferior de la pantalla en la sección
+"Fabricantes utilizados", verá a los fabricantes que se han utilizado en cualquier artículo de
+especificación emparejado con este Source.
+
+LISTADO DE LA BIBLIOTECA DEL FABRICANTE
+
+Página - 3 -
+
+===== PAGINA 4 =====
+[META pagina=4 imagenes=4 tablas_detectadas=0 revision_visual=true]
+Trabajar con Fabricantes / Fuentes
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+La función Biblioteca del fabricante permite al usuariobuscar e imprimir fabricantes
+asociados con un tipo de artículo o a través de una búsqueda de palabras clave.
+Cualquier detalle o comentario sobre el fabricante se mostrará aquí junto con la información de
+contacto básica. También se muestra un enlace directo al sitio web del fabricante y está activo
+si está disponible.
+
+Los registros se introducirán automáticamente como un fabricante se especifica para un tipo de
+artículo determinado, pero también se pueden agregar referencias adicionales manualmente.
+Para buscar por palabra clave, introduzca sus palabras en el cuadro de búsqueda de palabras
+clave y haga clic en el botón Ir a la derecha de las palabras de búsqueda. Esto filtrará su lista
+usando las palabras clave. El filtro es una búsqueda básica y puede buscar palabras o frases
+exactas que se encuentran solo en la sección Detalles.
+Si desea imprimir los resultados de su búsqueda aquí, puede hacer clic en el botón Imprimir
+situado en la parte superior de la pantalla para obtener una vista previa de su informe.
+
+Informe de la biblioteca del fabricante
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+Y: support@lojikdesign.biz
+
+Página - 4 -

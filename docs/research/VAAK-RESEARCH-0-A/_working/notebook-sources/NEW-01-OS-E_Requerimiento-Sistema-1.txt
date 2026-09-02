@@ -1,0 +1,221 @@
+DOCUMENTO_LOGICO: NEW-01
+TITULO: OS&E_Requerimiento Sistema (1)
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\OS&E_Requerimiento Sistema (1).pdf
+SHA256_ORIGINAL: 6aafc9084660910b02da6874ee4ec62c345979e812dffe8329ec7bbc0e168af0
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=0 tablas_detectadas=0 revision_visual=false]
+1. Ingreso de SPEC
+• Importar SPEC desde Excel.
+
+• Mantener las columnas del Excel y permitir mapearlas al sistema.
+
+• Código de proyecto.
+
+• Código de SPEC.
+• Código de ítem.
+
+• Descripción.
+
+• Área
+• Cantidad.
+
+• Unidad de medida.
+
+• Marca / modelo / referencia.
+
+• Estatus del ítem.
+• Posibilidad de actualizar/importar nuevamente un Excel sin duplicar los ítems.
+
+2. Orden de compra
+
+Cada OC debería estar relacionada automáticamente con los ítems de la SPEC.
+
+• Número de OC.
+• Proyecto.
+
+• Proveedor.
+
+• Fecha de creación.
+
+• Fecha requerida de entrega.
+• Código del ítem.
+
+• Descripción.
+
+• Cantidad solicitada.
+• Precio unitario.
+
+• Importe.
+
+• Moneda.
+
+• Impuestos.
+• Total.
+
+• Cantidad recibida.
+
+• Cantidad pendiente.
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=0 tablas_detectadas=0 revision_visual=false]
+Que permita modificar una OC dejando un historial de quién hizo el cambio, qué cambió y
+cuándo.
+3. Facturación
+
+Por cada OC/ítem:
+
+OC → Factura → Pago
+
+Que permita registrar:
+• Número de factura.
+
+• Fecha de factura.
+
+• Proveedor.
+
+• OC relacionada.
+• Código del ítem.
+
+• Monto facturado.
+
+• Impuestos.
+
+• Moneda.
+• Factura pagada / pendiente.
+
+• Fecha de pago.
+
+• Número de comprobante de pago.
+• Notas de crédito.
+
+• Saldo pendiente.
+
+También debería permitir varias facturas para una misma OC y mostrar cuánto de la OC ya
+fue facturado.
+
+4. Recepción / entregas
+Para tu operación esto es fundamental:
+
+• Fecha prometida.
+
+• Fecha real de entrega.
+
+• Cantidad solicitada.
+• Cantidad entregada.
+
+• Cantidad pendiente.
+
+• Entrega parcial.
+
+• Entrega completa.
+• Lugar de entrega.
+
+• Número de guía / embarque.
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=0 tablas_detectadas=0 revision_visual=false]
+• Proveedor.
+• Estatus logístico.
+
+5. Dashboard del proyecto
+
+Yo pediría un tablero donde puedas ver:
+
+Indicador Necesidad
+
+SPEC total Cantidad de ítems
+
+SPEC comprado Ítems con OC
+
+Pendiente de compra Ítems sin OC
+
+En cotización Ítems en proceso
+
+OC emitidas Número y monto
+OC pendientes Número y monto
+
+Facturado Monto
+
+Pagado Monto
+
+Pendiente de pago Monto
+
+Entregado Cantidad / %
+
+Pendiente de entrega Cantidad / %
+
+Presupuesto Original vs comprometido vs gastado
+
+Ahorro Presupuesto vs compra
+
+En lugar de tener un reporte para OC, otro para facturas y otro para pagos, seria:
+
+REPORTE DE MOVIMIENTO DE COMPRAS
+Que permita filtrar por:
+
+Proyecto → OC → Proveedor → Código → Descripción
+
+Y en una sola línea poder ver algo como:
+P162-0005 | 00125 | Vasos de agua | 600 pzas | USD 5.00 | USD 3,000 | Factura XXX | USD
+
+3,000 | Pagado | Entregado
+Poder seguir todo el ciclo del ítem sin tener que entrar a diferentes módulos.
+
+6. Historial y trazabilidad
+
+Esto también lo pondría como requisito obligatorio:
+
+===== PAGINA 4 =====
+[META pagina=4 imagenes=0 tablas_detectadas=0 revision_visual=false]
+• Quién creó la OC.
+• Quién la modificó.
+
+• Qué modificó.
+
+• Fecha y hora.
+
+• Precio anterior vs nuevo precio.
+• Cantidad anterior vs nueva.
+
+• Proveedor anterior vs nuevo.
+
+• Historial de facturas.
+• Historial de pagos.
+
+• Historial de entregas.
+
+7. Exportación a Excel
+
+Todo reporte debería poder exportarse a Excel, especialmente:
+• SPEC.
+
+• OC.
+
+• Facturación.
+
+• Pagos.
+• Entregas.
+
+• Presupuesto.
+
+• Reporte maestro.
+8. Alertas
+
+El sistema debería avisarte automáticamente cuando:
+
+• Una OC está pendiente de aprobación.
+
+• Una OC está próxima a vencer.
+• Una entrega está atrasada.
+
+• Falta facturar una OC.
+
+• Hay factura pendiente de pago.
+
+• Hay diferencia entre OC y factura.
+• Hay diferencia entre cantidad comprada y recibida.
+
+• El presupuesto está por excederse.

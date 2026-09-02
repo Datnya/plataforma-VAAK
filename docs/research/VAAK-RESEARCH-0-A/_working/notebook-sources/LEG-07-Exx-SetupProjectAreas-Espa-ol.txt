@@ -1,0 +1,289 @@
+DOCUMENTO_LOGICO: LEG-07
+TITULO: Exx-SetupProjectAreas-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-SetupProjectAreas-Español.docx
+SHA256_ORIGINAL: c609ff2039c4b7e424df26a2d0ab19c8fe22493c4918d77bfc12ed422347a9ba
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=1 tablas_detectadas=0 revision_visual=true]
+Configuración de las áreas de proyecto y los tipos de
+habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Configuración de su proyecto mediante áreas y tipos de habitación
+
+Al configurar un proyecto en Exxpedite: lo más probable es que siga el área de proyectos de las
+especificaciones de diseño. Si no va a importar un proyecto desde un servicio Spexx U,introducirá
+manualmente las áreas en el proyecto. Al entrar en las áreas, considere la posibilidad de crear áreas
+que no sean necesariamente "específicas de la ubicación". Por ejemplo, unarea(agrupación) para
+el stock ático (ATT), o suministros operativos (OSE) o tarifas de carga e instalación (FRT).
+Configurarlos como áreas le permitirá agrupar estos tipos de artículos para presupuestar e informar
+con sus artículos de especificaciones. Here son algunos ejemplos de métodos que se pueden utilizar
+
+al configurar las áreas de proyecto. Lo más probable es que sus diseñadores ya hayan decidido qué
+método están utilizando.
+ESPECIFICACIONES POR ÁREA
+
+El usode este método funciona bien cuando:
+• Tieneu nique artículos en cada área de su proyecto (áreas públicas en un hotel o
+habitaciones únicas en un restaurante o proyecto residencial)
+• Debe generar presupuestos individuales o informes para cada área de su proyecto
+ESPECIFICACIONES POR ÁREA Y TIPO DE HABITACIÓN/SUBÁREA
+
+El usode este método funciona bien cuando:
+• Tiene artículos únicos en la mayoría de las áreas, pero ciertas áreas como las habitaciones
+de un hotel o las oficinas típicas en un acabado de inquilinos tendrán artículos idénticos
+utilizados una y otra vez (se repiten configuraciones de habitación idénticas)
+• Se necesita unan FF&E Quantity Matrix de mobiliario típico con cantidades totales para
+cada artículo y un desglose de qué tipo de habitación o subárea el mobiliario irá en el
+proyecto.
+• Debe generar un presupuesto que totalice el costo de todas las habitaciones en un área(es
+decir, unall Habitaciones, todas las oficinas típicas) y le da un desglose del costo por tipo
+de habitación (esdecir, costo por cama king o doble o costo por oficina tipo A)
+ESPECIFICACIONES CON MÚLTIPLES ÁREAS (OFCI)
+El uso de este método funciona bien cuando:
+• Tendrá elementos idénticos utilizados repetidamente en las diferentes Areas de su
+project – por ejemplo, carpet para ser utilizado en más de un área del proyecto -
+(también se puede utilizarcon proyectos multi-unit )
+• Debe generar un presupuesto que totalice el costo de todas las áreas y que necesite un
+desglose del costo por configuración única de la habitación.
+• Es posible que desee introducir Artículos de mobiliario como OFCI si los artículos se van a
+utilizar varias veces en diferentes áreas y/o subáreas (por ejemplo, un proyecto de varias
+unidades o de varios edificios que comparte mobiliario).
+CONFIGURACIÓN DE LAS ÁREAS DE PROYECTO
+
+Si las áreas de proyecto no se importan y configuran con la transferencia desde un usuario spexx,
+puede configurar las áreas de proyecto manualmente. Para configurar las áreas de proyecto vaya al
+menú principal, haga clic para abrir la pantalla Información del proyecto (púrpura). Vaya a la
+pestaña Areas/Room Types (Zonas/Tipos de habitación). Aquí enumerará todas las áreas y tipos de
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Configuración de las áreas de proyecto y los tipos de
+habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+habitación / subáreas para su proyecto. Haga clic en el campo Area en la primera fila de la sección
+Áreas de proyecto de la pantalla para comenzar.
+
+Información del proyecto – Áreas/Tipos de habitación
+
+• Introduzca el ID de área, que normalmente es un código de 3 a 6 caracteres que se utiliza
+para identificar rápidamente su área en sus listas desplegables e informes (es decir, LOB).
+Esto puede ser cualquier combinación de letras y números que necesite. Recuerde que este
+ID de área puede formar parte de su número de artículo completo, por lo que debe mantener
+esto lo más abreviado posible.
+• A continuación, escriba el nombre del área para describir el área con más detalle. La
+cantidad de habitaciones en un área se establecerá por defecto en 1 – esto cambiará si se
+introducen cualquier tipo de habitación o subáreas asociadas con su área. Este número NO se
+utiliza en los cálculos de los artículos.
+
+• Seleccione siempre P-Public/G-Guest ya que es necesario para el filtrado de informes y la
+agrupación de sus áreas.
+• Puede introducir un orden de clasificación para el orden en el que desea que sus áreas se
+organicen en sus informes de índice/presupuesto. El orden de clasificación es alfanumérico
+para que pueda insertar según sea necesario (02, 03, 03a, 04...).
+• Puede agregar encabezados de área como una agrupación de nivel superior adicional para
+estos informes (consulte la hoja de preguntas frecuentes "Encabezados de área de proyecto"
+para obtener más detalles sobre el uso de encabezados de área.)
+
+Configure todas las áreas utilizadas por Designer y las que necesite, como OSE o ATT.
+
+Página - 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=3 tablas_detectadas=2 revision_visual=true]
+Configuración de las áreas de proyecto y los tipos de
+habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+ESPECIFICACIONES POR ÁREA
+
+Zonas de proyecto
+EJEMPLOS DE PROYECTOS
+
+HOTEL – ESPACIOS PÚBLICOS CLUB
+
+Área Nombre del área Área Nombre del área
+Alabanza Vestíbulo principal Club Club
+
+Nada Restaurante Grl Sports Grill
+PRE Prefunción Alabanza Vestíbulo de la casa club
+
+Bola Salón
+
+PROYECTO RETAIL PROYECTO RESIDENCIAL
+
+Área Nombre del área Área Nombre del área
+DP1 Departamento 1 Lvr Salón
+
+DP2 Departamento 2 Ktc Cocina
+Pc Stock Room Mbr Dormitorio principal
+
+OFF Oficina Gbr Dormitorio de invitados
+
+Tenga en cuenta que también puede utilizar números para las áreas si lo desea. Porejemplo, el área
+10 podría ser el vestíbulo, el área 20 el restaurante y el área 30 la prefunción.
+Una vez que haya configurado sus áreas, estará listo para ir a la lista de elementos de especificación
+para comenzar a introducir sus artículos. Asociará los elementos directamente a las áreas que ha
+configurado en su proyecto.
+
+Página - 3 -
+
+===== PAGINA 4 =====
+[META pagina=4 imagenes=5 tablas_detectadas=1 revision_visual=true]
+Configuración de las áreas de proyecto y los tipos de
+habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Cuando haya enumerado todos los elementos de especificación para el proyecto y los haya vinculado
+
+a las distintas áreas, puede generar los muchos informes de presupuesto e índice disponibles. La
+mayoría de los informes se pueden filtrar para incluir solo los elementos asociados a un área única
+en el proyecto.
+ESPECIFICACIONES POR ÁREA Y TIPO DE HABITACIÓN/SUBÁREA
+
+Zonas de proyecto con tipos de habitación/subáreas
+Para agregar tipos de habitación/subáreas a las áreas de proyecto: haga clic en la fila del área en la
+que necesita agregar la rupturay, acontinuación, en la sección Tipos de habitación/subáreas de la
+pantalla, introduzca los registros. Escriba un tipo corto (3-6 caracteres) y una breve descripción del
+tipo de habitación o subárea. A continuación, introduzca la cantidad de habitaciones para esa
+configuración de habitación. La cantidad total de habitaciones también se ajustará en la sección
+Area de la pantalla.
+
+EJEMPLOS DE PROYECTOS
+
+PROYECTO HOTELERO
+
+Área Nombre del área Tipos de habitación/Subáreas
+Alabanza Vestíbulo principal Ninguno
+
+Mtg Salas de reuniones (tipos de MTG1 – Reunión Rm 1; MTG2 – Reunión Rm2
+habitación)
+
+Página - 4 -
+
+===== PAGINA 5 =====
+[META pagina=5 imagenes=3 tablas_detectadas=2 revision_visual=true]
+Configuración de las áreas de proyecto y los tipos de
+habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Gst Habitaciones (con tipos de D - Doble; K- Rey; KA - King Accesible
+habitación)
+Ste Suites (con tipos de suite) NS - North Suite; WS - West Suite
+
+PROYECTO DE OFICINA
+Área Nombre del área Tipos de habitación/Subáreas
+
+Ofc Oficinas OF_A - Oficina Tipo A; OF_B - Oficina Tipo B
+Alabanza Vestíbulo Ninguno
+
+Laboratorio Zonas de laboratorio Lab Tipo 1; Lab Tipo 2
+Una vez que haya configurado áreas y tipos de habitación/subáreas, estará listo para ir a la lista de
+
+artículos de especificación para comenzar a introducir artículos para su presupuesto y
+especificaciones. Asociará los elementos directamente a las áreas que ha configurado en su
+proyecto. Para las especificaciones asociadas con las áreas que tienen tipos de habitación/subáreas,
+cuantificará los artículos agregando cantidades de habitación para sus artículos. (Consulte 'Adición de
+cantidades de habitación' (FURN) y 'Adición de cantidades de área' (OFCI) por motivos para obtener
+más información sobre cómo añadir cantidades con tipos de habitación.)
+
+Introducir cantidades de habitación en sus artículos de especificación
+Cuando haya enumerado todos los elementos del proyecto y los haya vinculado a las distintas áreas,
+puede generar los muchos informes de presupuesto e índice. La mayoría de los informes se pueden
+filtrar para incluir solo los elementos asociados a un área única en el proyecto. Para aquellas
+especificaciones cuantificadas en tipos de habitación/subáreas, puede crear informes como
+
+Presupuesto por tipo de habitación o Presupuesto con cantidades de habitación o generar una
+matriz de cantidades FF&E. El desglose tipo de habitación/subárea también se puede mostrar en su
+orden de compra.
+
+Página - 5 -
+
+===== PAGINA 6 =====
+[META pagina=6 imagenes=5 tablas_detectadas=1 revision_visual=true]
+Configuración de las áreas de proyecto y los tipos de
+habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Matriz de cantidad FF&E
+
+Pedido de compra que muestra las cantidades de tipo de habitación
+
+NOTA: Si va a importar un proyecto desde un usuario Spexx: es posible que ya se hayan
+comprometido a utilizarcantidades de tipo de habitación/subárea en sus artículos, querrá
+aprovechar la función Copiar coste/cantidad para sus cantidades al importar el proyecto, ya que
+esto transferirá la ruptura de cantidades a sus cantidades reales. Se le pedirá que continúe
+trabajando con esta ruptura. Si está configurando un proyecto manualmente, considere si
+necesita esta ruptura en las cantidades de artículos de especificación para informes, etc. , o si
+solo desea trabajar con cantidades totales para compras.
+
+ESPECIFICACIONES CON MÚLTIPLES ÁREAS (OFCI)
+Si está trabajando con un proyecto Spexx, los elementos OFCI se introducirán utilizando este método.
+Se puede introducir un elemento de especificación y asociarse con varias áreas, como alfombras en
+las habitaciones y el pasillo. Utilizará el método Cantidades de área para introducir sus cantidades y
+
+asociar sus áreas en estos artículos. Los proyectos multi-unidad también se pueden introducir de esta
+manera en una transferencia Spexx.
+EJEMPLOS DE PROYECTOS
+
+PROYECTO MULTI-UNIDAD
+Área Nombre del área Tipos de habitación/Subáreas
+
+Página - 6 -
+
+===== PAGINA 7 =====
+[META pagina=7 imagenes=3 tablas_detectadas=2 revision_visual=true]
+Configuración de las áreas de proyecto y los tipos de
+habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Alabanza Zona del lobby B1_L-Bldg 1 Lobby; B2_L–Bldg 2 Lobby;...
+Mtg Salas B1_M–Bldg 1 Mtg Rm; B2_M–Bldg 2 Mtg Rm
+
+Rma Sala A B1_A- Bldg 1 Rm A; B2_A- Bldg 2 Rm A;...
+
+PROYECTO TIME-SHARE
+
+Área Nombre del área Tipos de habitación/Subáreas
+U1 Unidad 1 LR1 – Living Rm; MB1 – Master Bdrm; K1 – Cocina
+
+U2 Unidad 2 LR2 – Living Rm; MB2 – Master Bdrm; K2 – Cocina
+U3 Unidad 3 LR3 – Living Rm; MB3 – Master Bdrm; K3 – Cocina
+
+Pantalla De cantidades de área
+Sus especificaciones se cuantificarán individualmente en las diferentes áreas asociadas a ellas para
+informar por área o tipo de habitación. Este método eliminaría tener que crear registros de
+elementos de especificación duplicados para los elementos que se usan en varias áreas/edificios en
+el proyecto.
+
+NOTA: Tenga cuidado de no cambiar su método de cuantificación si tiene un proyecto que se ha
+importado desde un usuario Spexx, ya que esto puede causar discrepancias en sus cantidades con el
+uso de varios métodos y puede causar problemas con sus cantidades siendo precisa en los informes.
+(Consulte las escrituras en los informes de discrepancia para obtener más detalles.)
+
+Página - 7 -
+
+===== PAGINA 8 =====
+[META pagina=8 imagenes=1 tablas_detectadas=0 revision_visual=true]
+Configuración de las áreas de proyecto y los tipos de
+habitación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+Y: support@lojikdesign.biz
+
+Página - 8 -

@@ -1,0 +1,159 @@
+DOCUMENTO_LOGICO: LEG-08
+TITULO: Exx-SpecInstructions-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-SpecInstructions-Español.docx
+SHA256_ORIGINAL: 87d381f92e74180d7f51c67f5b2f8f860809f136b2b0274d475db22dae971892
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Instrucciones de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Instrucciones para especificaciones
+
+Exxpedite Design Purchasing System proporciona una plantilla de relleno en blanco para cada tipo
+de elemento especificado, pero a menudo hay notas o detalles adicionales que desea agregar.
+Estas notas adicionales se pueden incluir en las instrucciones del artículo de especificación. Esta
+escritura le mostrará cómo trabajar con las instrucciones de especificación.
+
+Exxpedite le permite crear una 'Lista maestra' de instrucciones por tipo de elemento para que
+cada vez que se especifique un tem Type determinado, estas instrucciones se extraerán
+enlapecificación Sy se asociarán con then Item Type. Para crear su Lista Maestra – vaya al Menú
+Utilidades desde la sección Referencia Púrpura del Menú Principal. También revisaremos cómo
+agregar estas instrucciones 'sobre la marcha' a continuación.
+
+Haga clic en Maestro de instrucciones para abrir la pantalla Instrucciones de especificación.
+Scroll en la parte inferior de la lista para introducir un nuevo registro (fila en blanco marcada con
+un '*'). Seleccione un Tipo de elemento en la lista desplegable de la izquierda e introduzca las
+instrucciones que desea asociar a este tipo de elemento. A medida quese introducen por primera
+vez nuevos elementos de especificación,de este tipo, estas instrucciones se extraerán y se
+asociarán con el tipo de elemento.
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Instrucciones de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Lista de instrucciones maestras
+Nota: Instrucciones para sus tipos de artículos de tela (cualquier artículo con un subtipo de 'F',es
+decir, tela de tapicería, tela de tratamiento de ventanas, tela de ropa de cama, etc. ) se han
+combinado con el tipo de posición «F». Estos se incluirán en cualquier elemento de tejido que
+cree o con el que trabaje en Exxpedite.
+
+ORDEN DE INSTRUCCIONES
+De forma predeterminada, las instrucciones aparecerán con viñetas en la parte inferior de la hoja
+de especificaciones en el orden en que se introdujeron. Si desea que estén numerados, puede
+seleccionar la opción "Numerado" en el formulario Diseño deinforme, o puede optar por no tener
+viñetas ni números marcando la opción "Borrar".
+
+También puede hacer que las instrucciones aparezcan en un orden diferente al introducido
+originalmente. Al crear el conjunto maestro de instrucciones, puede introducir un criterio de
+ordenación (alfanumérico, es decir, 01, 02, 02a, 03) en la columna Orden (consulte la captura de
+pantalla anterior). A continuación, sus instrucciones se incorporarán al elemento de
+especificación en este orden y se mostrarán en los informes en este orden. Usted tendrá la
+oportunidad de reoficiales las nstructiones Io insertar nuevas nstructiones Ien las Instrucciones
+asociadas con tems individuales De especificación I.
+
+Página - 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Instrucciones de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+CONFIGURACIÓN DEL PROYECTO
+
+Puede crear instrucciones que solo se atarán al proyecto en el que está trabajando. Mientras se
+encuentra en la lista Instrucciones de especificaciones maestras, seleccione el tipo de artículo al
+que desea agregar una instrucción específica del proyecto. Scroll en la parte inferior de la lista
+de instrucciones para introducir un nuevo registro (fila en blanco marcada con un '*'). A
+continuación,en la lista desplegable Proyecto, seleccione el proyecto para el que desea que esté
+disponible la instrucción. La nueva Instrucción solo estará disponible para su uso con elementos
+de especificación en ese proyecto. Continúe agregando instrucciones específicas del proyecto
+según sea necesario.
+
+ADICIÓN DE INSTRUCCIONES A SUS ELEMENTOS DE ESPECIFICACIÓN
+Después de introducir el artículo en la lista de artículos de especificación, compruebe que ha
+asignado unn Tipo de artículo al artículo antes de hacer doble clic en la pantalla Detalle de
+
+artículo de especificación.
+
+Página - 3 -
+
+===== PAGINA 4 =====
+[META pagina=4 imagenes=4 tablas_detectadas=0 revision_visual=true]
+Instrucciones de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Notarás el botón Instrucciones en la parte inferior izquierda de la pantalla : el número en el
+cuadro amarillo a la derecha de este botón indicará cuántas instrucciones ya se han asociado con
+tu artículo. La primera vez que se haga clic en el botón INSTRUCCIONES, el conjunto de
+
+instrucciones se 'tirará' de la lista maestra. A continuación, puede editar, eliminar o agregar las
+instrucciones que necesite para este elemento. Nota: Debe hacer clic en el botón INSTRUCCIONES
+al menos una vez para extraer las instrucciones maestras.
+
+Las casillas de columna Purch , si está activada, indican que la instrucción debe mostrarse en la
+orden de compra. Si necesita mostrar todas las instrucciones, puede hacer clic en la casilla de
+verificación "Marcar todo" situada encima de la columna de compra,o puede
+comprobarindividualmente las que desea que se muestren en su orden de compra. La orden sort
+will pull in from the MasterList settings and also be can be set in the individual spec instruction
+list.
+
+ADICIÓN DE INSTRUCCIONES
+Para agregar una Instrucción a su especificación individual, scroll a la parte inferior de la lista de
+instrucciones para introducir un nuevo registro en la fila en blanco con un '*' junto a él. Si la
+nueva instrucción es candidata para la Lista maestra para este tipo de elemento, puede agregarla
+a la lista "sobre la marcha" haciendo clic en el botón "Añadir a la lista maestra" al final de la fila.
+Nota: Por favor, utilice este botón con precaución!!
+
+Si no está seguro de si una instrucción ya aparece en la lista maestra, puede utilizar la lista
+desplegable de instrucciones para ver todas las instrucciones asociadas a este tipo de elemento.
+Cualquier instrucción que no se agregue a la lista maestra se asociará SOLAMENTE con el
+elemento actual.
+
+Página - 4 -
+
+===== PAGINA 5 =====
+[META pagina=5 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Instrucciones de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Las instrucciones también se pueden trabajar directamente desde la lista de elementos de
+especificación haciendo clic en el botón de notas en el extremo derecho del registro y abriendo la
+lista de instrucciones.
+
+¡LAS INSTRUCCIONES NO SON UN ENLACE EN VIVO!
+Tenga en cuenta que cuando abre las instrucciones de un elemento de especificación individual,
+'tira' las instrucciones de la lista maestra en ese momento y las asocia con el registro específico.
+Si más adelante se realizan cambios en las instrucciones de la Lista maestra, las instrucciones
+asociadas con los elementos no se actualizarán automáticamente. Si las instrucciones se han
+asociado con sus elementos y luego han encontrado el error, tendrá que abrir las instrucciones de
+cada detalle de especificación para realizar la corrección volviendo a seleccionar la instrucción.
+
+Si ha extraído el conjunto incorrecto de instrucciones para un elemento (es decir, el tipo de
+elemento incorrecto se seleccionó originalmente) o desea reemplazar su lista con el conjunto de
+la Lista maestra, puede reemplazar rápidamente el conjunto abriendo rápidamente la pantalla
+Instrucciones, seleccionando los registros y eliminando todas las instrucciones, cierre la ventana
+Instrucciones y haga clic en el botón Instrucciones para volver a abrir y 'tirar' del conjunto
+correcto de la Lista maestra.
+INSTRUCCIONES MANTENIMIENTO
+
+Con la capacidad de agregar instrucciones a la lista maestra fácilmente, también es fácil crear
+duplicados, palabras mal escritas o cometer errores en sus entradas. Es una buena idea imprimir
+periódicamente la lista maestra de instrucciones desde la pantalla Informes de referencia, y
+revisar y editar sus instrucciones.
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+Y: support@lojikdesign.biz
+
+Página - 5 -

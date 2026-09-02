@@ -1,0 +1,14 @@
+{
+  "/_global-error/page": "/_global-error",
+  "/_not-found/page": "/_not-found",
+  "/api/auth/login/route": "/api/auth/login",
+  "/api/auth/logout/route": "/api/auth/logout",
+  "/api/auth/session/route": "/api/auth/session",
+  "/api/health/route": "/api/health",
+  "/api/storage/sign/route": "/api/storage/sign",
+  "/api/tracking/[token]/route": "/api/tracking/[token]",
+  "/herramientas/page": "/herramientas",
+  "/login/page": "/login",
+  "/page": "/",
+  "/proyectos/[id]/page": "/proyectos/[id]"
+}

@@ -1,0 +1,13 @@
+{
+  "release_id": "vaak-staging-YYYYMMDD-NNN",
+  "vercel_preview_url": "pending",
+  "frontend_revision": "pending-build-sha256",
+  "bff_revision": "pending-build-sha256",
+  "schema_revision": "202608280001_staging_foundation",
+  "rls_revision": "202608280001_staging_foundation",
+  "seed_revision": "20260828-demo-v1",
+  "object_ledger_digest": "pending",
+  "storage_export_digest": "pending",
+  "rollback_target": null,
+  "teardown_guard": "human-approval-required"
+}

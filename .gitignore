@@ -1,0 +1,21 @@
+# Secrets and machine-local configuration
+.env
+.env.*
+!.env.example
+**/.env
+**/.env.*
+!**/.env.example
+
+# Generated dependencies and build artefacts
+node_modules/
+**/node_modules/
+.next/
+**/.next/
+out/
+dist/
+coverage/
+
+# Operating-system and editor files
+.DS_Store
+Thumbs.db
+*.log

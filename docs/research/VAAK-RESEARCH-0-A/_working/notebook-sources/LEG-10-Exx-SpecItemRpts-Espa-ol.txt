@@ -1,0 +1,109 @@
+DOCUMENTO_LOGICO: LEG-10
+TITULO: Exx-SpecItemRpts-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-SpecItemRpts-Español.docx
+SHA256_ORIGINAL: dea8b0b18928b91745943c3903b3bd07f45ca614aec0f50a71aa29fb5fa6fc2e
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=6 tablas_detectadas=0 revision_visual=true]
+Exx-Informes de elementos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Reportes de especificación
+
+Exxpedite le da la oportunidad de generar muchos informes de elementos de especificación
+diferentes, utilizando los datos que ha introducido para su proyecto. Esta escritura cubrirá cómo
+
+puede crear y utilizar estos informes durante su proceso de compra.
+
+FILTRADO DE INFORMES DE ELEMENTOS DE ESPECIFICACIÓN:
+Antes de crear los informes de elementos de especificación, seleccione siempre los criterios de
+filtrado en la segunda columna de la izquierda de la pantalla Informes de elementos de
+especificación. Los informes se pueden filtrar por los siguientes criterios: Proyecto, área, Tipo
+de elemento, Tipo de especificación, área Pública/invitado, Elementos marcados. Algunos
+informes se pueden filtrar por tipo de habitación y estado.
+
+A la derecha de la función Marcado, se proporciona un botón de navegación para permitirle
+navegar directamente al Listado de elementos de especificación para marcar elementos para
+sus informes. Haga clic en el botón Ir a para abrir la Lista de elementos de especificación.
+Haga clic el botón Borrar banderas antes de comenzar, para borrar cualquier elemento
+marcado previamente. Desde allí, puede ordenar o filtrar los elementos que desea marcar y
+hacer clic en el botón "Marcar todo" de Rpt que marcará todos los elementos
+seleccionados. Los elementos "Flagging" le ofrecen la mayor flexibilidad para crear informes
+útiles.
+Si desea restablecer los criterios de filtrado en la pantalla Informes de elementos de
+especificación,haga clic en elbotón BORRAR CRITERIOS para borrar todos los filtros.
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Exx-Informes de elementos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+INFORMES DE ELEMENTOS DE ESPECIFICACIÓN:
+
+Los informes de los elementos de especificación se dividen en cuatro secciones: informes
+presupuestarios; Informes de índice; Informes de Estado y Discrepancia; e Informes de clientes
+y marcas (solo proyectos de marcado).
+Informes de presupuesto: la sección Informes presupuestarios contiene informes que
+reflejarán automáticamente el coste/cantidad del presupuesto en ellos. Hay muchos
+conmutadores ubicados debajo de estos informes que se pueden utilizar para modificar la
+información proporcionada. Los Artículos sin Ofertas y la Exportación de Matriz de
+Cantidad FF&E se pueden alternar para hacer uso de la información de Costo/Cantidad Real
+(Utilice el conmutador real para esto). Los símbolos asociados a cada alternancia indicarán con
+qué informes trabajarán.
+Informes de índice: la sección Informes de índice contiene informes que reflejarán
+automáticamente el coste real/cantidad en ellos de forma predeterminada. Los puertos Index
+Reproporcionan cantidad SOLAMENTE a menos que se haya seleccionado la opción "Mostrar
+precios". Muchos de estos informes también se pueden generar utilizando la información de
+Coste presupuestario/Cantidad (opción Usar presupuesto). Hay varios conmutadores que se
+encuentran debajo de la lista de informes de índice, que se pueden utilizar para modificar la
+información proporcionada en el informe. Los símbolos que se muestran después del nombre
+de alternancia indicarán con qué informes trabajarán.
+
+INFORMES DE ESTADO Y DISCREPANCIAS –
+Informes de estado: los informes de Status le proporcionan informes que indican el estado
+actual de los elementos de especificación. Si el informe contiene información de coste/cantidad,
+será Coste real/Cantidad a menos que se haya seleccionado la opción Usar presupuesto
+(ubicado en Informes de índice), se mostrará la información de Coste presupuestario/Cantidad.
+
+Informes de discrepancia: el informe Verificar imágenes es un informe de resolución de
+problemas que se proporciona para informarle si hay algún problema con las imágenes
+vinculadas (consulte la hoja de preguntas frecuentes sobre "Verificar imágenes"). Los informes
+de discrepancia se proporcionan para ayudar a eliminar cualquier problema de entrada de datos
+relacionado con la cuantificación de los elementos de especificación. Si utiliza Tipos de
+habitación/Subáreas al cuantificar los elementos, asegúrese de hacer clic en cada uno de estos
+botones para comprobar que no se han introducido discrepancias en la entrada de datos. Debe
+recibir un mensaje similar al siguiente en cada uno si NO se encuentran discrepancias. (Consulte
+la hoja de preguntas frecuentes sobre "Informes de discrepancia de cantidad de artículos en
+ejecución" para obtener más detalles.)
+
+Informes de cliente y marcado (solo proyectos de marcado): la sección Informes de
+cliente y desbaste contiene informes para su uso cuando se trabaja en un proyecto de marcado.
+Estos informes proporcionan informes de cliente que reflejan solo los precios de cliente.
+Cualquier informe denominado 'Cliente....' muestra solo los precios de los clientes. Se
+proporcionan informes adicionales que muestran el costo/cantidad real y los precios del cliente.
+El informe de resolución de problemas "Análisis de marcado de coste/precio se proporciona para
+ayudar a eliminar cualquier problema de entrada de datos relacionado con la introducción de su
+información de resumen en sus artículos de especificación. Estos informes mostrarán
+
+Página - 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=1 tablas_detectadas=0 revision_visual=true]
+Exx-Informes de elementos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+automáticamente la información de coste real/cantidad a menos que se haya seleccionado la
+opción 'Usar presupuesto 's' (ubicado en Informes de índice).
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+Y: support@lojikdesign.biz
+
+Página - 3 -

@@ -1,0 +1,416 @@
+DOCUMENTO_LOGICO: LEG-06
+TITULO: Exx-SetupProject-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-SetupProject-Español.docx
+SHA256_ORIGINAL: adecebeda0892d52d6c6d464031c436b5a909814fc981dbaaeb4d464c3947858
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+A
+Configuración de su proyecto en Exxpedite
+
+Para crear un nuevo proyecto en el sistema Exxpedite, puede importar el proyecto en el sistema
+desde una transferencia de sistema Spexx (Importar proyecto Spexx) que transfiere y crea gran
+parte de los detalles del proyecto para usted, o puede crear un nuevo proyecto desde cero.
+
+PROYECTO CREADO DURANTE LA TRANSFERENCIA DE SPEXX: si va a transferir un proyecto desde Spexx,
+permitirá la configuración de la información básica de su proyecto durante la transferencia. Los
+detalles del proyecto/propiedad, las áreas/tipos de habitación y los contactos se transferirán
+para crear el proyecto. ***NO cree el proyecto con anticipación, solo permita su creación
+durante la transferencia. La creación anticipada del proyecto puede dar lugar a problemas
+durante la transferencia.
+
+PROYECTO CREADO DESDE CERO: para crear un nuevo proyecto, comience en la pantalla Inicio de
+sesión del proyecto, seleccionando la opción 'NUEVO' de la lista de proyectos y, a continuación,
+haga clic en INICIAR sesión para ir a la pantalla Información del proyecto y un registro en blanco.
+
+Pantalla de inicio de sesión del proyecto
+PROJECT INFORMACIÓN: Antes de comenzar un nuevo registro de proyecto, asegúrese de que está
+
+trabajando en un registro en blanco en la pantalla Información del proyecto. En la pantalla
+Información del proyecto, comenzará rellenando su número de proyecto y nombre de proyecto
+únicos (*Obligatorio). Se utilizarán para identificar este proyecto en sus informes. A
+continuación, rellene la información de la dirección de la propiedad, el nombre del contacto y el
+número de teléfono. La sección Cargos adicionales reflejaría los cargos adicionales utilizados en
+un proyecto transferido desde el sistema Spexx y no se utiliza en un proyecto creado en
+Exxpedite.
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Pantalla de información del proyecto
+Estado: el estado del proyecto se establece automáticamente en 'A' para Activo y debe
+
+permanecer establecido. Esto sólo se cambiará si desea eliminar el proyecto de su lista activa de
+proyectos de trabajo y en ese momento podría cambiarse a 'C' Completado o 'S' Suspendido. El
+estado 'R'- Archivado está reservado para usar nuestra función de archivado de proyectos.
+Categoría(opcional): el campo Categoría permite asignar una categoría a este proyecto que se
+utilizará para informes de resumen de todo el sistema, que a menudo se utiliza para asociar un
+proyecto con un cliente, una marca o un tipo de proyecto específicos. Es un ajuste opcional.
+
+Archivado (reservado): Esta opción es utilizada internamente por el sistema cuando un proyecto
+se archiva a partir de los datos utilizando nuestra función de archivado de proyectos. No debe
+utilizarse manualmente.
+
+Sin instrucciones automáticas: Esta opción de alternancia le permite desactivar las instrucciones
+de especificación automáticas para que no se extraigan en los elementos de especificación
+cuando trabaja. Si desea trabajar con un conjunto diferente de instrucciones o no utilizar el
+conjunto estándar de su lista maestra de instrucciones, puede utilizar esta opción.
+Carpeta del proyecto: puede buscar la carpeta del proyecto para establecer una ubicación
+predeterminada de los archivos de proyecto al examinar en este proyecto. Esta función se puede
+
+utilizar si va a buscar imágenes en las carpetas del proyecto, por ejemplo.
+Presupuesto: La fecha de emisión a menudo se transfiere desde un proyecto Spexx y refleja la
+cuestión de su presupuesto preliminar. Presupuesto bloqueado: si desea "bloquear" los
+costes/cantidades presupuestarias, puede introducir una fecha aquí. Esto prohibirá a los Usuarios
+realizar cambios en los costes/cantidades de presupuesto preliminares en los artículos de
+especificación. Nota de presupuesto: cualquier nota de presupuesto introducida se mostrará en
+los informes de presupuesto. Esta entrada también se transfiere con un proyecto Spexx o se
+
+puede introducir manualmente.
+
+Página - 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+ENTIDAD DE COMPRAS: a continuación, vaya a la pestaña Entidad de compras de la información del
+proyecto.
+
+Información del proyecto – Entidad de compras
+
+Entidad de compras: aquí seleccionará la entidad de compras que se utiliza para su proyecto.
+Esto define no solo la información de la empresa que se muestra en los informes, sino también la
+configuración del informe y los conjuntos de instrucciones estándar utilizados en las órdenes de
+compra. Típicamente, solo habrá una Entidad de Compras creada para su empresa en el Sistema
+Exxpedite a menos que lleve a cabo sus actividades de compra bajo diferentes entidades o
+requiera el uso de diferentes logotipos o información de dirección. Si necesita modificar o agregar
+a su registro de entidad de compra, puede hacer clic en el botón situado a la derecha de la
+selección Entidad de compra. Si se trata de un proyecto transferido desde Spexx, la Entidad de
+
+compras se seleccionará y establecerá durante la transferencia.
+Contacto de compra - Selige a la persona de contacto principal de su firma para la compra de
+este proyecto. Si necesita agregar un nuevo contacto a su lista, esto también se hace en su
+registro de Entidad de compras (haga clic en el botón situado a la derecha del campo Entidad de
+compras).
+
+Página - 3 -
+
+===== PAGINA 4 =====
+[META pagina=4 imagenes=6 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+CONTACTS: A continuación, irá a la pestaña Contactos de la información del proyecto.
+
+Puede introducir tantos contactos como necesite que estén asociados con su proyecto (es decir,
+contratistas generales, consultores, etc.) Para agregar otro contacto, haga clic en el botón
+
+Agregar nuevo situado a la derecha del registro.
+Cliente para aprobación - Si su Cliente firma aprobaciones en sus Pedidos de Compra o necesita
+una línea de Aprobación adicional para su empresa,puede ingresar un registro aquí con el
+Contacto y/o el nombre de la Empresa que desea que aparezca en su línea de firma de
+
+aprobación. Simplemente marque lacasilla 'Cliente/ Aprobación'en la esquina inferior derecha
+para asignar. También puede cambiar el etiquetado de la línea de aprobación desde"Aprobado"
+cambiando la entrada en el campo Aprobación.
+BILL TO: A continuación, vaya a la pestaña Facturar a información de la información del
+proyecto.
+
+Aquí introducirá la información de facturación que se mostrará en sus órdenes de compra.
+Comience haciendo clic en el botón USAR ENTIDAD DE COMPRA situado a la derecha para extraer
+
+Página - 4 -
+
+===== PAGINA 5 =====
+[META pagina=5 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+la información de su registro de entidad de compra. Normalmente, en los proyectos "Como
+agente" introducirá el nombre formal de su cliente o la información de "facturar a" en el primer
+campo; Los proyectos de "marcar" normalmente no requieren esta información y puede copiar el
+
+nombre de su empresa en el campo Facturar a. Realice cualquier ajuste en la información que se
+muestra aquí, ya que se mostrará en sus órdenes de compra.
+AREAS/ROOM TYPES: ACONTINUACIÓN, vaya a la pestaña Areas/Room Types (Zonas/Tipos de
+habitación) de la información del proyecto.
+
+NOTA: Si ha transferido un proyecto desde Spexx, las áreas y los tipos de habitación se
+configurarán durante la transferencia. Usted es capaz de hacer adiciones a las áreas para su
+project según sea necesario para la compra.
+
+Areas: aquí introducirá las áreas y los tipos de habitación/subáreas de su proyecto. Por lo
+general, los espacios individuales (como los espacios públicos en un hotel- Lobby) se introducirán
+como un área – introduzca una abreviatura (es decir, 'LOB') y un nombre de área ('Lobby') –
+también está obligado a hacer una selección P- Public o G- Guest para su área, ya que esta
+designación se utiliza en el filtrado de informes. A efectos de compras, también puede optar por
+crear un 'área' para artículos como OSE,Almacenamiento o Artículos de línea de instalación con los
+que trabajar.
+
+Ordenación: puede ordenar las áreas para generar informes si prefiere ordenar que no sea la
+ordenación alfabética/alfanumérica estándar. Si introduce cualquier ordenación, asegúrese de
+realizar una entrada para todas sus áreas, ya que los espacios en blanco se ordenarán primero.
+(01, 02, 02a, 03, 04, ...) . Esto funciona en algunos informes de presupuesto/índice.
+Encabezados de área (opcional): puede agrupar aún más sus áreas en sus informes mediante
+
+encabezados de área (consulte Escritura de encabezados de área).
+
+Página - 5 -
+
+===== PAGINA 6 =====
+[META pagina=6 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Tipos de habitación/Subáreas: si es necesario desglosar sus áreas en tipos de
+habitación/subáreas (es decir, GST- Habitaciones, K-King; MTG-Meeting Rooms, MTG1-Sala de
+reuniones 1; ... ), los introducirá en la sección Tipos de habitación proporcionada a la derecha,
+
+unaintroducción junto con la cantidad de cada tipo para este desglose que se utilizará para
+cuantificar los elementos de especificación. Esto le permitirá generar en última instancia una
+matriz de cantidad FF&E a partir de sus entradas y le proporcionará presupuestos sobre este
+desglose también ('Presupuesto por tipo de habitación'). Si crea tipos de habitación/subáreas para
+sus áreas, se le pedirá que cuantifique todos los elementos asociados con esta área en este
+desglose.
+NOTA: Puede aprovechar el BOTÓN COPIAR para copiar las áreas en un nuevo proyecto para
+
+ahorrar tiempo si las áreas del proyecto van a ser las mismas en el nuevo proyecto.
+PURCHASING INFO: ACONTINUACIÓN, vaya a la pestaña Información de compras de la información
+del proyecto.
+
+En la pestaña Información de compras,configurará su proyecto para la compra. La mayor parte de
+la información introducida en esta pantalla puede ser fundamental para el trabajo del proyecto.
+
+Método de compra (obligatorio): debe indicar si va a comprar utilizando el método de compra
+"Actuar como agente" o "Marcar", ya que esto define cómo funciona el sistema durante la compra.
+Especificador - (obligatorio) Debe seleccionar o introducir el especificador (firma de diseño)
+asociado a este proyecto: para introducir un nuevo especificador, haga clic en el botón situado a
+la derecha del campo para introducir la información de la firma de diseño. Si está transfiriendo un
+proyecto desde Spexx, esta información se introduce durante el proceso de transferencia.
+
+Almacén (obligatorio): introducirá la ubicación de su almacén para su envío aquí. Si aún no
+tiene esa información en el momento de configurar el proyecto, introduzca un registro de
+marcador de posición al que más adelante podrá volver a la información correcta (es decir, el
+almacén de nombres de proyecto): si introduce el nombre del almacén en la lista y no se ha
+creado, le llevará automáticamente a la pantalla entrada de almacén para introducir el registro
+
+Página - 6 -
+
+===== PAGINA 7 =====
+[META pagina=7 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+'sobre la marcha'. Para modificar o actualizar su registro de almacén - devolver aquí y haga clic
+en el botón situado a la derecha del campo para abrir el registro y editar. Si no está utilizando un
+almacén para este proyecto, puede introducir la propiedad o el destino de envío predeterminado
+
+aquí.
+Envío predeterminado (obligatorio): una vez que haya introducido el registro de almacén (o
+marcador de posición) o el record de supropiedad, puede seleccionar uno para suubicación
+'Default ShipTo'. Esta sería la ubicación a la que se enviarán la mayoría de los artículos: se usará
+de forma predeterminada cuando cree un pedido de compra, pero se puede cambiar según sea
+necesario.
+
+Propiedad (opcional): para crear el registro de la propiedad, haga clic en el botón situado a la
+derecha del campo para extraer automáticamente de la información de propiedad introducida en
+el proyecto. Esto le llevará al almacén / barco para grabar donde puede completar los detalles
+según sea necesario y RETURN a esta pantalla para seleccionar su entrada. Esto hace que la
+ubicación de la propiedad esté disponible como un posible barco para abordar.
+
+BIENES PRESUPUESTADOS Y TARIFAS DE COMPRA (OPCIONAL)
+
+Mercancías presupuestadas (opcional): en la siguiente sección de la pantalla Información de
+compras, puede rellenar el importe asignado/aprobado para Bienes y Contingencias, como Flete o
+Impuesto sobre las Ventas en su proyecto, estos importes solo se utilizan en su Lista de artículos
+de especificación como recordatorio para trabajar al introducir sus costos reales y no se reflejan
+en ningún informe.
+Tarifas de compra (opcionales): la mayoría de nuestros Usuarios manejan sus tarifas de compra
+
+de forma independiente en sus propios sistemas contables, ya que estas tarifas a menudo se
+facturan periódicamente al cliente durante todo el proceso de compra. El sistema Exxpedite
+proporciona algunas herramientas básicas para introducir sus tarifas de compra y realizar un
+seguimiento de su facturación si desea hacerlo en el sistema.
+IMPUESTO SOBRE LAS VENTAS (OBLIGATORIO)
+
+Debido a que el impuesto sobre las ventas es a menudo una adición tan importante a sus costos
+totales, es importante ingresar su porcentaje de impuestos o comprobar la exención de
+
+impuestos tan pronto como sea posible a medida que avanza para trabajar en su proyecto. Este
+porcentaje también se transferirá desde su sistema Spexx si se ha utilizado en el presupuesto
+preliminar. Al introducir su impuesto sobre las ventas, debe recibir un par de solicitudes sobre la
+distribución del impuesto sobre las ventas en sus artículos presupuestarios: haga clic en "Sí" para
+aceptar esta acción, especialmente si ha importado un proyecto desde el sistema Spexx.
+
+Página - 7 -
+
+===== PAGINA 8 =====
+[META pagina=8 imagenes=9 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Si está trabajando con más de un impuesto sobre las ventas(es decir, GST y PST), puede
+introducir porcentajes y etiquetas en el lado derecho de la pantalla. Si solo hay UN porcentaje
+de impuestos, debe usar el impuesto 1 (ajustar la etiqueta según sea necesario, es decir,
+impuestos sobre las ventas, IVA, IVA)y asegurarse de marcar la casilla "No utilizado" junto al
+
+segundo campo Impuesto de ventas si no se usa para evitar un uso incorrectodurante las
+entradasde impuestos.
+
+Po Label (opcional): el etiquetado predeterminado en sus pedidos de compra indica "Solo agente"
+en un proyecto as-Agent: puede volver a etiquetar estearchivo, si lo desea, introduciendo su
+texto en el campo Etiqueta de pedido. Esto reemplazará la etiqueta predeterminada con su
+redacción – un ejemplo es 'En nombre de'.
+
+Aprobado por (obligatorio): desactive las entidades que cerrarán la sesión para su aprobación
+en sus pedidos de compra: usted como "Entidad de compras" normalmente se comprueba. Si la
+firma de diseño/especificador también está firmando aprobaciones en sus pedidos de compra,
+marque 'Especificador', y si se requiere una firma de cliente o una firma interna adicional check
+también. (Consulte la sección sobre CONTACTOS para obtener más información sobre cómo agregar
+etiquetado a la línea de firma de cliente.)
+
+Página - 8 -
+
+===== PAGINA 9 =====
+[META pagina=9 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Numeración de elementos (opcional): hay dos casillas de verificación que puede usar para
+establecer que el método de numeración esté tan cerca del método de numeración utilizado por
+el especificador (firma de diseño): consulte la escritura en "Métodos de numeración" para
+
+obtener más detalles sobre estas opciones. Si se trata de un proyecto que se transfiere desde un
+sistema Spexx, desearía que coincida con su método de numeración para que sea más fácil
+introducir elementos adicionales en los elementos de especificación.
+• Ocultar tipo de elemento: esta selección oculta la abreviatura De tipo de elemento y los
+números de elemento aparecen como LOB-200. Si utiliza rangos específicos de números
+(esdecir, 100's , SG; 200's, CG, 400's, Tejidos; etc.) para designar tipos de artículos
+específicos, este método podría funcionar para usted.
+
+• Ocultar área: al marcar esta casilla se ocultará el ID de área y se invertirá el orden del
+número de artículo y el tipo de artículo, lo que le dará números de artículo que aparecen
+como SG-200. Todavía debe seleccionar un área en sus elementos de especificación de
+mobiliario, pero no se incluirá en el número de artículo completo. Si utiliza rangos
+específicos de números (es decir, 100's a LOB; 200's a GR; 400's - PUB; etc.) para designar
+áreas específicas en su proyecto, entonces este método podría funcionar para usted.
+Tipo de moneda (obligatorio): aquí seleccionará la moneda principal que se utiliza para su
+presupuesto. La moneda se puede establecer diferente a medida que introduce pedidos de
+compra y facturación, pero siempre volverá a convertirse a la moneda del presupuesto principal.
+
+Póngase en contacto con el soporte técnico de Lojik para obtener más información si va a utilizar
+diferentes monedas a lo largo de su proyecto.
+Formato de fecha: seleccione el formato que prefiera para mostrar las fechas en el proyecto y
+en los informes.
+
+Destino final: este destino se extrae de la información del proyecto y muestra el destino final que
+se muestra en los pedidos de compra, lo que puede ser información importante cuando se trata
+de la determinación de impuestos. Si esto está en blanco, es posible que no tenga la información
+
+del proyecto completada por completo.
+Cliente (Factura a): esto mostrará el nombre Cliente/Factura a que se rellena en la pestaña
+FACTURAR A , por lo general solo se rellena en un proyecto "Como agente" con el nombre formal de
+su cliente.
+RESUMEN DEL proyecto: puede generar un informe que le proporcione un resumen de parte de la
+
+información crítica asociada con el proyecto, incluidas la factura hasta, el destino final y las
+instrucciones de proyecto y entidad de compra que se mostrarán en los pedidos de compra.
+
+Página - 9 -
+
+===== PAGINA 10 =====
+[META pagina=10 imagenes=7 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+CARGOS PRESUPUESTARIOS ESTIMADOS (RECOMENDADOS)
+
+Puede introducir los cargos estimados que se utilizaron para crear su presupuesto preliminar aquí.
+Si su presupuesto preliminar o de diseño incluye estos tipos de cargos, puede introducirlos aquí
+para distribuirlos a través de los costes presupuestarios. Al introducir un porcentaje aquí, SOLO
+afecta a los costes presupuestarios de las posiciones de especificación, más adelante introducirá
+los cargos individualmente en sus costes reales para sus artículos de especificación.
+
+FORMATO DE NUMERACIÓN DE PEDIDOS (OBLIGATORIO)
+
+Puede indicar el método de numeración de pedidos de compra para cada proyecto.
+Normalmente, Exxpedite users funcionan con un método de numeración similar a lo que se
+muestra (como se muestra arriba). Borre las selecciones de Año/Mes/Día y deje el Proyecto (
+Proyecto) marcado y establecido en Posición – 01. Esto hará uso de su proyecto, seguido de un
+incremento – 0001, -0002, etc. Otra alternativa es usar un Prefijo en lugar de la Project para
+preceder el incremento. Si desea utilizar un prefijo, anule la selección de Proyecto y desactive,
+
+Página - 10 -
+
+===== PAGINA 11 =====
+[META pagina=11 imagenes=1 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+introduzca su Prefijo (letras o números) en el campo Prefijo – esto generará un prefijo de número
+de orden de compra (XYZ)-incremento completo (esdecir, XYZ-0001).
+
+Página - 11 -
+
+===== PAGINA 12 =====
+[META pagina=12 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+INSTRUCCIONES DE URCHASING P
+Acontinuación, vaya a la pestaña Instrucciones de compra de la información del proyecto.
+
+Instrucciones de compra (recomendado): aquí introducirá las instrucciones que necesite que se
+muestren en los pedidos de compra solo para este proyecto específico. Introduzca tantas
+instrucciones como sean necesarias. Las instrucciones se pueden ordenar para que se muestren en
+un criterio de ordenación especificado. Puede crear subpartidas en sus instrucciones utilizando
+también Todas las mayúsculas o símbolos.
+
+NOTA: Estas instrucciones son diferentes a las instrucciones/términos y condiciones que
+introducirá en su registro de Entidad de compras: esas instrucciones se mostrarán en los pedidos
+de compra en TODOS sus proyectos, mientras que estas aquí solo se mostrarán en los pedidos de
+compra de este proyecto.
+PURCHASING FEES (OPCIONAL): A continuación, vaya a la pestaña Cuotas de compra de la
+información del proyecto.
+
+Esta sección es para el seguimiento de la facturación de las cuotas de compra si desea realizar
+un seguimiento de ellos dentro del Sistema Exxpedite. Normalmente, estos se facturan desde su
+propio sistema de contabilidad interno.
+
+Página - 12 -
+
+===== PAGINA 13 =====
+[META pagina=13 imagenes=1 tablas_detectadas=0 revision_visual=true]
+Configuración de su proyecto
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+
+Y: support@lojikdesign.biz
+
+Página - 13 -

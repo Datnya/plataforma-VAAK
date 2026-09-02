@@ -1,0 +1,769 @@
+{
+  "ref": "VAAK-RESEARCH-0-A",
+  "documents": [
+    {
+      "logical_id": "LEG-01",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-AddingAreaQuantities-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-AddingAreaQuantities-Español.pdf",
+      "sha256": "691eca4254c344e3597173e2c0e004befa9ddb638b6a8215737d967ea8913625",
+      "bytes": 116177,
+      "pages": 2,
+      "rendered_page_images": 2,
+      "characters": 10651,
+      "pages_needing_visual_review": [
+        1,
+        2
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 5247,
+          "images": 4,
+          "tables_detected": 1,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5403,
+          "images": 3,
+          "tables_detected": 1,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-01-Exx-AddingAreaQuantities-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 10,
+        "tables": 0,
+        "inline_shapes": 3,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-02",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-AddingRoomQties-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-AddingRoomQties-Español.pdf",
+      "sha256": "7bdc5b214e25f74870e991a02639af55ee38b4d3576474c1b510d0671e41ba65",
+      "bytes": 334684,
+      "pages": 4,
+      "rendered_page_images": 4,
+      "characters": 20415,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 5508,
+          "images": 3,
+          "tables_detected": 1,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5009,
+          "images": 4,
+          "tables_detected": 1,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 4996,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 4,
+          "characters": 4899,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-02-Exx-AddingRoomQties-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 29,
+        "tables": 0,
+        "inline_shapes": 7,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-03",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-DetailingSpecItems-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-DetailingSpecItems-Español.pdf",
+      "sha256": "6a11e52bbc98e55a41f2e3bdcd4d37b1f41d602f95851534e1bcc7b10736161c",
+      "bytes": 302914,
+      "pages": 5,
+      "rendered_page_images": 5,
+      "characters": 25548,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 5009,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5089,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 5178,
+          "images": 7,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 4,
+          "characters": 5401,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 5,
+          "characters": 4867,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-03-Exx-DetailingSpecItems-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 31,
+        "tables": 0,
+        "inline_shapes": 8,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-04",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-EnteringSpecItems-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-EnteringSpecItems-Español.pdf",
+      "sha256": "21c5840d88b0aaaf04955a29976275fcc53b863f371ec1f35e77928d34e501b7",
+      "bytes": 471606,
+      "pages": 5,
+      "rendered_page_images": 5,
+      "characters": 25785,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 5328,
+          "images": 7,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5389,
+          "images": 4,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 4993,
+          "images": 7,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 4,
+          "characters": 5038,
+          "images": 6,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 5,
+          "characters": 5033,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-04-Exx-EnteringSpecItems-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 23,
+        "tables": 0,
+        "inline_shapes": 13,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-05",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-Manufacturers-Sources-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-Manufacturers-Sources-Español.pdf",
+      "sha256": "5f4661ee404a1c6dde7bafba5d08d2ad2fe595f502ac87ff929fd5e5a11f1970",
+      "bytes": 389886,
+      "pages": 4,
+      "rendered_page_images": 4,
+      "characters": 20450,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3,
+        4
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 4993,
+          "images": 6,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5394,
+          "images": 4,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 4991,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 4,
+          "characters": 5069,
+          "images": 4,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-05-Exx-Manufacturers-Sources-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 22,
+        "tables": 0,
+        "inline_shapes": 9,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-06",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-SetupProject-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-SetupProject-Español.pdf",
+      "sha256": "adecebeda0892d52d6c6d464031c436b5a909814fc981dbaaeb4d464c3947858",
+      "bytes": 807532,
+      "pages": 13,
+      "rendered_page_images": 13,
+      "characters": 66582,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12,
+        13
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 5188,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5227,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 5082,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 4,
+          "characters": 5020,
+          "images": 6,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 5,
+          "characters": 5170,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 6,
+          "characters": 5284,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 7,
+          "characters": 5367,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 8,
+          "characters": 5077,
+          "images": 9,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 9,
+          "characters": 5353,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 10,
+          "characters": 5048,
+          "images": 7,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 11,
+          "characters": 4863,
+          "images": 1,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 12,
+          "characters": 5042,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 13,
+          "characters": 4849,
+          "images": 1,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-06-Exx-SetupProject-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 63,
+        "tables": 0,
+        "inline_shapes": 20,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-07",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-SetupProjectAreas-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-SetupProjectAreas-Español.pdf",
+      "sha256": "c609ff2039c4b7e424df26a2d0ab19c8fe22493c4918d77bfc12ed422347a9ba",
+      "bytes": 613760,
+      "pages": 8,
+      "rendered_page_images": 8,
+      "characters": 38770,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3,
+        4,
+        5,
+        6,
+        7,
+        8
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 5158,
+          "images": 1,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 4901,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 4718,
+          "images": 3,
+          "tables_detected": 2,
+          "needs_visual_review": true
+        },
+        {
+          "page": 4,
+          "characters": 4824,
+          "images": 5,
+          "tables_detected": 1,
+          "needs_visual_review": true
+        },
+        {
+          "page": 5,
+          "characters": 4890,
+          "images": 3,
+          "tables_detected": 2,
+          "needs_visual_review": true
+        },
+        {
+          "page": 6,
+          "characters": 4848,
+          "images": 5,
+          "tables_detected": 1,
+          "needs_visual_review": true
+        },
+        {
+          "page": 7,
+          "characters": 4775,
+          "images": 3,
+          "tables_detected": 2,
+          "needs_visual_review": true
+        },
+        {
+          "page": 8,
+          "characters": 4649,
+          "images": 1,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-07-Exx-SetupProjectAreas-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 47,
+        "tables": 6,
+        "inline_shapes": 8,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-08",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-SpecInstructions-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-SpecInstructions-Español.pdf",
+      "sha256": "87d381f92e74180d7f51c67f5b2f8f860809f136b2b0274d475db22dae971892",
+      "bytes": 701945,
+      "pages": 5,
+      "rendered_page_images": 5,
+      "characters": 25616,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 5093,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5083,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 5037,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 4,
+          "characters": 5201,
+          "images": 4,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 5,
+          "characters": 5198,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-08-Exx-SpecInstructions-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 23,
+        "tables": 0,
+        "inline_shapes": 9,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-09",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-SpecItemCharges-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-SpecItemCharges-Español.pdf",
+      "sha256": "d29d8f0712540c4a905fede0f668e27c97b29f540f6a4acc465dfb1fdcb7a7ac",
+      "bytes": 501502,
+      "pages": 3,
+      "rendered_page_images": 3,
+      "characters": 15245,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 5088,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5072,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 5083,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-09-Exx-SpecItemCharges-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 14,
+        "tables": 0,
+        "inline_shapes": 6,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-10",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-SpecItemRpts-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-SpecItemRpts-Español.pdf",
+      "sha256": "dea8b0b18928b91745943c3903b3bd07f45ca614aec0f50a71aa29fb5fa6fc2e",
+      "bytes": 270692,
+      "pages": 3,
+      "rendered_page_images": 3,
+      "characters": 15503,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 5114,
+          "images": 6,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5505,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 4882,
+          "images": 1,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-10-Exx-SpecItemRpts-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 14,
+        "tables": 0,
+        "inline_shapes": 5,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "LEG-11",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\Documentos de plataforma antigua\\Exx-WorkingwCurrency-Español.docx",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\rendered-pdf\\Exx-WorkingwCurrency-Español.pdf",
+      "sha256": "b4d15b4e58b3c4b23a48cd1627ecd171511551d8ac3ab75b344c3268d83ee863",
+      "bytes": 516089,
+      "pages": 5,
+      "rendered_page_images": 5,
+      "characters": 25142,
+      "pages_needing_visual_review": [
+        1,
+        2,
+        3,
+        4,
+        5
+      ],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 4982,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 2,
+          "characters": 5012,
+          "images": 7,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 3,
+          "characters": 5191,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 4,
+          "characters": 5075,
+          "images": 5,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        },
+        {
+          "page": 5,
+          "characters": 4878,
+          "images": 3,
+          "tables_detected": 0,
+          "needs_visual_review": true
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\LEG-11-Exx-WorkingwCurrency-Espa-ol.txt",
+      "secret_findings": [],
+      "docx_structure": {
+        "paragraphs": 26,
+        "tables": 0,
+        "inline_shapes": 9,
+        "sections": 1,
+        "core_title": "",
+        "core_subject": ""
+      }
+    },
+    {
+      "logical_id": "NEW-01",
+      "original": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\OS&E_Requerimiento Sistema (1).pdf",
+      "analysis_pdf": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\OS&E_Requerimiento Sistema (1).pdf",
+      "sha256": "6aafc9084660910b02da6874ee4ec62c345979e812dffe8329ec7bbc0e168af0",
+      "bytes": 213219,
+      "pages": 4,
+      "rendered_page_images": 4,
+      "characters": 16916,
+      "pages_needing_visual_review": [],
+      "page_metadata": [
+        {
+          "page": 1,
+          "characters": 4192,
+          "images": 0,
+          "tables_detected": 0,
+          "needs_visual_review": false
+        },
+        {
+          "page": 2,
+          "characters": 4381,
+          "images": 0,
+          "tables_detected": 0,
+          "needs_visual_review": false
+        },
+        {
+          "page": 3,
+          "characters": 4319,
+          "images": 0,
+          "tables_detected": 0,
+          "needs_visual_review": false
+        },
+        {
+          "page": 4,
+          "characters": 4021,
+          "images": 0,
+          "tables_detected": 0,
+          "needs_visual_review": false
+        }
+      ],
+      "notebook_text": "C:\\Users\\HP\\OneDrive\\Desktop\\Plataforma VAAK\\docs\\research\\VAAK-RESEARCH-0-A\\_working\\notebook-sources\\NEW-01-OS-E_Requerimiento-Sistema-1.txt",
+      "secret_findings": []
+    }
+  ],
+  "blocking_secret_findings": []
+}

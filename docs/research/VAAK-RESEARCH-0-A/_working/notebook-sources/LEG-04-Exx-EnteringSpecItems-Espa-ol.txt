@@ -1,0 +1,161 @@
+DOCUMENTO_LOGICO: LEG-04
+TITULO: Exx-EnteringSpecItems-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-EnteringSpecItems-Español.docx
+SHA256_ORIGINAL: 21c5840d88b0aaaf04955a29976275fcc53b863f371ec1f35e77928d34e501b7
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=7 tablas_detectadas=0 revision_visual=true]
+Exx-Introducción de elementos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Introducir sus elementos de especificación en Exxpedite
+
+Si el proyecto se importó desde el sistema Spexx, los detalles del elemento de especificación ya
+estarán en Exxpedite. Si el proyecto no se ha importado desde el sistema Spexx, o necesita
+agregar elementos de especificación para los que el diseñador no va a escribir especificaciones,
+las siguientes son instrucciones sobre cómo introducir manualmente los elementos de
+especificación en Exxpedite.
+
+Si está familiarizado con el sistema Spexx, el proceso es un poco diferente en Exxpedite. En la
+pantallaprincipal, haga clic en Lista de elementos de especificación. En la lista de elementos de
+especificación, vaya a la parte inferior de la pantalla y haga clic en el botón 'Agregar nuevo'
+(flecha con la estrella amarilla), como se muestra a continuación. Esto le llevará a un nuevo
+registro en blanco donde puede comenzar a introducir su nuevo elemento de especificación.
+
+A continuación, determine el método de numeración que va a utilizar. Si ha importado un
+proyecto desde Spexx, la numeración ya se determinará. Si está introduciendo manualmente sus
+Elementos de especificación o necesita modificar sus números de artículo de especificación por
+cualquier motivo, consulte nuestros "Métodos de numeración de artículos de especificación" para
+obtener más información.
+
+El método de numeración estándar para las especificaciones de mobiliario hace uso de los tres
+campos al introducir el registro de especificación: el área, el número de artículo (asignado por el
+usuario) y el tipo de artículo. Al introducir estos tres en el registro de especificaciones, se
+determina el número de artículo que ahora se mostrará en ese orden en los informes.
+
+El método de numeración para OFCI y Finish Items es un poco diferente, porque a menudo se
+utilizan en varias áreas. Consulte nuestros "Métodos de numeración de artículos específicos"
+para obtener información adicional.
+
+Después de seleccionar el tipo de artículo, se creará un número de especificación completo en el
+campo siguiente. Este es el número que se utilizará para identificar esta especificación Item
+durante todo el proceso de compra, incluidos sus informes. Si está introduciendo un elemento de
+especificación al que ya se le había asignado un número de artículo diferente (por el diseñador o
+la marca de hotel, porejemplo), puede cambiar manualmente el número, en este campo, para
+que coincida con el número existente.
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=4 tablas_detectadas=0 revision_visual=true]
+Exx-Introducción de elementos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Continúe e introduzca la Descripción del artículo, en el siguiente campo y, a continuación,
+seleccione el fabricante y la fuente para este elemento de especificación. REQUERIDO: SE requiere
+una selección de fabricante y fuente para cada registro de elemento de especificación.
+
+INTRODUCIR NUEVOS FABRICANTES/FUENTES: si el fabricante o la fuente aún no se han introducido
+en Exxpedite, comience a escribir el nombre en el campo Fabricante(en el elemento de
+especificación)y pulse Intro. A continuación, se le llevará a un nuevo registro de M anufacturer
+donde puede agregar sus detalles sobre la marcha. Una vez creado y detallado el registro, haga
+clic en RETORNO para volver al Listado de elementos de especificación y seleccione el Fabricante.
+Deslicelos mismos pasos si necesita agregar un nuevo registro de origen. Nota: Si va a trabajar
+directamente con su fabricante, puede utilizar el registro 'Copiar en origen' para copiar/crear el
+
+nuevo registro de origen. Consulte la escritura 'Fabricantes-Fuentes' para obtener más detalles.
+INTRODUCIR COSTE Y CANTIDAD- Taquí hay dos filas de entrada decoste/cantidad para su artículo
+de especificación. La fila superior es el coste/cantidad del presupuesto preliminar (esdecir, los
+movimientos de presupuesto de diseño) y la fila inferior es la entrada coste/cantidad real
+necesaria para que pueda avanzar a un pedido de compra. Lo mismo es cierto para introducir la
+cantidad, la fila superior es para Cantidad de presupuesto, la fila inferior es para Cantidad real.
+
+Cuando introduzca su Coste unitario real y pulse Intro, se abrirá una pantalla Introducir gastos
+para permitirle introducir cargos adicionales, como Flete o Impuesto de ventas en este artículo.
+Consulte la escritura en "Cargos por artículos de especificación" para obtener más información
+sobre esta función.
+INTRODUCCIÓN DE CANTIDADES DE HABITACIÓN PARA ARTÍCULOS FURN
+
+Si ha introducido Tipos de habitación(es decir, Subáreas a sus áreas de proyecto) y desea dividir
+los elementos de especificación en varias habitaciones, haga clic en el botón de lista situado a
+la derecha de los campos de Coste ext. Esto abrirá una pantalla de cantidad de habitación en la
+que puede enumerar sus habitaciones y cantidades asociadas para el artículo de especificación.
+
+Haga clic en el botón Añadir nuevo registro (flecha con la estrella amarilla) para enviarunnuevo
+tipo de habitación. Si necesita asignar el elemento de especificación a todos los Ypesde Room
+T,puede utilizar el botón'ASIGNARTODO'.
+
+Página - 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=7 tablas_detectadas=0 revision_visual=true]
+Exx-Introducción de elementos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Después de hacer clic en el botón'ASIGNARTODO', se abrirá un mensaje pidiéndole que confirme
+que desea asignar ese elemento de especificación a TODOS los tipos de habitación.
+
+Haga clic en el botón DEVOLVER para volver a la lista de artículos de especificación cuando haya
+terminado de enumerar las cantidades de habitación. Haga clic en "Sí" y verá que los tipos de
+habitación se rellenan en la lista de cantidades de habitación. Se abrirá un mensaje que le
+indicará que ha asignado todos los tipos de habitación/subáreas a su elemento de especificación.
+Haga clic en 'Aceptar' y proceda a introducir sus cantidades en cada tipo de habitación//SubArea.
+
+Página - 3 -
+
+===== PAGINA 4 =====
+[META pagina=4 imagenes=6 tablas_detectadas=0 revision_visual=true]
+Exx-Introducción de elementos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+INTRODUCIR CANTIDADES DE ÁREA PARA POSICIONES DE ESPECIFICACIÓN OFCI y FIN
+Si tiene OFCI (Propietario Amueblado Contratista Instalado) que desea distribuir en Areas & Room
+
+Quantities, haga clic en el botón de lista para abrir la pantalla Areas & Room Quantities
+donde puede seleccionar las áreas de la lista desplegable.
+Si también tiene Cantidades de habitación desglosadas (para Habitaciones como ejemplo), verá
+los Tipos de habitación que aparecen a la derecha de la pantalla después de haber seleccionado
+el área.
+
+Seleccione el Tipo de habitación en la lista desplegable y, a continuación, agregue la cantidad de
+unidad presupuestada por habitación. Cuando conozca la Cantidad real, puede introducir la
+Cantidad real en los campos proporcionados. Nota: Puede utilizar el botón de acceso directo
+Tipos de HABITACIÓN para ir directamente a la pantalla de entrada De tipo de habitación/área de
+
+información del proyecto si necesita ajustar o agregar tipos y cantidades de habitación.
+Cuando esté listo, introducirá los detalles de su artículo de especificación.
+
+Página - 4 -
+
+===== PAGINA 5 =====
+[META pagina=5 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Exx-Introducción de elementos de especificación
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+INTRODUCIR CARGOS: PARA introducir todos los cargos relacionados con un artículo de
+especificación, haga clic en el botón Introducir GASTOS para abrir la pantalla Gastos de artículo.
+Consulte nuestra escritura "Introducción de los cargos por artículos de especificación" para
+
+obtener información más detallada.
+
+INTRODUCIR DETALLES DE ELEMENTO DE ESPECIFICACIÓN: para abrir la pantalla Detalle de elemento de
+especificación, busque el selector de registros (barra al extremo izquierdo del registro) en el
+elemento de la Lista de artículos de especificación y, a continuación, haga doble clic para abrir la
+pantalla Detalle de elemento de especificación.
+
+En la pantalla Detalle de posición de especificación: introduzca la información necesaria en los
+campos adecuados. Consulte la escritura en "Detalles del elemento de especificación" para
+obtener más información.
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+Y: support@lojikdesign.biz
+
+Página - 5 -

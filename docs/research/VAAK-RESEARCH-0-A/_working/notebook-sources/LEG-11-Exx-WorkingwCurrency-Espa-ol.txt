@@ -1,0 +1,144 @@
+DOCUMENTO_LOGICO: LEG-11
+TITULO: Exx-WorkingwCurrency-Español
+ARCHIVO_ORIGINAL: C:\Users\HP\OneDrive\Desktop\Plataforma VAAK\Documentos de plataforma antigua\Exx-WorkingwCurrency-Español.docx
+SHA256_ORIGINAL: b4d15b4e58b3c4b23a48cd1627ecd171511551d8ac3ab75b344c3268d83ee863
+METODO_EXTRACCION: PDF paginado; DOCX convertido mediante Microsoft Word cuando aplica; texto extraido con pdfplumber.
+NOTA_TRAZABILIDAD: Los marcadores PAGINA se refieren a la copia PDF de trabajo. Las imagenes, capturas y tablas se verifican visualmente contra las paginas renderizadas.
+
+===== PAGINA 1 =====
+[META pagina=1 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Trabajar con Moneda
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Trabajar con tipo de cambio (Moneda Nacional)
+
+En Exxpedite, puede utilizar moneda diferente para su presupuesto, pedidos de compra y facturas
+finales. Comenzará seleccionando su moneda de presupuesto para su proyecto. Esto se
+introducirá en la pantalla Información del proyecto en la ficha Información de compras.
+
+Si va a utilizar otras monedas en los pedidos de compra para este proyecto, también puede
+establecer tipos de cambio predeterminados en este momento. Haga clic en el botón TIPOS DE
+CAMBIO situado debajo de su selección de divisas para abrir la pantalla de tipos de cambio.
+
+Haga clic en el botón Obtener tarifas para abrir un sitio web de cambio de divisas para determinar
+los tipos de cambio actuales para sus monedas. Usted va a intercambiar de la nueva moneda de
+nuevo a la moneda de su proyecto. (1 (moneda nueva) - X.XXX (moneda del proyecto))
+
+Página - 1 -
+
+===== PAGINA 2 =====
+[META pagina=2 imagenes=7 tablas_detectadas=0 revision_visual=true]
+Trabajar con Moneda
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+NOTA *** El cambio de moneda no es dinámico: no se actualizará mientras trabaja en su
+proyecto. Utilizará esta moneda predeterminada al introducir sus pedidos de compra y,
+posteriormente, utilizará el cambio exacto asociado con los pagos de factura para determinar el
+coste final de su proyecto convertido a la moneda del proyecto.
+TRABAJAR CON LA MONEDA EN SUS ELEMENTOS DE ESPECIFICACIÓN
+
+Al introducir los costes reales con la moneda convertida, podrá generar informes de presupuesto e
+índices que reflejen los costes que están en la moneda del proyecto. Vaya a su Listado de
+elementos de especificación. Puede introducir los costes de posición de especificación utilizando
+estos tipos de cambio predeterminados al introducir los costes reales. A medida que las
+cotizaciones llegan para los artículos de especificación, si están en una moneda diferente a la
+moneda del proyecto, introducirá los costes mediante la pantalla INTRODUCIR GASTOS.
+
+Haga clic en el botón INTRODUCIR CARGOS situado en el extremo derecho de la lista de artículos de
+especificación para abrir la pantalla.
+
+Para introducir su coste en una moneda diferente, haga lo siguiente:
+
+Página - 2 -
+
+===== PAGINA 3 =====
+[META pagina=3 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Trabajar con Moneda
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+1. Seleccione su moneda: aparecerá un tipo de cambio. Si no aparece en la lista o no
+aparece un tipo de cambio, haga clic en Tipo de cambio para abrir la pantalla TIPO DE
+
+CAMBIO e introducir una nueva moneda asociada a este proyecto. (ver arriba)
+2. Introduzca el Coste unitario del artículo utilizando la moneda seleccionada en el campo
+Calcular.
+3. El coste convertido aparecerá en el campo Coste unitario en los Costes reales.
+Haga clic en RETORNO para volver a su lista de artículos de especificación. Repita estos pasos para
+todos los elementos enumerados en la oferta. Cuando esté listo para crear su pedido de compra,
+el sistema reconocerá que TODOS los artículos se han convertido de la misma moneda y lo
+utilizará para establecer la moneda en el registro de pedido de compra cuando se crea.
+
+TRABAJAR CON MONEDA EN SUS ÓRDENES DE COMPRA
+
+También puede configurar su moneda una vez que haya creado su pedido de compra. Incluso si su
+moneda se estableció en sus artículos de especificación y se ha transferir a su pedido de compra,
+querrá verificar los costos unitarios individuales de sus artículos de pedido de compra para
+asegurarse de que coincidan exactamente con los importes de coste unitario de su cotización. Se
+pueden introducir errores de redondeo leves al convertir con un tipo de cambio o cantidad con
+varios decimales.
+En la pantalla Detalle del pedido, vaya a la ficha Costes de pedido/Depósito. Busque la
+
+configuración de moneda para el pedido de compra y confirme la selección de moneda y el tipo
+de cambio que se utiliza para el pedido.
+
+Detalle de la orden de compra
+
+A continuación, vaya a la pestaña Pedido de compra para ver sus artículos de pedido de compra.
+Compruebe que todos los costos unitarios individuales coincidan con los de su oferta del
+proveedor. También puede introducirlos en este momento. Un coste unitario introducido en sus
+posiciones de pedido se convertirá de nuevo a la lista de artículos de especificación utilizando el
+tipo de cambio en el registro de pedido.
+
+Página - 3 -
+
+===== PAGINA 4 =====
+[META pagina=4 imagenes=5 tablas_detectadas=0 revision_visual=true]
+Trabajar con Moneda
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Confirme que los costos unitarios coinciden con su cotización. O introduzca sus Costos Unitarios
+aquí.
+TRABAJAR CON MONEDA EN SUS FACTURAS
+
+Al introducir sus registros de factura, reflejarán la misma moneda que sus registros de pedido.
+Cuando introduzca sus datos de pago en los registros de factura, introducirá el tipo de cambio
+utilizado al pagar la factura para obtener los costos más precisos. Este tipo de cambio se utilizará
+para convertir sus costos en sus informes de facturas.
+
+Después de introducir los detalles de pago en la pantalla Seguimiento de pago de facturas, haga
+doble clic en el selector de registros del registro de la factura para abrir la pantalla Detalles de
+entrada de factura. En la sección Moneda, modifique el tipo de cambio para que coincida con el
+tipo utilizado al pagar la factura.
+
+MONEDA EN LA PRESENTACIÓN DE INFORMES
+
+Dado que los costes que se muestran en el listado de artículos de especificación siempre están en
+la moneda del proyecto, los informes de presupuesto e índice que se ejecutan desde la pantalla
+Informes de artículos de especificación estarán en la moneda del proyecto.
+Los informes de pedidos de compra que incluyen los costos reflejarán la moneda del pedido de
+
+compra (a veces agrupando por moneda) y normalmente incluirán los totales convertidos de
+nuevo a la moneda del proyecto.
+
+Página - 4 -
+
+===== PAGINA 5 =====
+[META pagina=5 imagenes=3 tablas_detectadas=0 revision_visual=true]
+Trabajar con Moneda
+Lojik Design Systems LLC
+www.lojikdesign.biz
+
+Los informes de facturas también se mostrarán en la moneda de pedido/factura y también
+
+mostrarán los totales convertidos de nuevo a la moneda del proyecto utilizando el tipo de cambio
+de moneda final de los registros de factura.
+
+Póngase en contacto con el servicio de soporte técnico de Lojik para cualquier
+consulta o inquietud
+Y: support@lojikdesign.biz
+
+Página - 5 -
