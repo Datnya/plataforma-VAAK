@@ -3,6 +3,7 @@
   const access=ids=>({version:2,grants:Object.fromEntries(ids.map(id=>[id,'enabled']))});
   const seed={schemaVersions:{access:2,relations:2,resources:2},meta:{storeRevision:0},users:[
     {id:'admin',name:'Morgan Lee',email:'morgan.lee@vaak.pe',username:'admin.vaak',password:'VAAKdemo!26',role:'Admin',active:true},
+    {id:'admin-datnya',name:'Datnya Monzón',email:'datnyamonzon1@gmail.com',username:'Datnya Monzón',password:'1234',role:'Admin',active:true},
     {id:'worker',name:'Jordan Park',email:'jordan.park@vaak.pe',username:'worker.vaak',password:'VAAKdemo!26',role:'Worker',active:true,access:access(['section.dashboard','section.tools','section.team','section.suppliers','section.specs'])},
     {id:'client-a',name:'Avery Stone',email:'avery@cliente.test',username:'client.vaak',password:'VAAKdemo!26',role:'Client',active:true,position:'Gerente de Proyecto',phone:'+51 987 123 456',access:access(['section.dashboard','section.orders','section.tracking'])},
     {id:'client-b',name:'Sofía Rivera',email:'sofia@cliente.test',username:'client2.vaak',password:'VAAKdemo!26',role:'Client',active:true,position:'Coordinadora de Compras',phone:'+51 944 876 210',access:access(['section.dashboard','section.orders','section.tracking'])}
