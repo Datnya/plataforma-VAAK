@@ -228,8 +228,8 @@
 .team-objectives-head .primary { display: inline-flex; align-items: center; gap: .5rem; white-space: nowrap; }
 .team-objectives-head .ui-icon { width: 18px; height: 18px; }
 .team-filter-panel { display: grid; gap: .85rem; padding: .95rem 1rem; border: 1px solid var(--line); border-radius: 14px; background: #fff; box-shadow: 0 8px 24px rgba(54,36,25,.055); }
-.team-filter-main { display: grid; grid-template-columns: minmax(260px,1.1fr) auto minmax(370px,1.35fr); align-items: center; gap: 1rem; }
-.team-filter-main .user-search { min-width: 0; height: 45px; }
+.team-filter-main { display: flex; flex-wrap: wrap; align-items: center; gap: 1rem; }
+.team-filter-main .user-search { min-width: 0; height: 45px; flex: 1 1 260px; }
 .team-filter-group,.team-filter-secondary { display: flex; align-items: center; gap: .65rem; }
 .team-filter-group > b,.team-filter-secondary > b { color: var(--ink); font-size: .7rem; white-space: nowrap; }
 .team-filter-group select { height: 42px; min-width: 145px; border: 1px solid var(--line); border-radius: 8px; padding: 0 .75rem; background: #fff; color: var(--ink); font-size: .72rem; font-weight: 750; }
@@ -259,7 +259,7 @@
 .team-progress { display: grid; gap: .35rem; min-width: 115px; }.team-progress b { color: var(--ink); font-size: .66rem; }.team-progress > span { overflow: hidden; width: 100%; height: 5px; border-radius: 4px; background: #ebe7e2; }.team-progress > span i { display: block; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#b77b14,#d49a34); }
 .team-due > .ui-icon { width: 17px; height: 17px; flex: 0 0 auto; color: var(--brown); }.team-row-actions { display: flex; gap: .38rem; }.team-row-actions button { display: inline-grid; place-items: center; min-width: 34px; padding: .48rem; }.team-row-actions .ui-icon { width: 15px; height: 15px; }
 .team-objective-modal { width: min(780px,100%); }.team-form-wide { grid-column: 1 / -1; }.team-objective-form textarea { width: 100%; resize: vertical; }
-@media(max-width:1180px){.team-filter-main{grid-template-columns:1fr 1fr}.team-filter-main .user-search{grid-column:1 / -1}.team-filter-group:last-child{justify-content:flex-end}.team-role-shortcuts{display:none}.team-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:1180px){.team-filter-main .user-search{flex:1 1 100%}.team-filter-group:last-child{justify-content:flex-end}.team-role-shortcuts{display:none}.team-metrics{grid-template-columns:repeat(2,minmax(0,1fr))}}
 @media(max-width:760px){.team-objectives-head{align-items:stretch;flex-direction:column}.team-objectives-head .primary{justify-content:center}.team-filter-main{grid-template-columns:1fr}.team-filter-main .user-search{grid-column:auto}.team-filter-group{align-items:stretch;flex-direction:column}.team-filter-group:last-child{justify-content:flex-start}.team-segment{display:grid;grid-template-columns:repeat(3,1fr)}.team-filter-secondary{align-items:stretch;flex-direction:column}.team-status-filters{display:grid;grid-template-columns:1fr 1fr}.team-advanced-button{justify-content:center;margin-left:0}.team-metrics{grid-template-columns:1fr}.team-form-wide{grid-column:auto}}
 
 /* Per-user access editor */
@@ -511,5 +511,7 @@
 .team-last-update{color:var(--muted);font-size:.7rem;white-space:nowrap}
 .team-row-actions{display:flex;align-items:center;gap:.35rem}
 .team-row-actions .danger{padding:.35rem .6rem!important;font-size:.72rem}
-.team-filter-main{flex-wrap:wrap}
 .team-filter-secondary:empty{display:none}
+
+/* Login error box (2026-09-03). */
+.login-error{margin:.6rem 0;padding:.7rem 1rem;border:1px solid #e74c3c;border-radius:8px;background:#fdf0ef;color:#c0392b;font-size:.82rem;font-weight:600;line-height:1.4}
