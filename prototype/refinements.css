@@ -515,3 +515,67 @@
 
 /* Login error box (2026-09-03). */
 .login-error{margin:.6rem 0;padding:.7rem 1rem;border:1px solid #e74c3c;border-radius:8px;background:#fdf0ef;color:#c0392b;font-size:.82rem;font-weight:600;line-height:1.4}
+
+/* Mobile responsive enhancements */
+@media(max-width:480px){
+.app-header{padding:.6rem 1rem!important;min-height:60px!important;gap:.5rem!important}
+.app-header .brand{width:130px!important;min-width:130px!important;height:46px!important}
+.app-header .brand img{width:130px!important;height:46px!important}
+.top-nav{gap:.3rem!important;overflow-x:auto;-webkit-overflow-scrolling:touch;scrollbar-width:none}
+.top-nav::-webkit-scrollbar{display:none}
+.top-nav .nav{font-size:.75rem!important;padding:.45rem .5rem!important;white-space:nowrap;flex-shrink:0}
+.header-actions{gap:.3rem}
+.content{padding:1rem!important}
+.hero h1{font-size:1.6rem!important}
+.hero p:last-child{font-size:.85rem}
+.section-head h2{font-size:1.15rem}
+.modal{width:98vw!important;max-height:95vh!important;border-radius:10px!important}
+.modal-head{padding:.8rem 1rem}
+.modal-head h2{font-size:1.15rem!important}
+.modal-body{padding:.8rem 1rem}
+.modal-foot{padding:.7rem 1rem}
+.form-grid{grid-template-columns:1fr!important;gap:.6rem}
+.primary,.secondary,.ghost,.danger{font-size:.82rem;padding:.65rem .8rem}
+.tool{padding:.8rem}
+.tool h3{font-size:1rem!important}
+.tool p{font-size:.78rem;min-height:auto!important}
+.tool-icon{width:28px;height:28px;font-size:.85rem}
+.tools{grid-template-columns:1fr!important;gap:.7rem!important}
+.project-main h3{font-size:1.15rem!important}
+.project-main{padding:1rem!important}
+.meta{gap:.8rem;font-size:.72rem}
+.field label{font-size:.78rem}
+.field input,.field select,.field textarea{padding:.7rem .8rem;font-size:.85rem}
+.user-management-head{gap:.6rem}
+.user-management-head h2{font-size:1.3rem!important}
+.user-role-filters{grid-template-columns:1fr!important}
+.user-search input{height:42px!important}
+.user-table-cell{font-size:.72rem;padding:.55rem .4rem}
+.supplier-filters{gap:.5rem}
+.order-filter-panel{gap:.5rem}
+.order-status-filters{grid-template-columns:1fr!important}
+.team-objectives-head h2{font-size:1.3rem!important}
+.team-metric{min-height:auto;padding:.7rem}
+.team-metric strong{font-size:1.4rem}
+.team-metric b{font-size:.74rem}
+.team-filter-main{gap:.5rem!important}
+.team-filter-group select{font-size:.78rem;min-height:36px}
+.team-segment button{font-size:.68rem;padding:.35rem .5rem}
+.spec-spec-grid{gap:.7rem}
+.tracking-card{padding:.8rem!important;gap:.5rem!important;font-size:.78rem}
+.tracking-form{gap:.4rem}
+.tracking-form input{padding:.65rem}
+.tracking-card h1{font-size:1.6rem!important}
+.invoice-modal{width:98vw!important}
+.invoice-breakdown{grid-template-columns:1fr!important}
+.project-detail-cards{grid-template-columns:1fr!important}
+.app-footer{padding:.8rem 1rem;font-size:.7rem;gap:.5rem}
+.app-footer strong{font-size:1.1rem}
+.login-redesign .login-copy h1{font-size:2rem!important}
+.login-redesign .login-panel{padding:1.8rem 1rem}
+.login-redesign .login-heading h2{font-size:1.6rem!important}
+.access-user-modal{width:98vw!important}
+.access-list{grid-template-columns:1fr!important}
+.access-projects{grid-template-columns:1fr!important}
+.color-picker-modal{width:98vw!important}
+}
