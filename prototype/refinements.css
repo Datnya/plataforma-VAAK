@@ -596,3 +596,39 @@
 /* Spec delete button in editor modal footer */
 .spec-delete-btn{margin-right:auto!important}
 .modal-foot{display:flex;align-items:center;gap:.5rem}
+
+/* Warehouse select wider */
+.warehouse-select{min-width:100%!important;white-space:normal;word-break:break-word}
+.warehouse-input{display:flex;flex-direction:column;gap:.5rem}
+.warehouse-input select{width:100%;font-size:.82rem;padding:.6rem .8rem}
+
+/* PO item spacing + subtotal + grand total */
+.po-item-form{margin-bottom:1.2rem;padding-bottom:1.2rem;border-bottom:1px solid var(--line)}
+.po-item-form:last-child{border-bottom:none}
+.po-item-subtotal{font-weight:700;font-size:.9rem;color:var(--brown);padding:.6rem 0;display:block}
+.po-grand-total{margin-top:1rem;padding:1rem;background:#f9f5ef;border-radius:10px;display:flex;justify-content:space-between;align-items:center;font-size:1rem}
+.po-grand-total strong{color:#666}
+.po-grand-total span{font-weight:700;font-size:1.15rem;color:var(--brown)}
+
+/* Team inline status dropdown */
+.team-status-inline{appearance:auto;border:1px solid var(--line);border-radius:6px;padding:.3rem .5rem;font-size:.72rem;font-weight:700;cursor:pointer;background:#fff}
+.team-status-inline.team-status-pending{color:#e67e22;border-color:#e67e22}
+.team-status-inline.team-status-progress{color:#3498db;border-color:#3498db}
+.team-status-inline.team-status-completed{color:#27ae60;border-color:#27ae60}
+.team-status-inline.team-status-fulfilled{color:#8e44ad;border-color:#8e44ad}
+
+/* Due date urgent (red) */
+.team-due-urgent strong{color:#e74c3c!important}
+.team-due-urgent .ui-icon{color:#e74c3c!important}
+
+/* Notification badge */
+.notif-badge{position:absolute;top:2px;right:2px;background:#e74c3c;color:#fff;font-size:.6rem;font-weight:700;min-width:16px;height:16px;border-radius:999px;display:flex;align-items:center;justify-content:center;font-style:normal}
+.notification-button{position:relative}
+
+/* Notification items */
+.notif-item{display:flex;align-items:flex-start;gap:.75rem;padding:.75rem;border-radius:8px;margin-bottom:.5rem}
+.notif-urgent{background:#fdf2f2;border:1px solid #f5c6cb}
+.notif-icon{flex-shrink:0;color:#e74c3c}
+.notif-icon .ui-icon{width:20px;height:20px}
+.notif-item strong{display:block;font-size:.85rem;margin-bottom:.15rem}
+.notif-item small{color:#666;font-size:.75rem}
