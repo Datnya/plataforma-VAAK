@@ -11,7 +11,7 @@
     {
       "name": "vaak-prototype",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["--yes", "serve", "-l", "4173", "--no-request-logging"],
+      "runtimeArgs": ["--yes", "serve", "prototype", "-l", "4173", "--no-request-logging"],
       "port": 4173
     }
   ]
