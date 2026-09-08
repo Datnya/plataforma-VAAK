@@ -165,6 +165,20 @@ Al hacer clic en una tarjeta de proyecto se abre su detalle con:
 ### Estado inline
 - Admin y el usuario asignado pueden cambiar el estado directamente desde el dropdown en la tabla
 
+### Alertas de vencimiento
+- **Banner visual:** Cuando hay objetivos que vencen hoy o mañana, se muestra un banner amarillo/dorado en la parte superior de la tabla con la lista de objetivos próximos a vencer
+- Admin ve todos los objetivos próximos a vencer (con nombre del asignado); el worker ve solo los suyos
+- La fila del objetivo en la tabla también se resalta en rojo cuando vence hoy o mañana (clase `team-due-urgent`)
+- **Notificaciones:** La campana también muestra badge con cantidad de objetivos próximos a vencer
+
+### Sistema de emails de recordatorio (BACKEND-READY)
+- Función `getUpcomingDeadlines(state)` — Identifica todos los objetivos que vencen hoy o mañana, con datos del asignado (nombre, email)
+- Función `prepareDeadlineEmails(state)` — Genera los objetos de email listos para envío: destinatario, asunto, cuerpo del mensaje
+- **Formato del email:**
+  - Asunto: "⚠ Alerta VAAK — Objetivo próximo a vencer"
+  - Cuerpo: Saludo personalizado, nombre del objetivo, fecha de vencimiento, estado (hoy/mañana), llamada a acción
+- **Integración backend:** Cuando exista el backend Laravel, reemplazar el `console.log` en `prepareDeadlineEmails` por una llamada API `POST /api/deadline-reminders` que envíe los emails vía SMTP
+
 ### Eliminar objetivo
 - Solo disponible para objetivos completados
 - Modal de confirmación
