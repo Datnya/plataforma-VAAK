@@ -618,6 +618,16 @@
 .rubro-otros-field input{width:100%;padding:.55rem .7rem;border:1px solid var(--line);border-radius:8px;font:inherit;font-size:.82rem}
 .field-full{grid-column:1/-1}
 
+/* Supplier information mirrored from the purchase-order party fields. */
+.po-party-details{margin-top:-.25rem!important;padding:.7rem .85rem;border:1px solid #d8c9b8;border-left:3px solid #b98217;border-radius:7px;background:#fffdf9;color:#5f4638}
+.po-party-details[hidden]{display:none}
+.po-party-details-copy{display:grid;gap:.18rem;font-family:Arial,sans-serif;font-size:.78rem;line-height:1.35}
+.po-party-details-copy .po-party-name{font-size:.88rem;font-weight:800;color:#3d3029}
+.po-party-details-copy span:not(.po-party-name):empty{display:none}
+.po-form-grid .field:has(input[name="manufacturerContact"]),.po-form-grid .field:has(input[name="sourceContact"]){display:none}
+.hpg-project-reference{margin-top:.35em;color:#b98217;font-size:8px;font-weight:800;letter-spacing:.14em;text-transform:uppercase}
+.project-order-register{display:grid;gap:.45rem;margin-top:1rem}.project-order-register-head,.project-order-register-row{display:flex;align-items:center;gap:.8rem}.project-order-register-head{justify-content:space-between;color:var(--brown);font-size:.78rem}.project-order-register-head span{display:grid;place-items:center;min-width:22px;height:22px;border-radius:50%;background:#f5e6c7;font-size:.7rem;font-weight:800}.project-order-register-row{justify-content:space-between;padding:.7rem .8rem;border:1px solid var(--line);border-radius:8px;background:#fffdf9}.project-order-register-row div:first-child{display:grid;gap:.15rem;flex:1}.project-order-register-row small{color:var(--muted);font-size:.7rem}.project-order-register-row div:nth-child(2){display:grid;gap:.1rem;text-align:right;font-size:.76rem}.project-order-register-row .secondary{padding:.45rem .65rem;font-size:.72rem}
+
 /* Team objectives: last update + delete button + filter layout (2026-09-03). */
 .team-last-update{color:var(--muted);font-size:.7rem;white-space:nowrap}
 .team-row-actions{display:flex;align-items:center;gap:.35rem}
@@ -841,6 +851,10 @@
 .project-invoice-section{padding-top:.5rem}
 .project-reports-section{padding-top:.5rem}
 
+/* Keep the section titles visually balanced with their preceding divider. */
+.section-divider{margin:1.5rem 0 1rem}
+.section-divider+.project-invoice-section,.section-divider+.project-reports-section{margin-top:0!important;padding-top:0}
+
 /* Drafts section (separate from tracking) */
 .project-drafts-section{margin-top:1.2rem}.project-drafts-list{display:grid;gap:.6rem}
 
@@ -857,6 +871,23 @@
 .status-cancelled{background:#fde8e8;color:#c44}
 .void-reason-cell{font-size:.75rem;color:#8b6914;max-width:180px;display:block;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;background:none;border:none;cursor:pointer;text-decoration:underline;text-align:left;padding:0}.void-reason-cell:hover{color:#6b5010}
 .input-error{border-color:#c44!important;box-shadow:0 0 0 2px #c4441a}
+
+/* Purchase order: match the visual hierarchy of the approved HPG document. */
+.hpg-po{font-family:"Times New Roman",Times,serif!important;color:#3d3028}
+.hpg-po .po-logo{width:170px!important;height:auto!important;object-fit:contain}
+.hpg-project-reference{margin-top:.45em;color:#9c7a3c;font-size:7px;font-weight:800;letter-spacing:.16em;text-transform:uppercase}
+.hpg-items td:nth-child(2){width:16%;padding:.4em;text-align:center}
+.hpg-item-image{display:block;width:100%;max-height:78px;object-fit:contain}
+.hpg-item-name,.hpg-item-dimensions,.hpg-item-material{display:block}
+.hpg-item-name{font-size:8px;font-weight:700;line-height:1.25}
+.hpg-item-dimensions,.hpg-item-material{margin-top:.16em;font-size:6.5px;line-height:1.25;color:#75675c}
+.hpg-section{display:block;border-bottom:1px solid rgba(83,70,60,.34);padding-bottom:.35em;margin-bottom:.65em}
+.hpg-subtotal-line{display:flex!important;margin-top:0;padding:.65em .5em .5em;border-bottom:1px solid rgba(83,70,60,.22)}
+.hpg-tc-grid{gap:0 2em}
+.hpg-tc-item{padding:.45em 0;border-bottom:1px solid rgba(83,70,60,.22)}
+.hpg-tc-item span{border-bottom:0;min-height:0;margin-top:.12em}
+.hpg-tc-item strong{color:#9c7a3c}
+.hpg-footer,.hpg-divider{border-color:rgba(83,70,60,.22)}
 .assignee-multi-wrap{position:relative}
 .assignee-dropdown-toggle{width:100%;padding:.55rem .7rem;border:1px solid #d0d0d0;border-radius:8px;background:#fff;text-align:left;font-size:.85rem;color:#555;cursor:pointer}
 .assignee-dropdown-toggle:hover{border-color:#aaa}
