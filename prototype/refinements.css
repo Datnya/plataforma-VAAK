@@ -813,6 +813,7 @@
 .supplier-contact-stack strong{font-size:.78rem}
 .supplier-contact-stack small{font-size:.68rem;color:#777}
 .supplier-contact-2{border-top:1px solid var(--line);padding-top:.4rem}
+.supplier-website-cell{max-width:190px}.supplier-website-cell a{display:inline-block;max-width:100%;overflow:hidden;color:#9a6812;font-size:.75rem;font-weight:700;text-decoration:underline;text-overflow:ellipsis;white-space:nowrap}.supplier-website-cell a:hover{color:var(--brown)}
 
 /* Supplier contacts fieldset */
 .supplier-contacts-fieldset{border:1px solid var(--line);border-radius:10px;padding:.8rem 1rem .6rem;margin:0}
@@ -823,6 +824,11 @@
 .rubro-dynamic-select{display:flex;gap:.4rem;align-items:center}
 .rubro-dynamic-select select{flex:1}
 .rubro-add-btn{padding:.35rem .5rem!important;min-width:auto!important;font-size:.7rem!important}
+.spec-rubro-delete-btn{display:inline-flex;align-items:center;justify-content:center;flex:0 0 38px;height:38px;padding:0;border:1px solid #df9a9a;border-radius:8px;background:#fff5f5;color:#c53434;cursor:pointer;transition:background .15s,border-color .15s,color .15s}
+.spec-rubro-delete-btn:hover:not(:disabled){background:#fde7e7;border-color:#c53434;color:#a91f1f}
+.spec-rubro-delete-btn:disabled{border-color:#e6dddd;background:#faf8f8;color:#c9bcbc;cursor:not-allowed;opacity:.7}
+.spec-rubro-delete-btn .ui-icon{width:17px;height:17px}
+.rubro-confirm-backdrop{z-index:1200!important}.rubro-confirm-modal{max-width:500px}
 .rubro-search-row{display:flex;gap:.4rem;margin-bottom:.5rem}
 .rubro-search-row input[type="search"]{flex:1;height:36px;border:1px solid var(--line);border-radius:8px;padding:0 .6rem;font-size:.75rem}
 .rubro-delete-btn{background:none;border:none;color:#c44;cursor:pointer;font-size:.85rem;padding:0 .2rem;margin-left:.3rem}
@@ -854,6 +860,13 @@
 /* Keep the section titles visually balanced with their preceding divider. */
 .section-divider{margin:1.5rem 0 1rem}
 .section-divider+.project-invoice-section,.section-divider+.project-reports-section{margin-top:0!important;padding-top:0}
+
+/* Compact the first project-management block beneath its divider. */
+.project-detail-redesign>.section-divider:has(+.project-management-section){margin-bottom:0}
+.project-detail-redesign>.section-divider+.project-management-section{margin-top:-.5rem!important;padding-top:0}
+.project-management-section>.section-head{margin-bottom:.3rem}
+.project-management-section>.project-specs-subsection{margin-top:0;padding-top:0}
+.project-management-section>.project-specs-subsection>.section-head{margin-bottom:.65rem}
 
 /* Drafts section (separate from tracking) */
 .project-drafts-section{margin-top:1.2rem}.project-drafts-list{display:grid;gap:.6rem}
@@ -922,3 +935,59 @@
 .project-filter-icon-btn{display:inline-flex;align-items:center;justify-content:center;width:38px;height:38px;padding:0;border:1px solid var(--line);border-radius:8px;background:#fff;cursor:pointer;transition:background .15s}.project-filter-icon-btn:hover{background:#f5ead4}
 .project-status-dropdown{position:absolute;top:calc(100% + 4px);left:0;z-index:10;display:flex;flex-direction:column;gap:.2rem;padding:.4rem;border:1px solid var(--line);border-radius:10px;background:#fff;box-shadow:0 6px 18px #35251d14;min-width:160px}
 .project-status-dropdown button{display:block;width:100%;text-align:left;border:none;border-radius:6px;padding:.45rem .7rem;background:transparent;font-size:.78rem;font-weight:600;cursor:pointer;transition:background .15s}.project-status-dropdown button:hover{background:#f5ead4}.project-status-dropdown button.active{background:#f5ead4;color:#8b6914}
+
+/* Unified and responsive purchase-order register in project details. */
+.project-purchase-subsection>.section-head .section-head-actions{margin-left:auto}
+.project-purchase-subsection [data-action="view-drafts"]{display:none!important}
+.project-purchase-subsection>.tracking-manager,.project-purchase-subsection>.project-drafts-section,.project-purchase-subsection>.project-order-register{display:none!important}
+.project-orders-unified{display:grid;gap:.75rem;width:100%;min-width:0;margin-top:1rem}
+.project-order-card{display:grid;grid-template-columns:minmax(220px,1.15fr) minmax(150px,.65fr) minmax(190px,.8fr);align-items:start;gap:.85rem 1.1rem;width:100%;min-width:0;padding:1rem;border:1px solid #eadfd5;border-left:4px solid #bd8b2b;border-radius:11px;background:#fffdfa;box-sizing:border-box;overflow:hidden;box-shadow:0 5px 16px rgba(53,37,29,.035)}
+.project-order-card[hidden]{display:none!important}
+.project-order-identity,.project-order-state,.project-order-editor{display:grid;align-content:start;gap:.28rem;min-width:0}
+.project-order-field-label{color:var(--muted);font-size:.64rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
+.project-order-identity strong,.project-order-identity span,.project-order-editor span{max-width:100%;overflow-wrap:anywhere}
+.project-order-tracking{display:flex!important;align-items:center;gap:.45rem;color:var(--brown)!important;font-size:.88rem!important;letter-spacing:.025em}
+.project-order-tracking .tracking-copy{position:static;flex:0 0 auto}
+.project-order-po{font-size:.74rem;color:var(--muted)}
+.project-order-po b{color:var(--brown)}
+.project-order-state .tracking-status{justify-self:start;white-space:normal;text-align:left}
+.tracking-status-preparation{background:#f5ead4;color:#805b11}.tracking-status-in-transit{background:#e8f0fb;color:#2f6193}.tracking-status-out-for-delivery{background:#efe9f8;color:#684798}.tracking-status-delivered{background:#e7f3e7;color:#28702c}.tracking-status-draft{background:#f6eee0;color:#9a6812}
+.project-order-editor>span:last-child{color:var(--brown);font-size:.75rem;line-height:1.45}
+.project-order-cancelled{grid-column:1/-1;display:flex;align-items:center;flex-wrap:wrap;gap:.35rem .7rem;padding:.58rem .7rem;border-radius:8px;background:#fff0f0;color:#b33;font-size:.73rem;overflow-wrap:anywhere}
+.project-order-cancelled span{color:#7d4b4b}
+.project-order-reason{border:0;background:transparent;color:#8b6914;font:inherit;font-weight:750;text-decoration:underline;cursor:pointer;padding:0}
+.project-order-actions{grid-column:1/-1;display:flex;align-items:center;justify-content:flex-start;flex-wrap:wrap;gap:.5rem;min-width:0;padding-top:.15rem}
+.project-order-actions .tracking-action-btn,.project-order-actions .tracking-update-btn{max-width:100%;white-space:normal}
+.project-order-actions .tracking-update-btn{background:linear-gradient(135deg,#c79735,#986a14)!important;border-color:#986a14!important;color:#fff!important;box-shadow:0 5px 13px rgba(152,106,20,.2)}
+.project-order-actions .tracking-update-btn:hover{filter:brightness(.96)}
+.project-order-draft{border-left-color:#c9a257;background:#fffcf6}
+@media(max-width:920px){.project-order-card{grid-template-columns:minmax(0,1fr) minmax(150px,.65fr)}.project-order-editor{grid-column:1/-1}}
+@media(max-width:640px){.project-order-card{grid-template-columns:minmax(0,1fr);padding:.85rem}.project-order-editor,.project-order-cancelled,.project-order-actions{grid-column:1}.project-order-actions>*{flex:1 1 150px;justify-content:center}.project-purchase-subsection>.section-head{align-items:flex-start;gap:.75rem}.project-purchase-subsection>.section-head .section-head-actions{width:100%}.project-purchase-subsection>.section-head .section-head-actions .primary{width:100%;justify-content:center}}
+
+/* Read-only project code for workers and grouped team-objective assignees. */
+.project-code-readonly{display:inline-flex;align-items:center;min-height:31px;color:var(--brown);font-size:.82rem;font-weight:750}
+.team-assignee-group{position:relative;min-width:185px}.team-assignee-group summary{display:flex;align-items:center;gap:.55rem;list-style:none;cursor:pointer;color:var(--brown)}.team-assignee-group summary::-webkit-details-marker{display:none}
+.team-assignee-avatar-stack{display:flex;padding-left:8px}.team-assignee-avatar-stack .user-avatar{margin-left:-8px;border:2px solid #fff;box-sizing:border-box}
+.team-assignee-caret{margin-left:auto;transition:transform .15s}.team-assignee-group[open] .team-assignee-caret{transform:rotate(180deg)}
+.team-assignee-group-list{position:absolute;z-index:25;top:calc(100% + 7px);left:0;display:grid;gap:.35rem;min-width:240px;padding:.55rem;border:1px solid var(--line);border-radius:9px;background:#fff;box-shadow:0 8px 24px rgba(53,37,29,.14)}
+.team-assignee-group-member{display:flex;align-items:center;gap:.55rem;padding:.35rem;border-radius:6px}.team-assignee-group-member:hover{background:#faf5ec}.team-assignee-group-member strong,.team-assignee-group-member small{display:block}.team-assignee-group-member small{margin-top:.12rem;color:var(--muted);font-size:.62rem}
+.role-team{background:#f2eadc;color:#795b28}.team-update-detail{display:grid;gap:.14rem;min-width:130px}.team-update-detail strong{color:var(--brown);font-size:.68rem}.team-update-detail small{color:var(--muted);font-size:.61rem;white-space:nowrap}
+.void-reason-modal{max-width:520px}.void-reason-detail{display:grid;gap:.8rem}.void-reason-detail>div{display:grid;gap:.22rem;padding:.75rem;border:1px solid var(--line);border-radius:8px;background:#fffdf9}.void-reason-detail span{color:var(--muted);font-size:.65rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}.void-reason-detail p{margin:0;line-height:1.55;white-space:pre-wrap}.void-reason-detail strong{color:var(--brown)}.void-reason-detail small{color:var(--muted);font-size:.75rem}
+
+/* The expanded assignee list floats outside every table overflow boundary. */
+.team-assignee-group[open]{position:relative;z-index:1000}.team-assignee-group[open] .team-assignee-group-list{position:fixed;z-index:10000;max-height:min(320px,calc(100vh - 24px));overflow-y:auto;box-sizing:border-box}
+.team-objectives-table tr:has(.team-assignee-group[open]),.team-table-wrap:has(.team-assignee-group[open]){position:relative;z-index:1000}
+
+/* Every modal owns the scroll while the page behind it remains fixed. */
+@media screen{
+body.vaak-modal-open{overflow:hidden!important}
+#modal-root:has(.modal-backdrop){position:fixed;z-index:1000;inset:0;overflow:hidden}
+#modal-root .modal-backdrop{overflow:hidden;overscroll-behavior:contain}
+#modal-root .modal{display:flex;flex-direction:column;max-height:calc(100dvh - 2rem);overflow:hidden!important}
+#modal-root .modal-head,#modal-root .modal-foot{flex:0 0 auto}
+#modal-root .modal-body{flex:1 1 auto;min-height:0;overflow-x:auto;overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch}
+}
+
+/* Project spec duplication control. */
+.spec-duplicate-button{display:inline-grid!important;place-items:center;min-width:40px!important;width:40px;padding:.55rem!important;color:var(--brown)}
+.spec-duplicate-button .ui-icon{width:17px;height:17px}
