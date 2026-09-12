@@ -6,16 +6,33 @@
     <meta name="description" content="VAAK Procurement Platform" />
     <title>VAAK — Procurement Platform</title>
     <base href="/prototype/" />
-    <link rel="stylesheet" href="styles.css" />
-    <link rel="stylesheet" href="refinements.css" />
+    <link rel="icon" type="image/png" href="logo-vaak.png" />
+    <link rel="apple-touch-icon" href="logo-vaak.png" />
+    <link rel="stylesheet" href="styles.css?v=14" />
+    <link rel="stylesheet" href="refinements.css?v=32" />
+    <link rel="stylesheet" href="purchase-order-reference.css?v=4" />
+    <link rel="stylesheet" href="technical-sheet-reference.css?v=3" />
+    <link rel="stylesheet" href="payment-request-reference.css?v=1" />
   </head>
   <body>
     <main id="app"></main>
     <div id="modal-root" aria-live="polite"></div>
     <div id="toast" role="status" aria-live="polite"></div>
     <script>localStorage.removeItem('vaak-session-v6')</script>
-    <script src="app.js?v=11"></script>
+    <script src="money-utils.js?v=1"></script>
+    <script src="banner-image-utils.js?v=1"></script>
+    <script src="form-defaults.js?v=1"></script>
+    <script src="language-preference.js?v=1"></script>
+    <script src="access-control.js?v=14"></script>
+    <script src="access-test-fixtures.js?v=12"></script>
+    <script src="access-runtime.js?v=23"></script>
+    <script src="purchase-order-template.js?v=5"></script>
+    <script src="technical-sheet-template.js?v=3"></script>
+    <script src="technical-sheet-pdf.js?v=2"></script>
+    <script src="payment-request-template.js?v=1"></script>
+    <script src="app.js?v=39"></script>
+    <script src="reports.js?v=15"></script>
     <script src="staging-bridge.js?v=1"></script>
-<script src="presentation.js?v=13"></script>
+    <script src="presentation.js?v=6"></script>
   </body>
 </html>

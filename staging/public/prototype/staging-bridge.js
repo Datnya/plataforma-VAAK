@@ -36,7 +36,7 @@
       localStorage.setItem(SESSION, account.id);
       render();
     } catch {
-      msg("Usuario o contraseña incorrectos.");
+      msg("Incorrect username or password.");
     } finally {
       if (button) button.disabled = false;
     }
