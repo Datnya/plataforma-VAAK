@@ -991,3 +991,30 @@ body.vaak-modal-open{overflow:hidden!important}
 /* Project spec duplication control. */
 .spec-duplicate-button{display:inline-grid!important;place-items:center;min-width:40px!important;width:40px;padding:.55rem!important;color:var(--brown)}
 .spec-duplicate-button .ui-icon{width:17px;height:17px}
+
+/* Guided high-definition project banner upload. */
+.banner-manager-modal{width:min(960px,100%)!important}
+.banner-resolution-guide{margin:1rem 0;padding:1rem 1.1rem;border:1px solid #d8b56f;border-radius:12px;background:#fbf4e7;color:var(--ink)}
+.banner-resolution-guide>strong{display:block;margin-bottom:.7rem;color:var(--brown);font-size:.9rem}
+.banner-resolution-guide>div{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
+.banner-resolution-guide span{display:flex;flex-direction:column;gap:.15rem;padding:.65rem;border:1px solid #ead9ba;border-radius:9px;background:#fff;font-size:.78rem}
+.banner-resolution-guide b{color:#a46d15;font-size:.65rem;text-transform:uppercase;letter-spacing:.08em}
+.banner-resolution-guide p{margin:.7rem 0 0;color:var(--muted);font-size:.72rem;line-height:1.5}
+.banner-upload-field{display:grid;gap:.45rem;margin-top:.8rem!important}
+.banner-upload-field input[type=file]{padding:.7rem;border:1px solid #dbc9ae;border-radius:8px;background:#fff}
+.banner-crop-editor{margin-top:1rem;padding:1rem;border:1px solid #dcc8a8;border-radius:12px;background:#fffdf9}
+.banner-crop-editor[hidden]{display:none!important}
+.banner-crop-editor>header{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:.7rem}
+.banner-crop-editor>header strong,.banner-crop-editor>header small{display:block;overflow-wrap:anywhere}
+.banner-crop-editor>header small{margin-top:.2rem;color:var(--muted);font-size:.68rem}
+.banner-crop-editor canvas{display:block;width:100%;height:auto;aspect-ratio:4/1;border:1px solid #d8c8b5;border-radius:9px;background:#35271f;cursor:grab;object-fit:cover;touch-action:none;user-select:none}
+.banner-crop-editor canvas.is-dragging{cursor:grabbing}
+.banner-quality{flex:0 0 auto;border-radius:999px;padding:.38rem .62rem;font-size:.66rem;font-weight:850}
+.banner-quality-ideal{background:#dff1e7;color:#31734f}.banner-quality-acceptable{background:#fbefd2;color:#906317}.banner-quality-low{background:#f9e2df;color:#a44242}
+.banner-drag-hint{margin:.55rem 0 0;color:var(--brown);font-size:.72rem;font-weight:750;line-height:1.45}
+.banner-quality-note{margin:.35rem 0 .65rem;color:var(--muted);font-size:.72rem;line-height:1.45}
+.banner-crop-controls{display:grid;grid-template-columns:minmax(240px,520px);gap:.75rem;margin-top:.8rem}
+.banner-crop-controls label{display:grid;gap:.35rem;color:var(--ink);font-size:.7rem;font-weight:800}
+.banner-crop-controls input{width:100%;accent-color:#a9761b}
+.banner-crop-editor>footer{display:flex;justify-content:flex-end;gap:.65rem;margin-top:1rem}
+@media(max-width:700px){.banner-resolution-guide>div,.banner-crop-controls{grid-template-columns:1fr}.banner-crop-editor>header{align-items:flex-start;flex-direction:column}.banner-crop-editor>footer{flex-direction:column-reverse}.banner-crop-editor>footer button{width:100%}}
