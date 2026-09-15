@@ -1,57 +1,88 @@
 (() => {
-  async function syncSession() {
-    try {
-      const response = await fetch("/api/auth/session", { credentials: "same-origin" });
-      if (!response.ok) throw new Error("No active session");
-      const session = await response.json();
-      const account = data.users.find((candidate) => candidate.username === session.username && candidate.active);
-      if (!account) throw new Error("Account unavailable");
-      user = account;
-      localStorage.setItem(SESSION, account.id);
-    } catch {
-      user = null;
-      localStorage.removeItem(SESSION);
-    }
-    render();
-  }
+  "use strict";
+  let csrfToken = "";
+  const app = () => window.VAAKAppBridge;
+  const request = async (url, options = {}) => {
+    const headers = { ...(options.headers || {}) };
+    if (csrfToken) headers["x-vaak-csrf"] = csrfToken;
+    const response = await fetch(url, { credentials: "same-origin", ...options, headers });
+    const data = await response.json().catch(() => ({}));
+    csrfToken = data.csrfToken || response.headers.get("x-vaak-csrf") || csrfToken;
+    if (!response.ok) throw Object.assign(new Error(data.error || "request_failed"), { status: response.status, code: data.error });
+    return data;
+  };
+  const session = async () => {
+    const response = await fetch("/api/auth/session", { credentials: "same-origin", cache: "no-store" });
+    const data = await response.json().catch(() => ({}));
+    csrfToken = data.csrfToken || csrfToken;
+    if (response.ok && data.authenticated) app()?.applyRemoteSession(data);
+    else app()?.clearRemoteSession();
+    return data;
+  };
+  const directory = async () => {
+    const [users, current] = await Promise.all([request("/api/admin/users"), request("/api/auth/session")]);
+    app()?.completeRemoteUserMutation({ users: users.users, user: current.user });
+  };
+  const formPayload = (form, operation) => {
+    const values = Object.fromEntries(new FormData(form).entries());
+    const draft = operation.draft || {};
+    const phone = [values.phoneCountryCode, values.phone].filter(Boolean).join(" ").trim();
+    return {
+      legacyId: operation.target?.id,
+      name: values.name || operation.target?.name,
+      email: values.email || operation.target?.email,
+      username: values.username || operation.target?.username,
+      password: values.password || undefined,
+      role: draft.role || operation.target?.role,
+      team: values.team || "",
+      position: values.position || "",
+      phone,
+      access: { version: 2, grants: draft.grants || operation.target?.access?.grants || {} },
+      projectScope: draft.projectMode || operation.target?.projectScope || "selected",
+      projectIds: (draft.role || operation.target?.role) === "Client" ? (draft.clientProjectIds || operation.target?.projectIds || []) : (draft.projectIds || operation.target?.projectIds || []),
+    };
+  };
 
   document.addEventListener("submit", async (event) => {
-    if (event.target.id !== "login") return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    const form = event.target;
-    const button = form.querySelector("button[type='submit'], button.primary");
-    if (button) button.disabled = true;
+    if (event.target.id === "login") {
+      event.preventDefault(); event.stopImmediatePropagation();
+      const values = Object.fromEntries(new FormData(event.target).entries());
+      try {
+        if (!csrfToken) await session();
+        await request("/api/auth/login", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(values) });
+        await session();
+      } catch { app()?.showMessage("The username or password entered is incorrect."); }
+      return;
+    }
+    if (event.target.id !== "authorized-form") return;
+    const operation = app()?.getActiveOperation();
+    if (!operation || !["user-editor", "confirm-toggle", "confirm-delete-user"].includes(operation.kind)) return;
+    event.preventDefault(); event.stopImmediatePropagation();
     try {
-      const response = await fetch("/api/auth/login", {
-        method: "POST",
-        body: new FormData(form),
-        credentials: "same-origin",
-        headers: { Accept: "application/json" },
-      });
-      const result = await response.json();
-      const account = data.users.find((candidate) => candidate.username === result.username && candidate.active);
-      if (!response.ok || !account) throw new Error("Invalid credentials");
-      user = account;
-      localStorage.setItem(SESSION, account.id);
-      render();
-    } catch {
-      msg("Incorrect username or password.");
-    } finally {
-      if (button) button.disabled = false;
+      if (operation.kind === "user-editor") {
+        const payload = formPayload(event.target, operation);
+        if (operation.mode === "new") {
+          await request("/api/admin/users", { method: "POST", headers: { "content-type": "application/json", "idempotency-key": crypto.randomUUID() }, body: JSON.stringify(payload) });
+        } else {
+          await request(`/api/admin/users/${encodeURIComponent(operation.target.id)}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify(payload) });
+        }
+      } else if (operation.kind === "confirm-toggle") {
+        await request(`/api/admin/users/${encodeURIComponent(operation.target.id)}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ active: !operation.target.active }) });
+      } else {
+        await request(`/api/admin/users/${encodeURIComponent(operation.target.id)}`, { method: "DELETE" });
+      }
+      await directory();
+    } catch (error) {
+      app()?.showMessage(error.code === "identity_exists" ? "That username or email is already registered." : "The user could not be saved.");
     }
   }, true);
 
   document.addEventListener("click", async (event) => {
-    const target = event.target.closest("[data-action='logout']");
-    if (!target) return;
-    event.preventDefault();
-    event.stopImmediatePropagation();
-    await fetch("/api/auth/logout", { method: "POST", credentials: "same-origin" });
-    localStorage.removeItem(SESSION);
-    user = null;
-    render();
+    const button = event.target.closest("[data-command='logout']");
+    if (!button) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    try { await request("/api/auth/logout", { method: "POST" }); } finally { app()?.clearRemoteSession(); }
   }, true);
 
-  syncSession();
+  session().catch(() => app()?.clearRemoteSession());
 })();

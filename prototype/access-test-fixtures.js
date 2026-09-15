@@ -2,11 +2,11 @@
   const copy=value=>JSON.parse(JSON.stringify(value));
   const access=ids=>({version:2,grants:Object.fromEntries(ids.map(id=>[id,'enabled']))});
   const seed={schemaVersions:{access:2,relations:2,resources:2},meta:{storeRevision:0},users:[
-    {id:'admin',name:'Morgan Lee',email:'morgan.lee@vaak.pe',username:'admin.vaak',password:'VAAKdemo!26',role:'Admin',active:true},
-    {id:'admin-datnya',name:'Datnya Monzón',email:'datnyamonzon1@gmail.com',username:'Datnya Monzón',password:'1234',role:'Admin',active:true},
-    {id:'worker',name:'Jordan Park',email:'jordan.park@vaak.pe',username:'worker.vaak',password:'VAAKdemo!26',role:'Worker',active:true,access:access(['section.dashboard','section.tools','section.team','section.suppliers','section.specs'])},
-    {id:'client-a',name:'Avery Stone',email:'avery@cliente.test',username:'client.vaak',password:'VAAKdemo!26',role:'Client',active:true,position:'Gerente de Proyecto',phone:'+51 987 123 456',access:access(['section.dashboard','section.orders','section.tracking'])},
-    {id:'client-b',name:'Sofía Rivera',email:'sofia@cliente.test',username:'client2.vaak',password:'VAAKdemo!26',role:'Client',active:true,position:'Coordinadora de Compras',phone:'+51 944 876 210',access:access(['section.dashboard','section.orders','section.tracking'])}
+    {id:'admin',name:'Morgan Lee',email:'morgan.lee@vaak.pe',username:'admin.vaak',role:'Admin',active:true},
+    {id:'admin-datnya',name:'Datnya Monzón',email:'datnyamonzon1@gmail.com',username:'Datnya Monzón',role:'Admin',active:true},
+    {id:'worker',name:'Jordan Park',email:'jordan.park@vaak.pe',username:'worker.vaak',role:'Worker',active:true,access:access(['section.dashboard','section.tools','section.team','section.suppliers','section.specs'])},
+    {id:'client-a',name:'Avery Stone',email:'avery@cliente.test',username:'client.vaak',role:'Client',active:true,position:'Gerente de Proyecto',phone:'+51 987 123 456',access:access(['section.dashboard','section.orders','section.tracking'])},
+    {id:'client-b',name:'Sofía Rivera',email:'sofia@cliente.test',username:'client2.vaak',role:'Client',active:true,position:'Coordinadora de Compras',phone:'+51 944 876 210',access:access(['section.dashboard','section.orders','section.tracking'])}
   ],projects:[
     {id:'p1',code:'PRJ-041',name:'Hotel Costa Azul',legal:'Hotel Costa Azul S.A.C.',fiscal:'Av. del Sol 245, Lima',warehouse:'Jr. Los Cedros 180, Lima',city:'Lima',country:'Perú',rooms:'120',residences:'18',areas:'9',cover:'assets/projects/harbor-view-residence.png',gallery:[],team:[]},
     {id:'p2',code:'PRJ-042',name:'Logistics Center',legal:'Logistics Development S.A.C.',fiscal:'Av. Industrial 500, Lima',warehouse:'Almacén Central',city:'Lima',country:'Perú',rooms:'—',residences:'—',areas:'6',cover:'assets/projects/logistics-center.png',gallery:[],team:[]}
