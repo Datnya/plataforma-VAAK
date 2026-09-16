@@ -32,7 +32,7 @@ export async function listCompanyUsers(companyId: string) {
   const admin = createAdminClient();
   const { data, error } = await admin
     .from("vaak_user_company_memberships")
-    .select("user_id,role,status,access,project_scope,local_project_ids,profiles:vaak_profiles!inner(display_name,username,login_email,legacy_id,active,team,position,phone)")
+    .select("user_id,role,status,access,project_scope,local_project_ids,profiles:vaak_profiles!inner(display_name,username,login_email,legacy_id,active,team,position,phone,avatar_url,last_seen_at,signed_out_at)")
     .eq("company_id", companyId)
     .order("created_at");
   if (error) throw error;
@@ -52,6 +52,9 @@ export async function listCompanyUsers(companyId: string) {
       team: profile.team || undefined,
       position: profile.position || undefined,
       phone: profile.phone || undefined,
+      profilePhoto: profile.avatar_url || undefined,
+      lastSeenAt: profile.last_seen_at || null,
+      signedOutAt: profile.signed_out_at || null,
     };
   });
 }
