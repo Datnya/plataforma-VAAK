@@ -91,6 +91,7 @@ export async function POST(request: NextRequest) {
   }
 
   await admin.rpc("vaak_check_login_rate_limit", { p_attempt_key: attemptKey, p_success: true });
+  await admin.from("vaak_profiles").update({ last_seen_at: new Date().toISOString(), signed_out_at: null }).eq("id", signIn.user.id);
   const response = NextResponse.json({ ok: true }, { headers: noStoreHeaders() });
   response.headers.set("x-vaak-csrf", issueCsrf(response));
   return response;
