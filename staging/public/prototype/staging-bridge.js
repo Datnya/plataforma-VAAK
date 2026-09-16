@@ -46,7 +46,7 @@
   if (!document.getElementById("vaak-login-feedback-style")) {
     const style = document.createElement("style");
     style.id = "vaak-login-feedback-style";
-    style.textContent = ".login-submit.is-loading{opacity:.85;cursor:progress;pointer-events:none}.login-submit .login-spinner{display:inline-block;width:1em;height:1em;margin-right:.55em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-0.15em;animation:vaak-login-spin .7s linear infinite}@keyframes vaak-login-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.login-submit .login-spinner{animation-duration:2s}}";
+    style.textContent = ".login-submit.is-loading,.vaak-busy{opacity:.85;cursor:progress!important;pointer-events:none}.vaak-busy{transform:none!important}.vaak-busy-label{display:inline-flex;align-items:center;justify-content:center}.login-submit .login-spinner,.vaak-busy .login-spinner{display:inline-block;width:1em;height:1em;margin-right:.55em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-0.15em;animation:vaak-login-spin .7s linear infinite}@keyframes vaak-login-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.login-submit .login-spinner,.vaak-busy .login-spinner{animation-duration:2s}}.modal-foot.vaak-has-error{flex-wrap:wrap}.vaak-form-error{flex:1 1 240px;margin:0 auto 0 0;padding:.6rem .9rem;border:1px solid #e74c3c;border-radius:8px;background:#fdf0ef;color:#c0392b;font-size:.82rem;font-weight:600;line-height:1.4}";
     document.head.appendChild(style);
   }
 
@@ -99,6 +99,64 @@
       if (form.isConnected) setLoginLoading(form, false);
     }
   };
+  const appSpanish = () => {
+    try {
+      const id = sessionStorage.getItem("vaak-session-tab-v1");
+      return localStorage.getItem("vaak-language-" + (id || "guest")) === "es";
+    } catch { return false; }
+  };
+  const userSaveMessage = (error, operation) => {
+    const es = appSpanish();
+    const deleting = operation.kind === "confirm-delete-user";
+    const messages = {
+      identity_exists: es ? "Ese nombre de usuario o correo ya está registrado." : "That username or email is already registered.",
+      identity_conflict: es ? "Ese nombre de usuario o correo ya lo usa otra persona." : "That username or email is already used by someone else.",
+      invalid_request: es ? "Revisa los datos: todos los campos son obligatorios, el correo debe ser válido y la contraseña debe tener al menos 8 caracteres." : "Check the details: all fields are required, the email must be valid and the password needs at least 8 characters.",
+      auth_update_failed: es ? "No se pudo actualizar el acceso. Usa una contraseña de al menos 8 caracteres y un correo válido." : "Access could not be updated. Use a password with at least 8 characters and a valid email.",
+      cannot_disable_self: es ? "No puedes desactivar tu propia cuenta." : "You cannot deactivate your own account.",
+      cannot_delete_self: es ? "No puedes eliminar tu propia cuenta." : "You cannot delete your own account.",
+      last_active_admin: es ? "Debe quedar al menos un administrador activo." : "At least one active administrator must remain.",
+      not_found: es ? "Este usuario no existe en la base de datos (puede ser un perfil antiguo de prueba). Recarga la página." : "This user does not exist in the database (it may be an old demo profile). Reload the page.",
+      forbidden: es ? "Tu sesión expiró o no tienes permiso. Recarga la página e inicia sesión de nuevo." : "Your session expired or you lack permission. Reload the page and sign in again.",
+      network: es ? "No hay conexión con el servidor. Revisa tu internet e inténtalo de nuevo." : "Cannot reach the server. Check your internet connection and try again.",
+      refresh_failed: es ? "Los cambios se guardaron, pero no se pudo actualizar la lista. Recarga la página." : "Changes were saved, but the list could not be refreshed. Reload the page.",
+    };
+    const code = error?.refreshFailed ? "refresh_failed" : !error?.status ? "network" : messages[error.code] ? error.code : error.status === 404 ? "not_found" : error.status === 403 ? "forbidden" : "";
+    return messages[code] || (deleting ? (es ? "No se pudo eliminar el usuario. Inténtalo de nuevo." : "The user could not be deleted. Try again.") : (es ? "No se pudieron guardar los cambios. Inténtalo de nuevo." : "The changes could not be saved. Try again."));
+  };
+  const setButtonBusy = (button, busy, label) => {
+    if (!button) return;
+    if (busy) {
+      button.dataset.busyHtml = button.innerHTML;
+      button.dataset.busyWasDisabled = button.disabled ? "1" : "";
+      button.disabled = true;
+      button.classList.add("vaak-busy");
+      button.setAttribute("aria-busy", "true");
+      button.innerHTML = '<span class="vaak-busy-label" translate="no"><span class="login-spinner" aria-hidden="true"></span>' + label + "</span>";
+    } else {
+      button.classList.remove("vaak-busy");
+      button.removeAttribute("aria-busy");
+      if (button.dataset.busyHtml !== undefined) button.innerHTML = button.dataset.busyHtml;
+      button.disabled = button.dataset.busyWasDisabled === "1";
+      delete button.dataset.busyHtml;
+      delete button.dataset.busyWasDisabled;
+    }
+  };
+  const showFormError = (form, text) => {
+    form.querySelector(".vaak-form-error")?.remove();
+    form.querySelector(".modal-foot")?.classList.remove("vaak-has-error");
+    if (!text) return;
+    if (!form.isConnected) { app()?.showMessage(text); return; }
+    const box = document.createElement("div");
+    box.className = "vaak-form-error";
+    box.setAttribute("role", "alert");
+    box.setAttribute("translate", "no");
+    box.textContent = text;
+    const footer = form.querySelector(".modal-foot");
+    if (footer) { footer.classList.add("vaak-has-error"); footer.prepend(box); } else form.appendChild(box);
+    box.scrollIntoView({ block: "nearest" });
+  };
+  let userMutationPending = false;
   const directory = async () => {
     const [users, current] = await Promise.all([request("/api/admin/users"), request("/api/auth/session")]);
     app()?.completeRemoteUserMutation({ users: users.users, user: current.user });
@@ -133,6 +191,15 @@
     const operation = app()?.getActiveOperation();
     if (!operation || !["user-editor", "confirm-toggle", "confirm-delete-user"].includes(operation.kind)) return;
     event.preventDefault(); event.stopImmediatePropagation();
+    if (userMutationPending) return;
+    userMutationPending = true;
+    const form = event.target;
+    const es = appSpanish();
+    const submitButton = event.submitter || form.querySelector(".modal-foot button:not([type='button'])");
+    const busyLabel = operation.kind === "confirm-delete-user" ? (es ? "Eliminando..." : "Deleting...") : operation.kind === "confirm-toggle" ? (es ? "Actualizando..." : "Updating...") : operation.mode === "new" ? (es ? "Creando usuario..." : "Creating user...") : (es ? "Guardando..." : "Saving...");
+    showFormError(form, "");
+    setButtonBusy(submitButton, true, busyLabel);
+    form.querySelectorAll(".modal-foot button, .modal-head button").forEach((button) => { if (button !== submitButton) { button.dataset.busyLock = button.disabled ? "1" : ""; button.disabled = true; } });
     try {
       if (operation.kind === "user-editor") {
         const payload = formPayload(event.target, operation);
@@ -146,9 +213,15 @@
       } else {
         await request(`/api/admin/users/${encodeURIComponent(operation.target.id)}`, { method: "DELETE" });
       }
-      await directory();
+      try { await directory(); } catch (refreshError) { throw Object.assign(refreshError, { refreshFailed: true }); }
     } catch (error) {
-      app()?.showMessage(error.code === "identity_exists" ? "That username or email is already registered." : "The user could not be saved.");
+      showFormError(form, userSaveMessage(error, operation));
+    } finally {
+      userMutationPending = false;
+      if (form.isConnected) {
+        setButtonBusy(submitButton, false);
+        form.querySelectorAll(".modal-foot button, .modal-head button").forEach((button) => { if (button.dataset.busyLock !== undefined) { button.disabled = button.dataset.busyLock === "1"; delete button.dataset.busyLock; } });
+      }
     }
   }, true);
 
