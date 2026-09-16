@@ -20,7 +20,7 @@ export async function GET() {
       .maybeSingle();
     const { data: profile } = await admin
       .from("vaak_profiles")
-      .select("display_name,username,login_email,legacy_id,active,team,position,phone")
+      .select("display_name,username,login_email,legacy_id,active,team,position,phone,avatar_url")
       .eq("id", user.id)
       .maybeSingle();
 
@@ -40,6 +40,7 @@ export async function GET() {
         team: profile?.team || undefined,
         position: profile?.position || undefined,
         phone: profile?.phone || undefined,
+        profilePhoto: profile?.avatar_url || undefined,
       };
       if (membership.role === "admin") responseBody.users = await listCompanyUsers(membership.company_id);
     }
