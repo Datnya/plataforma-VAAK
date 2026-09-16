@@ -60,7 +60,7 @@
       button.disabled = true;
       button.classList.add("is-loading");
       button.setAttribute("aria-busy", "true");
-      button.innerHTML = '<span class="login-spinner" aria-hidden="true"></span><span>' + (spanish() ? "Ingresando..." : "Signing in...") + "</span>";
+      button.innerHTML = '<span class="login-spinner" aria-hidden="true"></span><span translate="no">' + (spanish() ? "Ingresando..." : "Signing in...") + "</span>";
     } else {
       button.disabled = false;
       button.classList.remove("is-loading");
@@ -74,6 +74,7 @@
     const box = document.createElement("div");
     box.className = "login-error";
     box.setAttribute("role", "alert");
+    box.setAttribute("translate", "no");
     box.textContent = text;
     const button = form.querySelector(".login-submit, button:not([type='button'])");
     form.insertBefore(box, button || null);
