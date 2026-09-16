@@ -46,7 +46,7 @@
   if (!document.getElementById("vaak-login-feedback-style")) {
     const style = document.createElement("style");
     style.id = "vaak-login-feedback-style";
-    style.textContent = ".login-submit.is-loading,.vaak-busy{opacity:.85;cursor:progress!important;pointer-events:none}.vaak-busy{transform:none!important}.vaak-busy-label{display:inline-flex;align-items:center;justify-content:center}.login-submit .login-spinner,.vaak-busy .login-spinner{display:inline-block;width:1em;height:1em;margin-right:.55em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-0.15em;animation:vaak-login-spin .7s linear infinite}@keyframes vaak-login-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.login-submit .login-spinner,.vaak-busy .login-spinner{animation-duration:2s}}.modal-foot.vaak-has-error{flex-wrap:wrap}.vaak-form-error{flex:1 1 240px;margin:0 auto 0 0;padding:.6rem .9rem;border:1px solid #e74c3c;border-radius:8px;background:#fdf0ef;color:#c0392b;font-size:.82rem;font-weight:600;line-height:1.4}";
+    style.textContent = ".login-submit.is-loading,.vaak-busy{opacity:.85;cursor:progress!important;pointer-events:none}.vaak-busy{transform:none!important}.vaak-busy-label{display:inline-flex;align-items:center;justify-content:center}.login-submit .login-spinner,.vaak-busy .login-spinner{display:inline-block;width:1em;height:1em;margin-right:.55em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-0.15em;animation:vaak-login-spin .7s linear infinite}@keyframes vaak-login-spin{to{transform:rotate(360deg)}}@media (prefers-reduced-motion:reduce){.login-submit .login-spinner,.vaak-busy .login-spinner{animation-duration:2s}}.modal-foot.vaak-has-error{flex-wrap:wrap}.vaak-form-error{flex:1 1 240px;margin:0 auto 0 0;padding:.6rem .9rem;border:1px solid #e74c3c;border-radius:8px;background:#fdf0ef;color:#c0392b;font-size:.82rem;font-weight:600;line-height:1.4}.vaak-role-hint{display:block;margin-top:.3rem;color:#7a6a5f;font-size:.74rem}.vaak-confirm-backdrop{position:fixed;inset:0;z-index:1300;display:grid;place-items:center;padding:1rem;background:rgba(39,27,21,.55)}.vaak-confirm{width:min(480px,100%);max-height:90vh;overflow:auto;border-radius:14px;background:#fff;box-shadow:0 24px 60px rgba(39,27,21,.35)}.vaak-confirm-head{display:flex;align-items:center;gap:.7rem;padding:1.1rem 1.3rem .4rem}.vaak-confirm-icon{display:grid;place-items:center;flex:0 0 38px;width:38px;height:38px;border-radius:50%;background:#f6ead3;color:#876312;font-weight:800;font-size:1.1rem}.vaak-confirm-head h3{margin:0;font-size:1.15rem;color:#35251d}.vaak-confirm-body{padding:.4rem 1.3rem 1rem;color:#4f4038;font-size:.9rem;line-height:1.55}.vaak-confirm-body p{margin:.45rem 0}.vaak-confirm-body ul{margin:.45rem 0 .2rem;padding-left:1.15rem}.vaak-confirm-foot{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:.6rem;padding:.9rem 1.3rem 1.2rem;border-top:1px solid #eee4da}";
     document.head.appendChild(style);
   }
 
@@ -156,6 +156,85 @@
     if (footer) { footer.classList.add("vaak-has-error"); footer.prepend(box); } else form.appendChild(box);
     box.scrollIntoView({ block: "nearest" });
   };
+
+  /* Role change for existing users (edit form), with an explicit confirmation step. */
+  const currentUserId = () => { try { return sessionStorage.getItem("vaak-session-tab-v1"); } catch { return null; } };
+  const roleName = (role, es) => ({ Admin: es ? "Administrador" : "Administrator", Worker: es ? "Trabajador" : "Worker", Client: es ? "Cliente" : "Client" })[role] || role;
+  const escapeHtml = (value) => String(value ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+  const enhanceRoleField = () => {
+    const form = document.getElementById("authorized-form");
+    if (!form || form.dataset.vaakRoleReady) return;
+    const operation = app()?.getActiveOperation();
+    const target = operation?.target;
+    if (!operation || operation.kind !== "user-editor" || operation.mode !== "edit" || operation.accessOnly || !target) return;
+    form.dataset.vaakRoleReady = "1";
+    if (!["Worker", "Admin", "Client"].includes(target.role) || target.id === currentUserId()) return;
+    const anchor = form.querySelector("[name='username']")?.closest(".field");
+    if (!anchor) return;
+    const es = appSpanish();
+    const roles = [...new Set([target.role, "Worker", "Admin"])];
+    const field = document.createElement("div");
+    field.className = "field vaak-role-field";
+    field.setAttribute("translate", "no");
+    field.innerHTML = "<label>" + (es ? "Rol del usuario" : "User role") + "</label><select data-role-select data-vaak-role-edit data-current-role='" + target.role + "'>" + roles.map((role) => "<option value='" + role + "'" + (role === target.role ? " selected" : "") + ">" + roleName(role, es) + "</option>").join("") + "</select><small class='vaak-role-hint'>" + (es ? "El cambio de rol se aplica al hacer clic en Guardar cambios." : "The role change is applied when you click Save changes.") + "</small>";
+    anchor.after(field);
+  };
+  const confirmRoleChange = ({ name, from, to }) => new Promise((resolve) => {
+    const es = appSpanish();
+    const who = "<strong>" + escapeHtml(name) + "</strong>";
+    let title, paragraphs, confirmLabel;
+    if (to === "Admin") {
+      title = es ? "Asignar rol de Administrador" : "Grant Administrator role";
+      paragraphs = es
+        ? ["Estás a punto de asignar el rol de <strong>Administrador</strong> a " + who + ".", "Con este rol tendrá acceso completo a todas las secciones del sistema, incluidas:", "<ul><li>Gestión de usuarios, roles y permisos</li><li>Gestión de proveedores y órdenes de compra</li><li>Configuración del sistema</li></ul>", "¿Deseas confirmar este cambio?"]
+        : ["You are about to grant the <strong>Administrator</strong> role to " + who + ".", "With this role they will have full access to every section of the system, including:", "<ul><li>User, role and permission management</li><li>Supplier and purchase order management</li><li>System settings</li></ul>", "Do you want to confirm this change?"];
+      confirmLabel = es ? "Sí, asignar rol" : "Yes, grant role";
+    } else if (from === "Admin") {
+      title = es ? "Retirar rol de Administrador" : "Remove Administrator role";
+      paragraphs = es
+        ? [who + " dejará de ser Administrador y pasará a tener el rol de <strong>" + roleName(to, es) + "</strong>.", "Perderá el acceso completo al sistema y solo podrá ver las secciones que habilites en este formulario.", "¿Deseas confirmar este cambio?"]
+        : [who + " will no longer be an Administrator and will have the <strong>" + roleName(to, es) + "</strong> role.", "They will lose full system access and will only see the sections you enable in this form.", "Do you want to confirm this change?"];
+      confirmLabel = es ? "Sí, cambiar rol" : "Yes, change role";
+    } else {
+      title = es ? "Cambiar rol del usuario" : "Change user role";
+      paragraphs = es
+        ? ["El rol de " + who + " cambiará de <strong>" + roleName(from, es) + "</strong> a <strong>" + roleName(to, es) + "</strong>.", "Sus accesos se reiniciarán y deberás revisarlos antes de guardar.", "¿Deseas confirmar este cambio?"]
+        : [who + "'s role will change from <strong>" + roleName(from, es) + "</strong> to <strong>" + roleName(to, es) + "</strong>.", "Their access will be reset and you should review it before saving.", "Do you want to confirm this change?"];
+      confirmLabel = es ? "Sí, cambiar rol" : "Yes, change role";
+    }
+    const backdrop = document.createElement("div");
+    backdrop.className = "vaak-confirm-backdrop";
+    backdrop.setAttribute("translate", "no");
+    backdrop.innerHTML = "<div class='vaak-confirm' role='alertdialog' aria-modal='true' aria-labelledby='vaak-confirm-title'><div class='vaak-confirm-head'><span class='vaak-confirm-icon' aria-hidden='true'>!</span><h3 id='vaak-confirm-title'>" + title + "</h3></div><div class='vaak-confirm-body'>" + paragraphs.map((text) => text.startsWith("<ul>") ? text : "<p>" + text + "</p>").join("") + "</div><div class='vaak-confirm-foot'><button type='button' class='secondary' data-vaak-confirm='cancel'>" + (es ? "Cancelar" : "Cancel") + "</button><button type='button' class='primary' data-vaak-confirm='ok'>" + confirmLabel + "</button></div></div>";
+    const close = (result) => { document.removeEventListener("keydown", onKey, true); backdrop.remove(); resolve(result); };
+    const onKey = (event) => { if (event.key === "Escape") { event.preventDefault(); event.stopImmediatePropagation(); close(false); } };
+    backdrop.addEventListener("click", (event) => {
+      const choice = event.target.closest("[data-vaak-confirm]")?.dataset.vaakConfirm;
+      if (choice) close(choice === "ok");
+      else if (event.target === backdrop) close(false);
+    });
+    document.addEventListener("keydown", onKey, true);
+    document.body.appendChild(backdrop);
+    backdrop.querySelector("[data-vaak-confirm='cancel']").focus();
+  });
+  document.addEventListener("change", async (event) => {
+    const select = event.target.closest?.("[data-vaak-role-edit]");
+    if (!select) return;
+    if (select.dataset.vaakRoleConfirmed) { delete select.dataset.vaakRoleConfirmed; select.dataset.currentRole = select.value; return; }
+    event.stopImmediatePropagation();
+    const from = select.dataset.currentRole;
+    const to = select.value;
+    select.value = from;
+    if (to === from) return;
+    const name = app()?.getActiveOperation()?.target?.name || "";
+    const confirmed = await confirmRoleChange({ name, from, to });
+    if (!confirmed || !select.isConnected) return;
+    select.value = to;
+    select.dataset.vaakRoleConfirmed = "1";
+    select.dispatchEvent(new Event("change", { bubbles: true }));
+  }, true);
+  const modalRoot = document.getElementById("modal-root");
+  if (modalRoot) new MutationObserver(enhanceRoleField).observe(modalRoot, { childList: true, subtree: true });
   let userMutationPending = false;
   const directory = async () => {
     const [users, current] = await Promise.all([request("/api/admin/users"), request("/api/auth/session")]);
