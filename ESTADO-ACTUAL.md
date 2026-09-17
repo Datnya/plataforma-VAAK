@@ -67,6 +67,7 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 | `staging-bridge.js` | Puente con el backend: login, sesión, usuarios, foto, presencia |
 | `shared-sync.js` | Sincroniza los datos de la empresa entre todos los usuarios |
 | `a4-preview.js` | Escala las previsualizaciones a A4 real |
+| `revision-block.js` | Bloque de revisiones entre asteriscos, compartido por los tres formatos |
 | `purchase-order-template.js` | Formato imprimible de la OC |
 | `payment-request-template.js` | Formato de la factura |
 | `technical-sheet-template.js` | Formato de la ficha técnica del spec |
@@ -167,6 +168,11 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - En la OC no se puede pedir más cantidad de la registrada en el spec: avisa en rojo y no deja emitir
 - Contacto del proyecto configurable en Configuración del sistema, editable por documento
 
+### Revisiones (los tres documentos)
+Órdenes de compra, specs y solicitudes de pago comparten la misma dinámica: botón «Realizar revisión», motivo obligatorio, se guarda quién cambió qué y cuándo, sube el número de versión y se conserva una instantánea de la anterior. «Ver versiones» muestra el historial. Los tres formatos imprimen el bloque entre líneas de asteriscos (en la OC sobre los items, en la ficha y en la solicitud sobre DESCRIPTION y REQUEST DETAIL).
+
+El motor es genérico: `diffRecord` y `pushRevision` en `access-runtime.js`, con una lista de campos por tipo de documento. Las OC solo se revisan si están aprobadas; los specs y las solicitudes, siempre.
+
 ### Catálogo de rubros
 **65 rubros:** 40 OS&E + 25 FF&E, agrupados y con código. Se administran en Configuración del sistema y alimentan: campo de spec, formulario de OC, y categorías de proveedor.
 
@@ -178,7 +184,7 @@ La sección financiera del proyecto se llama «Requerimiento de pago», su botó
 
 El formato imprimible ya no recorta el texto: la hoja tiene `min-height` en vez de `height` fija y se quitaron los `max-height`, `overflow:hidden` y `text-overflow:ellipsis` que cortaban el detalle y las celdas. Con textos largos la hoja crece a más de una página.
 
-**Las solicitudes de pago solo se pueden crear y eliminar; no existe una acción de edición.**
+Las solicitudes de pago se crean y se revisan. **No hay edición libre: todo cambio pasa por una revisión** y queda registrado.
 
 ### Otros
 - 19 monedas (Latinoamérica + dólar + euro). Sol y dólar se guardan con símbolo; el resto con código ISO

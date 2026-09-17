@@ -45,7 +45,7 @@
           <p class="hpg-ts-photo-note">Product photo: manufacturer reference image, provided for identification purposes only.</p>
         </section>
 
-        <section class="hpg-ts-copy hpg-ts-description"><h2>DESCRIPTION</h2>${paragraph(description)}</section>
+        <section class="hpg-ts-copy hpg-ts-description">${(globalThis.VAAKRevisionBlock&&globalThis.VAAKRevisionBlock.html(spec))||''}<h2>DESCRIPTION</h2>${paragraph(description)}</section>
         <table class="hpg-ts-item-table"><thead><tr><th>BY</th><th>QTY.</th><th>ITEM</th><th>ITEM #</th></tr></thead><tbody><tr><td>HPG</td><td>${esc(qty)}</td><td>${esc(model)}</td><td>${esc(itemNumber)}</td></tr></tbody></table>
       </div>
       <footer class="hpg-ts-footer"><span>HPG International Latinoamericana SAC · Av. Alfredo Benavides 1180, Lima, Peru · hpgilatam.com</span><span>Page 1</span></footer>
