@@ -81,7 +81,9 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 
 **3. Los PDF se generan con `window.print()`.** Chrome descarta los fondos de color al imprimir salvo que el CSS los pida con `print-color-adjust: exact`. Sin esa regla los formatos salen casi en blanco. Ya está puesta en los tres `*-reference.css`; si creas un formato nuevo, ponla también.
 
-**4. `presentation.js` traduce el texto que escribe el usuario.** Convierte "proveedor" en "Supplier" dentro de datos reales. **Todo elemento que muestre texto escrito por el usuario necesita `translate="no"`.** Ya pasó tres veces en términos y condiciones, nombres de proveedor y conceptos de descuento.
+**4. Nada de reglas responsive en los formatos imprimibles.** Al imprimir, el ancho de viewport es el de la pagina A4: **794px**. Cualquier `@media (max-width: …)` por encima de ese valor se activa dentro del PDF. Las hojas tenian reglas a 820px y 860px que colapsaban el formato a una columna, y por eso el PDF salia desconfigurado. Se eliminaron: las pantallas pequenas las resuelve `a4-preview.js` reduciendo la hoja completa. **Si agregas una media query a un `*-reference.css`, el PDF se rompe.**
+
+**5. `presentation.js` traduce el texto que escribe el usuario.** Convierte "proveedor" en "Supplier" dentro de datos reales. **Todo elemento que muestre texto escrito por el usuario necesita `translate="no"`.** Ya pasó tres veces en términos y condiciones, nombres de proveedor y conceptos de descuento.
 
 ---
 
@@ -151,6 +153,7 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - **No existen términos estándar.** Un proyecto sin términos emite la OC sin esa sección
 
 ### Órdenes de compra
+- Al abrir una versión guardada, el pie tiene «← Volver a versiones» para regresar al historial sin cerrar todo
 - **Revisiones:** el botón "Realizar revisión" está en la tarjeta de seguimiento de cada OC (dentro del proyecto), junto a Actualizar estado / Ver orden / Descargar. Crea Rev. 2, 3… con registro de qué cambió, por qué, quién y cuándo. El PDF lo imprime entre líneas de asteriscos. "Ver versiones" permite abrir cualquier versión anterior
 - IGV fijo 18%; IVA y VAT con porcentaje editable según el país
 - Descuentos y recargos manuales ilimitados (concepto + suma/resta + monto)
@@ -163,6 +166,9 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 
 ### Catálogo de rubros
 **65 rubros:** 40 OS&E + 25 FF&E, agrupados y con código. Se administran en Configuración del sistema y alimentan: campo de spec, formulario de OC, y categorías de proveedor.
+
+### Gestión de usuarios
+Los usuarios conectados ahora (punto verde) se muestran primero. El reordenamiento vive en `staging-bridge.js`, dentro de `paintPresence`, porque la presencia solo la conoce el puente. En la demo local no hay presencia, así que ahí no se reordena.
 
 ### Requerimiento de pago
 La sección financiera del proyecto se llama «Requerimiento de pago» y su botón «Emisión de nueva solicitud de pago». El resto de esa sección no cambió.

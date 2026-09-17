@@ -46,5 +46,5 @@
 .hpg-ts-item-table td:nth-child(4){color:#d38e02;font-weight:700}
 .hpg-ts-footer{width:698px;margin-top:auto;padding-top:9px;border-top:1px solid #bfbfbf;color:#9b7a5b;font-size:9px;line-height:1.2;display:flex;justify-content:space-between;gap:1rem}
 .spec-form-modal textarea.spec-description-long{min-height:260px;resize:vertical;line-height:1.5}
-@media(max-width:860px){.spec-preview-modal .modal-body{padding:.75rem}.hpg-technical-sheet{margin:0}}
+
 @media print{.hpg-technical-sheet,.hpg-technical-sheet *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}.hpg-technical-sheet{width:210mm;min-height:297mm;height:auto;margin:0;border-top-width:2.54mm;border-bottom-width:2.54mm;padding:4.5mm 12.7mm 4.8mm}.spec-preview-modal .modal-body{padding:0;background:#fff}}

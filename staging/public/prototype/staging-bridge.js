@@ -468,6 +468,22 @@
       dot.classList.toggle("is-online", state.online);
       if (dot.dataset.tip !== state.tip) { dot.dataset.tip = state.tip; dot.setAttribute("aria-label", state.tip); }
     });
+    ordenarActivosPrimero(rows);
+  };
+  // Los usuarios conectados ahora van arriba, conservando el orden original
+  // dentro de cada grupo. Solo se reordena si hace falta, para no disparar
+  // en bucle al observador que vuelve a llamar a paintPresence.
+  const ordenarActivosPrimero = (rows) => {
+    const cuerpo = rows[0]?.parentElement;
+    if (!cuerpo) return;
+    const conectados = [], resto = [];
+    rows.forEach((row) => {
+      (row.querySelector(".vaak-presence")?.classList.contains("is-online") ? conectados : resto).push(row);
+    });
+    if (!conectados.length || !resto.length) return;
+    const ordenadas = conectados.concat(resto);
+    if (ordenadas.every((row, i) => rows[i] === row)) return;
+    ordenadas.forEach((row) => cuerpo.appendChild(row));
   };
   const loadPresence = async () => {
     if (presenceLoading || !presenceSignedIn || !document.querySelector("tr[data-user-row]")) return;
