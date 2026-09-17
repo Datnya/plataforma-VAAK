@@ -154,6 +154,7 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 
 ### Órdenes de compra
 - Al abrir una versión guardada, el pie tiene «← Volver a versiones» para regresar al historial sin cerrar todo
+- El número de tracking es **aleatorio y comprobado contra los ya emitidos**. Antes era correlativo y podía repetirse si dos personas emitían a la vez; además la interfaz inventaba uno por posición cuando la orden no lo tenía guardado, lo que producía duplicados visibles
 - **Revisiones:** el botón "Realizar revisión" está en la tarjeta de seguimiento de cada OC (dentro del proyecto), junto a Actualizar estado / Ver orden / Descargar. Crea Rev. 2, 3… con registro de qué cambió, por qué, quién y cuándo. El PDF lo imprime entre líneas de asteriscos. "Ver versiones" permite abrir cualquier versión anterior
 - IGV fijo 18%; IVA y VAT con porcentaje editable según el país
 - Descuentos y recargos manuales ilimitados (concepto + suma/resta + monto)
@@ -173,7 +174,11 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 Los usuarios conectados ahora (punto verde) se muestran primero. El reordenamiento vive en `staging-bridge.js`, dentro de `paintPresence`, porque la presencia solo la conoce el puente. En la demo local no hay presencia, así que ahí no se reordena.
 
 ### Requerimiento de pago
-La sección financiera del proyecto se llama «Requerimiento de pago» y su botón «Emisión de nueva solicitud de pago». El resto de esa sección no cambió.
+La sección financiera del proyecto se llama «Requerimiento de pago», su botón «Emisión de nueva solicitud de pago» y su encabezado «Historial».
+
+El formato imprimible ya no recorta el texto: la hoja tiene `min-height` en vez de `height` fija y se quitaron los `max-height`, `overflow:hidden` y `text-overflow:ellipsis` que cortaban el detalle y las celdas. Con textos largos la hoja crece a más de una página.
+
+**Las solicitudes de pago solo se pueden crear y eliminar; no existe una acción de edición.**
 
 ### Otros
 - 19 monedas (Latinoamérica + dólar + euro). Sol y dólar se guardan con símbolo; el resto con código ISO

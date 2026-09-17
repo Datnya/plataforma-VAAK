@@ -946,7 +946,7 @@
 .project-order-identity,.project-order-state,.project-order-editor{display:grid;align-content:start;gap:.28rem;min-width:0}
 .project-order-field-label{color:var(--muted);font-size:.64rem;font-weight:800;letter-spacing:.08em;text-transform:uppercase}
 .project-order-identity strong,.project-order-identity span,.project-order-editor span{max-width:100%;overflow-wrap:anywhere}
-.project-order-tracking{display:flex!important;align-items:center;gap:.45rem;color:var(--brown)!important;font-size:.88rem!important;letter-spacing:.025em}
+.project-order-number{display:block;color:var(--brown);font-size:1.02rem;font-weight:800;letter-spacing:.02em;line-height:1.25}.project-order-tracking{display:flex!important;align-items:center;gap:.45rem;color:var(--brown)!important;font-size:.88rem!important;letter-spacing:.025em}.project-order-po{display:flex;align-items:center;gap:.35rem;flex-wrap:wrap}.project-order-po .tracking-copy{padding:0;border:0;background:none;color:inherit;cursor:pointer;line-height:0}.project-order-po .tracking-copy svg{width:13px;height:13px}
 .project-order-tracking .tracking-copy{position:static;flex:0 0 auto}
 .project-order-po{font-size:.74rem;color:var(--muted)}
 .project-order-po b{color:var(--brown)}
