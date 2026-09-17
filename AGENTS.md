@@ -1,3 +1,8 @@
+> **Antes de tocar nada, lee [`ESTADO-ACTUAL.md`](./ESTADO-ACTUAL.md).**
+> Explica qué es la plataforma, en qué rama se trabaja, cómo se despliega en
+> Vercel, dónde viven los datos y qué está pendiente. Este archivo solo define
+> el proceso de trabajo; no describe el estado del proyecto.
+
 # AGENTS.md — Gobierno adversarial de VAAK
 
 Estas instrucciones aplican a todo el workspace.
