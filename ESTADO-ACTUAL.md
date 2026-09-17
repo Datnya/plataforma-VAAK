@@ -79,7 +79,9 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 
 **2. En producción, los usuarios NO pasan por el motor local.** `staging-bridge.js` intercepta el formulario de usuarios y lo envía a `/api/admin/users` (Supabase). El handler `new-user` de `access-runtime.js` **no se ejecuta en producción**, solo en la demo local. Si escribes lógica en ese handler, funcionará en tu demo y fallará en producción. Ya pasó una vez con el alta de clientes en la tarjeta de equipo. Lo que dependa de usuarios debe **deducirse** de la lista de usuarios que llega del servidor, no escribirse en el momento de crearlos.
 
-**3. `presentation.js` traduce el texto que escribe el usuario.** Convierte "proveedor" en "Supplier" dentro de datos reales. **Todo elemento que muestre texto escrito por el usuario necesita `translate="no"`.** Ya pasó tres veces en términos y condiciones, nombres de proveedor y conceptos de descuento.
+**3. Los PDF se generan con `window.print()`.** Chrome descarta los fondos de color al imprimir salvo que el CSS los pida con `print-color-adjust: exact`. Sin esa regla los formatos salen casi en blanco. Ya está puesta en los tres `*-reference.css`; si creas un formato nuevo, ponla también.
+
+**4. `presentation.js` traduce el texto que escribe el usuario.** Convierte "proveedor" en "Supplier" dentro de datos reales. **Todo elemento que muestre texto escrito por el usuario necesita `translate="no"`.** Ya pasó tres veces en términos y condiciones, nombres de proveedor y conceptos de descuento.
 
 ---
 
@@ -149,7 +151,7 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - **No existen términos estándar.** Un proyecto sin términos emite la OC sin esa sección
 
 ### Órdenes de compra
-- **Revisiones:** en una OC aprobada, "Realizar revisión" crea Rev. 2, 3… con registro de qué cambió, por qué, quién y cuándo. El PDF lo imprime entre líneas de asteriscos. "Ver versiones" permite abrir cualquier versión anterior
+- **Revisiones:** el botón "Realizar revisión" está en la tarjeta de seguimiento de cada OC (dentro del proyecto), junto a Actualizar estado / Ver orden / Descargar. Crea Rev. 2, 3… con registro de qué cambió, por qué, quién y cuándo. El PDF lo imprime entre líneas de asteriscos. "Ver versiones" permite abrir cualquier versión anterior
 - IGV fijo 18%; IVA y VAT con porcentaje editable según el país
 - Descuentos y recargos manuales ilimitados (concepto + suma/resta + monto)
 - Las líneas de impuesto y CIF desaparecen si están en cero
@@ -161,6 +163,9 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 
 ### Catálogo de rubros
 **65 rubros:** 40 OS&E + 25 FF&E, agrupados y con código. Se administran en Configuración del sistema y alimentan: campo de spec, formulario de OC, y categorías de proveedor.
+
+### Requerimiento de pago
+La sección financiera del proyecto se llama «Requerimiento de pago» y su botón «Emisión de nueva solicitud de pago». El resto de esa sección no cambió.
 
 ### Otros
 - 19 monedas (Latinoamérica + dólar + euro). Sol y dólar se guardan con símbolo; el resto con código ISO
@@ -211,7 +216,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **2 sep:** última actualización de `HANDOFF/` (59 documentos, ya obsoletos)
 - **15 sep:** usuarios conectados a Supabase Auth
 - **16 sep:** foto de perfil, presencia, campos de proyecto, datos compartidos entre usuarios
-- **17 sep:** todo lo de la sección 6 (términos, revisiones, impuestos, monedas, A4, rubros, clientes, Tax ID, equipo del cliente automático)
+- **17 sep:** todo lo de la sección 6 (términos, revisiones, impuestos, monedas, A4, rubros, clientes, Tax ID, equipo del cliente automático, colores en los PDF, requerimiento de pago)
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:
 
