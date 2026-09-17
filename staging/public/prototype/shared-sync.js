@@ -5,7 +5,7 @@
   const STORE = "vaak-local-v8";
   const META = "vaak-shared-sync-v1";
   const COLLECTIONS = ["projects", "orders", "suppliers", "specs", "tasks", "projectCompanies", "supplierProjectLinks"];
-  const EXTRAS = ["vaak-custom-oc-rubros", "vaak-custom-rubros", "vaak-removed-spec-rubros", "vaak-client-access-log"];
+  const EXTRAS = ["vaak-custom-oc-rubros", "vaak-custom-rubros", "vaak-removed-spec-rubros", "vaak-client-access-log", "vaak-company-contact"];
   const LINK_KEYS = { projectCompanies: ["projectId", "companyId"], supplierProjectLinks: ["supplierId", "projectId"] };
   const ASSET_MIN = 4096;
   const ASSET_MAX_BYTES = 3000000;
