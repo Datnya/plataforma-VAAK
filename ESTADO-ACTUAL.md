@@ -161,7 +161,8 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - La columna IMAGE aparece solo si algún spec tiene imagen
 - Los specs ofrecidos son **solo los del proyecto**, y heredan cantidad, precio y moneda
 - En el formulario de spec, «Proveedor / fuente» es un desplegable de los proveedores registrados; «Área» es un desplegable de los 65 rubros
-- La ficha técnica muestra la cantidad junto a la unidad (ej. «12 EACH»); si el spec no tiene cantidad, sale solo la unidad
+- La ficha técnica compone la cantidad con la unidad (ej. «5 EACH») a partir de los campos «Cantidad» y «Unidad de medida». Existía un tercer campo, «Cantidad pedida», que repetía ambos y mandaba sobre ellos: se eliminó
+- En la OC no se puede pedir más cantidad de la registrada en el spec: avisa en rojo y no deja emitir
 - Contacto del proyecto configurable en Configuración del sistema, editable por documento
 
 ### Catálogo de rubros

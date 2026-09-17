@@ -3,7 +3,7 @@
 
   const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const valueOrBlank=value=>value===null||value===undefined?'':String(value);
-  const quantityLabel=spec=>spec.quantityOrdered||[spec.quantity||'',spec.unit||'EACH'].filter(Boolean).join(' ');
+  const quantityLabel=spec=>{let q=String(spec.quantity??'').trim(),u=String(spec.unit||'').trim();return q?(u?q+' '+u:q):u};
   const procurementLabel=spec=>`${spec.procurementTeam==='OSE'?'OS&E':'FF&E'} Procurement`;
   const itemCode=spec=>spec.code||spec.reference||spec.id||'';
   const paragraph=value=>`<p>${esc(valueOrBlank(value))}</p>`;
@@ -38,7 +38,7 @@
               <tr><th>RH REFERENCE #</th><td>${esc(reference)}</td></tr>
               <tr><th>SIZE (AS ORDERED)</th><td>${esc(spec.size||'')}</td></tr>
               <tr><th>FINISH / COLOR</th><td>${esc(finish)}</td></tr>
-              <tr><th>QTY. ORDERED</th><td>${esc(qty)}</td></tr>
+              <tr><th>QTY.</th><td>${esc(qty)}</td></tr>
             </tbody></table>
             <div class="hpg-ts-image">${spec.image?`<img src="${esc(spec.image)}" alt="${esc(model)}">`:''}</div>
           </div>
