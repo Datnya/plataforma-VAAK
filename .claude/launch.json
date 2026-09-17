@@ -4,15 +4,33 @@
     {
       "name": "vaak-staging",
       "runtimeExecutable": "npm",
-      "runtimeArgs": ["run", "dev"],
+      "runtimeArgs": [
+        "run",
+        "dev"
+      ],
       "port": 3000,
       "cwd": "staging"
     },
     {
       "name": "vaak-prototype",
       "runtimeExecutable": "npx",
-      "runtimeArgs": ["--yes", "serve", "prototype", "-l", "4173", "--no-request-logging"],
+      "runtimeArgs": [
+        "--yes",
+        "serve",
+        "prototype",
+        "-l",
+        "4173",
+        "--no-request-logging"
+      ],
       "port": 4173
+    },
+    {
+      "name": "vaak-demo",
+      "runtimeExecutable": "node",
+      "runtimeArgs": [
+        "tools/demo-server.js"
+      ],
+      "port": 4174
     }
   ]
 }
