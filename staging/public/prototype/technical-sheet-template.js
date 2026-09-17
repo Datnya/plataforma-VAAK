@@ -3,7 +3,7 @@
 
   const esc=value=>String(value??'').replace(/[&<>"']/g,char=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[char]));
   const valueOrBlank=value=>value===null||value===undefined?'':String(value);
-  const quantityLabel=spec=>{let q=String(spec.quantity??'').trim(),u=String(spec.unit||'').trim();return q?(u?q+' '+u:q):u};
+  const quantityLabel=spec=>{let q=String(spec.quantity??'').trim(),u=String(spec.unit||'').trim();if(!q&&spec.quantityOrdered){let m=String(spec.quantityOrdered).trim().match(/^([0-9.,]+)\s*(.*)$/);if(m){q=m[1];if(!u)u=m[2].trim()}}return q?(u?q+' '+u:q):u};
   const procurementLabel=spec=>`${spec.procurementTeam==='OSE'?'OS&E':'FF&E'} Procurement`;
   const itemCode=spec=>spec.code||spec.reference||spec.id||'';
   const paragraph=value=>`<p>${esc(valueOrBlank(value))}</p>`;
@@ -33,10 +33,10 @@
           <h2>SPECIFICATION</h2>
           <div class="hpg-ts-spec-grid">
             <table><tbody>
-              <tr><th>MODEL / DESCRIPTION</th><td>${esc(model)}</td></tr>
+              <tr><th>DESCRIPTION</th><td>${esc(model)}</td></tr>
               <tr><th>PRODUCT CODE</th><td>${esc(spec.productCode||'')}</td></tr>
-              <tr><th>RH REFERENCE #</th><td>${esc(reference)}</td></tr>
-              <tr><th>SIZE (AS ORDERED)</th><td>${esc(spec.size||'')}</td></tr>
+              <tr><th>NOTES</th><td>${esc(reference)}</td></tr>
+              <tr><th>SIZE</th><td>${esc(spec.size||'')}</td></tr>
               <tr><th>FINISH / COLOR</th><td>${esc(finish)}</td></tr>
               <tr><th>QTY.</th><td>${esc(qty)}</td></tr>
             </tbody></table>

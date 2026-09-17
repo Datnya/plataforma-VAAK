@@ -20,7 +20,7 @@
 .hpg-ts-project-table td:nth-child(2){width:245px}
 .hpg-ts-project-table th:nth-child(3){width:91px}
 .hpg-ts-project-table td:nth-child(4){width:232px}
-.hpg-ts-specification>h2{height:33px;margin:0 0 11px;padding:7px 10px;background:#6a4d3b;color:#c8b89e;font-size:16px;line-height:19px;font-weight:700}
+.hpg-ts-specification>h2{height:20px;margin:0 0 9px;padding:3px 10px;background:#6a4d3b;color:#c8b89e;font-size:11px;line-height:14px;font-weight:700;letter-spacing:.08em}
 .hpg-ts-spec-grid{display:grid;grid-template-columns:452px 232px;gap:14px;align-items:stretch}
 .hpg-ts-spec-grid table{width:452px;height:174px;border-collapse:collapse;table-layout:fixed;font-size:12px}
 .hpg-ts-spec-grid tr{height:29px}
