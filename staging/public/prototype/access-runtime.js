@@ -48,10 +48,8 @@
       if(draft.role==='Worker'&&draft.projectMode!=='all')for(const projectId of draft.projectIds)state.projectMemberships.push({userId,projectId});
       state.projects.forEach(project=>{if(Array.isArray(project.team))project.team=project.team.filter(member=>member.userId!==userId)});
       if(draft.role==='Client'){
-        let client=state.users.find(user=>user.id===userId);
         for(const projectId of draft.clientProjectIds){let company=state.projectCompanies.find(x=>x.projectId===projectId);if(!company)return false;state.clientProjectLinks.push({clientId:userId,companyId:company.companyId,projectId});
-          let project=state.projects.find(item=>item.id===projectId);
-          if(project&&client){if(!Array.isArray(project.team))project.team=[];project.team.push({userId,name:client.name||'',role:client.position||'',phone:client.phone||''})}}
+        }
       }return true
     }
     const HANDLERS={

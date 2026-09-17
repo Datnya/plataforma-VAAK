@@ -4,7 +4,7 @@
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
 **Última actualización:** 17 de septiembre de 2026
-**Último commit documentado:** `59ca916f`
+**Último commit documentado:** `f7a0e1c` (ver `git log`)
 
 ---
 
@@ -77,7 +77,9 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 
 **1. Al editar `index.html` sube el `?v=N`.** Si no, los navegadores sirven la versión vieja y parecerá que tu cambio no funcionó.
 
-**2. `presentation.js` traduce el texto que escribe el usuario.** Convierte "proveedor" en "Supplier" dentro de datos reales. **Todo elemento que muestre texto escrito por el usuario necesita `translate="no"`.** Ya pasó tres veces en términos y condiciones, nombres de proveedor y conceptos de descuento.
+**2. En producción, los usuarios NO pasan por el motor local.** `staging-bridge.js` intercepta el formulario de usuarios y lo envía a `/api/admin/users` (Supabase). El handler `new-user` de `access-runtime.js` **no se ejecuta en producción**, solo en la demo local. Si escribes lógica en ese handler, funcionará en tu demo y fallará en producción. Ya pasó una vez con el alta de clientes en la tarjeta de equipo. Lo que dependa de usuarios debe **deducirse** de la lista de usuarios que llega del servidor, no escribirse en el momento de crearlos.
+
+**3. `presentation.js` traduce el texto que escribe el usuario.** Convierte "proveedor" en "Supplier" dentro de datos reales. **Todo elemento que muestre texto escrito por el usuario necesita `translate="no"`.** Ya pasó tres veces en términos y condiciones, nombres de proveedor y conceptos de descuento.
 
 ---
 
@@ -138,6 +140,7 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - Nombre, código, razón social e **Identificación fiscal / Tax ID** (sin límite de caracteres) como campos separados
 - Al cambiar el código, las OC ya emitidas conservan el suyo
 - Tarjetas: Datos generales · Áreas del proyecto · Equipo del cliente
+- La tarjeta de equipo se **deduce automáticamente** de los usuarios con rol Cliente asignados al proyecto. No hay botón de agregar ni de quitar: se gestiona creando o editando el usuario cliente
 
 ### Términos y condiciones por proyecto
 - Barra con icono de ojo bajo las tres tarjetas
@@ -152,6 +155,8 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - Las líneas de impuesto y CIF desaparecen si están en cero
 - La columna IMAGE aparece solo si algún spec tiene imagen
 - Los specs ofrecidos son **solo los del proyecto**, y heredan cantidad, precio y moneda
+- En el formulario de spec, «Proveedor / fuente» es un desplegable de los proveedores registrados; «Área» es un desplegable de los 65 rubros
+- La ficha técnica muestra la cantidad junto a la unidad (ej. «12 EACH»); si el spec no tiene cantidad, sale solo la unidad
 - Contacto del proyecto configurable en Configuración del sistema, editable por documento
 
 ### Catálogo de rubros
@@ -206,7 +211,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **2 sep:** última actualización de `HANDOFF/` (59 documentos, ya obsoletos)
 - **15 sep:** usuarios conectados a Supabase Auth
 - **16 sep:** foto de perfil, presencia, campos de proyecto, datos compartidos entre usuarios
-- **17 sep:** todo lo de la sección 6 (términos, revisiones, impuestos, monedas, A4, rubros, clientes, Tax ID)
+- **17 sep:** todo lo de la sección 6 (términos, revisiones, impuestos, monedas, A4, rubros, clientes, Tax ID, equipo del cliente automático)
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:
 
