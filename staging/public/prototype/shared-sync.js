@@ -1,0 +1,333 @@
+// Shared company workspace: keeps projects, purchase orders, suppliers, specs, tasks, invoices and
+// catalogs in sync between every user of the company (server copy in /api/data).
+(() => {
+  "use strict";
+  const STORE = "vaak-local-v8";
+  const META = "vaak-shared-sync-v1";
+  const COLLECTIONS = ["projects", "orders", "suppliers", "specs", "tasks", "projectCompanies", "supplierProjectLinks"];
+  const EXTRAS = ["vaak-custom-oc-rubros", "vaak-custom-rubros", "vaak-removed-spec-rubros", "vaak-client-access-log"];
+  const LINK_KEYS = { projectCompanies: ["projectId", "companyId"], supplierProjectLinks: ["supplierId", "projectId"] };
+  const ASSET_MIN = 4096;
+  const ASSET_MAX_BYTES = 3000000;
+  const PULL_MS = 20000;
+
+  const nativeSet = Storage.prototype.setItem;
+  const nativeRemove = Storage.prototype.removeItem;
+  let suppress = 0;
+  let pushTimer = null;
+  let session = null;
+  let revision = 0;
+  let remote = null;
+  let base = null;
+  let baseLocalRev = -1;
+  let pendingApply = false;
+  let failures = 0;
+  let pulled = false;
+  let chain = Promise.resolve();
+  const assetCache = new Map();
+
+  const isOurKey = (key) => key === STORE || EXTRAS.includes(key);
+  Storage.prototype.setItem = function (key, value) {
+    nativeSet.call(this, key, value);
+    if (!suppress && this === window.localStorage && isOurKey(key)) schedulePush();
+  };
+  Storage.prototype.removeItem = function (key) {
+    nativeRemove.call(this, key);
+    if (!suppress && this === window.localStorage && isOurKey(key)) schedulePush();
+  };
+  const quietly = (fn) => { suppress++; try { return fn(); } finally { suppress--; } };
+
+  const signedIn = () => Boolean(session && session.authenticated && session.user);
+  const role = () => session?.user?.role || "";
+  const canWrite = () => signedIn() && role() !== "Client";
+  const run = (task) => { chain = chain.then(task).catch((error) => console.warn("[VAAK sync]", error)); return chain; };
+  const request = (url, options) => window.VAAKRemote.request(url, options);
+  // Key order is not preserved by the database, so documents are compared in a canonical form.
+  const sortKeys = (_key, value) => (value && typeof value === "object" && !Array.isArray(value)
+    ? Object.keys(value).sort().reduce((out, key) => { out[key] = value[key]; return out; }, {})
+    : value);
+  const same = (a, b) => a === b || JSON.stringify(a, sortKeys) === JSON.stringify(b, sortKeys);
+
+  // ---- persisted sync base (survives reloads so unsent local edits are merged, not lost) ----
+  const loadMeta = () => {
+    try {
+      const meta = JSON.parse(localStorage.getItem(META) || "null");
+      if (meta && meta.base && meta.base.store) { base = meta.base; baseLocalRev = Number(meta.localRev || 0); }
+    } catch { base = null; }
+  };
+  const saveMeta = (localRev) => {
+    baseLocalRev = localRev;
+    try { nativeSet.call(localStorage, META, JSON.stringify({ base, localRev })); } catch { /* quota: base stays in memory */ }
+  };
+
+  // ---- local document ----
+  const readLocal = () => {
+    let state;
+    try { state = JSON.parse(localStorage.getItem(STORE) || "null"); } catch { return null; }
+    if (!state || !Array.isArray(state.projects)) return null;
+    const store = {};
+    COLLECTIONS.forEach((name) => { store[name] = Array.isArray(state[name]) ? state[name] : []; });
+    const extras = {};
+    EXTRAS.forEach((key) => { extras[key] = localStorage.getItem(key); });
+    return { state, doc: { version: 1, store, extras }, localRev: Number(state.meta?.storeRevision || 0) };
+  };
+
+  // ---- images: large data URLs are uploaded once and referenced by URL ----
+  const collectDataUrls = (value, out) => {
+    if (typeof value === "string") { if (value.length > ASSET_MIN && value.startsWith("data:image/")) out.add(value); }
+    else if (Array.isArray(value)) value.forEach((item) => collectDataUrls(item, out));
+    else if (value && typeof value === "object") Object.values(value).forEach((item) => collectDataUrls(item, out));
+    return out;
+  };
+  const replaceStrings = (value, map) => {
+    if (typeof value === "string") return map.get(value) || value;
+    if (Array.isArray(value)) return value.map((item) => replaceStrings(item, map));
+    if (value && typeof value === "object") { const out = {}; Object.keys(value).forEach((key) => { out[key] = replaceStrings(value[key], map); }); return out; }
+    return value;
+  };
+  const bytesOf = (dataUrl) => {
+    const binary = atob(dataUrl.slice(dataUrl.indexOf(",") + 1));
+    const bytes = new Uint8Array(binary.length);
+    for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+    return bytes;
+  };
+  const shrink = (dataUrl, maxSide, quality) => new Promise((resolve) => {
+    const image = new Image();
+    image.onload = () => {
+      const scale = Math.min(1, maxSide / Math.max(image.naturalWidth, image.naturalHeight));
+      const canvas = document.createElement("canvas");
+      canvas.width = Math.max(1, Math.round(image.naturalWidth * scale));
+      canvas.height = Math.max(1, Math.round(image.naturalHeight * scale));
+      const context = canvas.getContext("2d");
+      context.fillStyle = "#fff";
+      context.fillRect(0, 0, canvas.width, canvas.height);
+      context.drawImage(image, 0, 0, canvas.width, canvas.height);
+      resolve(canvas.toDataURL("image/jpeg", quality));
+    };
+    image.onerror = () => resolve(null);
+    image.src = dataUrl;
+  });
+  const uploadAsset = async (original) => {
+    if (assetCache.has(original)) return assetCache.get(original);
+    let dataUrl = original;
+    const mime = dataUrl.slice(5, dataUrl.indexOf(";"));
+    if (!["image/png", "image/jpeg", "image/webp", "image/gif"].includes(mime)) dataUrl = await shrink(dataUrl, 2400, 0.86);
+    if (dataUrl && dataUrl.length * 0.75 > ASSET_MAX_BYTES) dataUrl = await shrink(dataUrl, 2400, 0.85);
+    if (dataUrl && dataUrl.length * 0.75 > ASSET_MAX_BYTES) dataUrl = await shrink(dataUrl, 1600, 0.8);
+    if (!dataUrl) return null;
+    const digest = await crypto.subtle.digest("SHA-256", bytesOf(dataUrl));
+    const id = Array.from(new Uint8Array(digest)).map((b) => b.toString(16).padStart(2, "0")).join("");
+    await request("/api/data/assets", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ id, dataUrl }) });
+    const url = "/api/data/assets/" + id;
+    assetCache.set(original, url);
+    return url;
+  };
+  const externalize = async (doc) => {
+    const found = [...collectDataUrls(doc.store, new Set())];
+    if (!found.length) return doc;
+    const map = new Map();
+    for (const dataUrl of found) { const url = await uploadAsset(dataUrl); if (url) map.set(dataUrl, url); }
+    return { ...doc, store: replaceStrings(doc.store, map) };
+  };
+
+  // ---- three-way merge (local edits win only where both sides changed the same thing) ----
+  const plain = (value) => value && typeof value === "object" && !Array.isArray(value);
+  const keyed = (list, keyOf) => {
+    if (!Array.isArray(list)) return null;
+    const map = new Map();
+    for (const item of list) { const key = keyOf(item); if (key == null || map.has(key)) return null; map.set(key, item); }
+    return map;
+  };
+  const idOf = (item) => (plain(item) && (typeof item.id === "string" || typeof item.id === "number") ? String(item.id) : null);
+  function mergeList(b, l, r, keyOf) {
+    const bm = keyed(b || [], keyOf), lm = keyed(l, keyOf), rm = keyed(r, keyOf);
+    if (!bm || !lm || !rm) return l;
+    const out = [];
+    const take = (key) => {
+      const value = merge(bm.get(key), lm.get(key), rm.get(key));
+      if (value !== undefined) out.push(value);
+    };
+    const seen = new Set();
+    r.forEach((item) => { const key = keyOf(item); seen.add(key); take(key); });
+    l.forEach((item) => { const key = keyOf(item); if (!seen.has(key)) { seen.add(key); take(key); } });
+    return out;
+  }
+  function merge(b, l, r) {
+    if (same(l, b)) return r;
+    if (same(r, b) || same(l, r)) return l;
+    if (l === undefined) return r;
+    if (r === undefined) return l;
+    if (plain(b) && plain(l) && plain(r)) {
+      const out = {};
+      new Set([...Object.keys(r), ...Object.keys(l)]).forEach((key) => {
+        const value = merge(b[key], l[key], r[key]);
+        if (value !== undefined) out[key] = value;
+      });
+      return out;
+    }
+    if (Array.isArray(b) && Array.isArray(l) && Array.isArray(r) && [...b, ...l, ...r].every((item) => idOf(item) !== null)) {
+      return mergeList(b, l, r, idOf);
+    }
+    return l;
+  }
+  function mergeDocs(b, l, r) {
+    const store = {};
+    COLLECTIONS.forEach((name) => {
+      const keys = LINK_KEYS[name];
+      const keyOf = keys ? (item) => (plain(item) ? keys.map((k) => item[k]).join("|") : null) : idOf;
+      const lb = b.store[name] || [], ll = l.store[name] || [], lr = r.store[name] || [];
+      store[name] = same(ll, lb) ? lr : same(lr, lb) ? ll : mergeList(lb, ll, lr, keyOf);
+    });
+    const extras = {};
+    EXTRAS.forEach((key) => {
+      const bv = b.extras?.[key] ?? null, lv = l.extras?.[key] ?? null, rv = r.extras?.[key] ?? null;
+      extras[key] = lv === bv ? rv : lv;
+    });
+    return { version: 1, store, extras };
+  }
+
+  // ---- write a shared document into this browser ----
+  const busy = () => {
+    const modal = document.getElementById("modal-root");
+    if (modal && modal.children.length) return true;
+    const active = document.activeElement;
+    const app = document.getElementById("app");
+    return Boolean(active && app && app.contains(active) && (active.matches("input,textarea,select") || active.isContentEditable));
+  };
+  function writeDoc(doc) {
+    const local = readLocal();
+    if (!local) return false;
+    const state = local.state;
+    COLLECTIONS.forEach((name) => { state[name] = Array.isArray(doc.store[name]) ? JSON.parse(JSON.stringify(doc.store[name])) : []; });
+    const users = new Set((state.users || []).map((user) => user.id));
+    const projects = new Set(state.projects.map((project) => project.id));
+    const suppliers = new Set(state.suppliers.map((supplier) => supplier.id));
+    const unique = (list, keyOf) => { const seen = new Set(); return list.filter((item) => { const key = keyOf(item); if (seen.has(key)) return false; seen.add(key); return true; }); };
+    const byId = (list) => unique(list.filter((item) => item && item.id != null), (item) => String(item.id));
+    state.projects = byId(state.projects);
+    state.suppliers = byId(state.suppliers);
+    state.orders = byId(state.orders).filter((order) => projects.has(order.projectId));
+    state.specs = byId(state.specs).filter((spec) => projects.has(spec.projectId));
+    const orders = new Set(state.orders.map((order) => order.id));
+    const fallback = session?.user?.id && users.has(session.user.id) ? session.user.id : (state.users || []).find((user) => user.role === "Admin" && user.active)?.id;
+    state.tasks = byId(state.tasks).map((task) => {
+      let assignees = [...new Set((Array.isArray(task.assignees) && task.assignees.length ? task.assignees : [task.assignee]).filter((id) => users.has(id)))];
+      if (!assignees.length && fallback) assignees = [fallback];
+      return { ...task, assignees, assignee: assignees[0] };
+    });
+    state.projectCompanies = unique(state.projectCompanies.filter((link) => projects.has(link.projectId) && link.companyId), (link) => link.projectId + "|" + link.companyId);
+    state.supplierProjectLinks = unique(state.supplierProjectLinks.filter((link) => suppliers.has(link.supplierId) && projects.has(link.projectId)), (link) => link.supplierId + "|" + link.projectId);
+    const companyOf = (projectId) => state.projectCompanies.filter((link) => link.projectId === projectId);
+    state.projectMemberships = (state.projectMemberships || []).filter((link) => projects.has(link.projectId));
+    state.clientProjectLinks = (state.clientProjectLinks || []).filter((link) => projects.has(link.projectId) && companyOf(link.projectId).length === 1 && companyOf(link.projectId)[0].companyId === link.companyId);
+    const clientTuples = new Set(state.clientProjectLinks.map((link) => link.clientId + "|" + link.companyId + "|" + link.projectId));
+    state.clientOrderAuthorizations = (state.clientOrderAuthorizations || []).filter((link) => orders.has(link.orderId) && clientTuples.has(link.clientId + "|" + link.companyId + "|" + link.projectId));
+    state.meta = { ...(state.meta || {}), storeRevision: Number(state.meta?.storeRevision || 0) + 1 };
+    const validation = window.VAAKAccess?.validateState ? window.VAAKAccess.validateState(state) : { ok: true };
+    if (!validation.ok) { console.warn("[VAAK sync] shared data rejected", validation.errors); return false; }
+    quietly(() => {
+      nativeSet.call(localStorage, STORE, JSON.stringify(state));
+      if (!doc.partial) EXTRAS.forEach((key) => {
+        const value = doc.extras?.[key];
+        if (value == null) nativeRemove.call(localStorage, key); else nativeSet.call(localStorage, key, value);
+      });
+      if (window.VAAKAppBridge?.applyRemoteSession && signedIn()) window.VAAKAppBridge.applyRemoteSession(session);
+    });
+    return true;
+  }
+
+  function applyRemote() {
+    if (!remote || !signedIn()) { pendingApply = false; return; }
+    if (busy()) { pendingApply = true; return; }
+    pendingApply = false;
+    const local = readLocal();
+    if (!local) return;
+    if (base && local.localRev < baseLocalRev) base = null; // store was reset in this browser: take the shared copy
+    let target = remote;
+    if (base && canWrite()) {
+      const localDoc = { ...local.doc, store: replaceStrings(local.doc.store, assetCache) };
+      target = mergeDocs(base, localDoc, remote);
+    }
+    if (!same(target.store, local.doc.store) || (!remote.partial && !same(target.extras, local.doc.extras))) {
+      if (!writeDoc(target)) return;
+    }
+    base = remote;
+    saveMeta(readLocal()?.localRev || 0);
+    if (canWrite() && !same(target.store, remote.store)) schedulePush(200);
+  }
+
+  async function pull(force) {
+    if (!signedIn()) return;
+    const data = await request("/api/data" + (force || !remote ? "" : "?since=" + revision), { cache: "no-store" });
+    pulled = true;
+    if (data.unchanged) { if (pendingApply) applyRemote(); return; }
+    if (!data.state) {
+      revision = 0; remote = null;
+      if (role() === "Admin") await push();
+      return;
+    }
+    revision = Number(data.revision);
+    remote = data.state;
+    applyRemote();
+  }
+
+  async function push(attempt = 0) {
+    if (!canWrite()) return;
+    const local = readLocal();
+    if (!local || !pulled) return;
+    if (base && local.localRev < baseLocalRev) { base = null; applyRemote(); return; }
+    if (revision > 0 && (!remote || !base)) { if (remote) applyRemote(); return; }
+    if (revision === 0 && role() !== "Admin") return;
+    const localDoc = await externalize(local.doc);
+    const outgoing = revision === 0 ? localDoc : mergeDocs(base, localDoc, remote);
+    if (remote && same(outgoing, { version: 1, store: remote.store, extras: remote.extras })) {
+      if (!same(localDoc.store, local.doc.store) || !same(outgoing.store, localDoc.store)) applyRemote();
+      return;
+    }
+    try {
+      const result = await request("/api/data", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ baseRevision: revision, state: outgoing }) });
+      revision = Number(result.revision);
+      remote = outgoing;
+      if (revision === 1 && !base) { base = outgoing; saveMeta(local.localRev); }
+      failures = 0;
+      applyRemote();
+    } catch (error) {
+      if (error.status === 409 && attempt < 4) {
+        const conflict = error.body || {};
+        revision = Number(conflict.revision || 0);
+        remote = conflict.state || null;
+        if (!base && remote) { applyRemote(); return; }
+        return push(attempt + 1);
+      }
+      failures++;
+      setTimeout(() => schedulePush(), Math.min(60000, 5000 * failures));
+      throw error;
+    }
+  }
+
+  function schedulePush(delay = 1200) {
+    if (!canWrite()) return;
+    clearTimeout(pushTimer);
+    pushTimer = setTimeout(() => run(() => push()), delay);
+  }
+
+  window.addEventListener("vaak:session", (event) => {
+    const data = event.detail || null;
+    const wasSignedIn = signedIn();
+    const previousUser = session?.user?.id;
+    session = data && data.authenticated ? data : null;
+    if (!signedIn()) { clearTimeout(pushTimer); pulled = false; remote = null; revision = 0; return; }
+    if (!wasSignedIn || previousUser !== session.user.id) run(() => pull(true));
+  });
+  setInterval(() => {
+    if (!signedIn()) return;
+    if (pendingApply && !busy()) run(() => applyRemote());
+  }, 1500);
+  setInterval(() => { if (signedIn() && !document.hidden) run(() => pull(false)); }, PULL_MS);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden && signedIn()) run(() => pull(false)); });
+  window.addEventListener("focus", () => { if (signedIn()) run(() => pull(false)); });
+
+  window.addEventListener("storage", (event) => { if (event.key === META) loadMeta(); });
+  loadMeta();
+  window.VAAKSharedSync = { pull: () => run(() => pull(true)), push: () => run(() => push()), status: () => ({ revision, pendingApply, hasBase: Boolean(base) }) };
+})();

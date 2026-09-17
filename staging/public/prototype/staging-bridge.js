@@ -8,9 +8,10 @@
     const response = await fetch(url, { credentials: "same-origin", ...options, headers });
     const data = await response.json().catch(() => ({}));
     csrfToken = data.csrfToken || response.headers.get("x-vaak-csrf") || csrfToken;
-    if (!response.ok) throw Object.assign(new Error(data.error || "request_failed"), { status: response.status, code: data.error, retryAfterSeconds: data.retryAfterSeconds });
+    if (!response.ok) throw Object.assign(new Error(data.error || "request_failed"), { status: response.status, code: data.error, retryAfterSeconds: data.retryAfterSeconds, body: data });
     return data;
   };
+  window.VAAKRemote = Object.freeze({ request: (url, options) => request(url, options) });
   let presenceSignedIn = false;
   let lastActivityAt = Date.now();
   let lastHeartbeatAt = 0;
@@ -34,6 +35,7 @@
     const wasSignedIn = presenceSignedIn;
     presenceSignedIn = Boolean(response.ok && data.authenticated);
     if (presenceSignedIn && !wasSignedIn) sendHeartbeat(true);
+    window.dispatchEvent(new CustomEvent("vaak:session", { detail: presenceSignedIn && applied ? data : null }));
     return { ...data, applied };
   };
 
@@ -329,7 +331,7 @@
     if (!button) return;
     event.preventDefault(); event.stopImmediatePropagation();
     presenceSignedIn = false;
-    try { await request("/api/auth/logout", { method: "POST" }); } finally { app()?.clearRemoteSession(); }
+    try { await request("/api/auth/logout", { method: "POST" }); } finally { window.dispatchEvent(new CustomEvent("vaak:session", { detail: null })); app()?.clearRemoteSession(); }
   }, true);
 
   /* Profile photo: stored on the server so it survives sign-out and other devices. */
