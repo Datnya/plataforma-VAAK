@@ -42,7 +42,10 @@
     const nativo=Object.getOwnPropertyDescriptor(HTMLInputElement.prototype,'value');
     Object.defineProperty(input,'value',{configurable:true,get(){return nativo.get.call(this)},set(v){nativo.set.call(this,v);pintar()}});
     ['focus','blur','input','change'].forEach(tipo=>input.addEventListener(tipo,pintar));
-    requestAnimationFrame(()=>{let estilo=getComputedStyle(input);Object.assign(texto.style,{paddingLeft:estilo.paddingLeft,paddingRight:estilo.paddingRight,fontSize:estilo.fontSize,fontFamily:estilo.fontFamily,fontWeight:estilo.fontWeight,color:estilo.color,justifyContent:/right|end/.test(estilo.textAlign)?'flex-end':'flex-start'});pintar()});
+    // Se copia el estilo con la capa apagada: con ella encendida el texto del campo es transparente
+    // y la capa heredaba ese color, dejando el monto invisible.
+    const copiarEstilo=()=>{let estaba=capa.classList.contains('is-masked');capa.classList.remove('is-masked');let estilo=getComputedStyle(input);Object.assign(texto.style,{paddingLeft:estilo.paddingLeft,paddingRight:estilo.paddingRight,fontSize:estilo.fontSize,fontFamily:estilo.fontFamily,fontWeight:estilo.fontWeight,color:estilo.color,justifyContent:/right|end/.test(estilo.textAlign)?'flex-end':'flex-start'});if(estaba)capa.classList.add('is-masked')};
+    copiarEstilo();setTimeout(()=>{copiarEstilo();pintar()},0);
     pintar()}
   new MutationObserver(()=>prepareMoneyInputs(modal)).observe(modal,{childList:true,subtree:true});prepareMoneyInputs();
   document.addEventListener('submit',event=>normalizeMoneyInputs(event.target),true);

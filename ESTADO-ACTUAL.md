@@ -4,7 +4,7 @@
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
 **Última actualización:** 17 de septiembre de 2026
-**Último commit documentado:** `f4de435e` (ver `git log`)
+**Último commit documentado:** ver `git log -1` (ver `git log`)
 
 ---
 
@@ -212,7 +212,7 @@ El reporte Excel se llama **«Reporte de requerimientos de pago»** (hoja «Paym
 
 ### Montos
 - **Tres decimales** (pedido de Datnya: tenerlo siempre en cuenta). `Money.round` redondea a 3; `Money.fixed` guarda con 2 decimales mínimo y el tercero solo si existe (380.00, 12.345); `Money.format` agrega separador de miles para mostrar. Antes redondeaba a **un** decimal (99.99 → 100.00). Los formatos A4, los reportes y el Excel (formato `#,##0.00#`) usan la misma regla
-- **Separador de miles en los formularios:** los campos de monto son numéricos y no pueden mostrar comas, así que `enmascararMonto` (en `app.js`) pone encima una capa con el monto formateado mientras el campo no se edita. El valor real no cambia: ningún cálculo ni envío se entera. Se aplica a los campos que reconoce `isMoneyInput` (costos, flete, CIF, impuesto, ajustes, montos de solicitud y de pago). El formulario de solicitud de pago usa campos de texto con símbolo de moneda (otro mecanismo, anterior)
+- **Separador de miles en los formularios:** los campos de monto son numéricos y no pueden mostrar comas, así que `enmascararMonto` (en `app.js`) pone encima una capa con el monto formateado mientras el campo no se edita. El valor real no cambia: ningún cálculo ni envío se entera. **Cuidado:** el estilo de la capa se copia con la capa apagada; si se copia con ella encendida, hereda el color transparente del campo y el monto se vuelve invisible (pasó el 17-sep y se corrigió el mismo día). Se aplica a los campos que reconoce `isMoneyInput` (costos, flete, CIF, impuesto, ajustes, montos de solicitud y de pago). El formulario de solicitud de pago usa campos de texto con símbolo de moneda (otro mecanismo, anterior)
 - Los campos de monto ya no usan `step=0.10`, que hacía que el navegador rechazara montos con centavos
 
 ### Otros
