@@ -13,11 +13,25 @@
 Plataforma de procura (compras) para hotelería. Gestiona proyectos, specs, órdenes de compra (OC), proveedores, facturas y usuarios.
 
 - **Dueña:** Datnya Monzón (`datnyamonzon1@gmail.com`). **Habla español y no es desarrolladora.**
-- **Producción:** https://plataforma-vaak.vercel.app
+- **Entorno de PRUEBA (no oficial):** https://plataforma-vaak.vercel.app — ver el aviso de abajo
 - **Repositorio:** https://github.com/Datnya/plataforma-VAAK — **público**
 - **Supabase:** `ovflbrrnqgmooutlukyf.supabase.co`
 
 ---
+
+### ⚠️ El enlace de Vercel NO es el oficial
+
+`plataforma-vaak.vercel.app` y el proyecto de Supabase actual son un **entorno de prueba**. Lo acordado con el cliente desde el inicio:
+
+1. La plataforma se termina y se prueba aquí, en Vercel.
+2. Cuando todas las secciones funcionen bien, Datnya **traslada la plataforma y sus datos al hosting propio del cliente**.
+3. Se publica en un **dominio adicional** que Datnya creará en ese mismo hosting (el cliente ya tiene un dominio para su página web; la plataforma tendrá uno aparte).
+4. La base de datos y el almacenamiento de la plataforma deben quedar **dentro del hosting del cliente**.
+
+Consecuencias para quien trabaje aquí:
+- No pongas el enlace de Vercel en documentos para el cliente (la guía de uso ya no lo menciona).
+- Nada debe depender de Vercel de forma que impida el traslado. Hoy la plataforma depende de: un servidor **Node.js** capaz de ejecutar Next.js 16 (las rutas `/api/*`), y de **Supabase** para usuarios e inicio de sesión (Supabase Auth), las tablas `vaak_*` (PostgreSQL) y el almacenamiento de archivos.
+- El traslado **está pendiente de definir** según el tipo de hosting del cliente (ver sección 7).
 
 ## 2. Rama y despliegue — LO MÁS IMPORTANTE
 
@@ -244,6 +258,12 @@ El fallo reportado el 17-sep no se pudo reproducir en local, ni siquiera simulan
 
 ### 🟡 Conversión fija dólar ↔ sol al cambiar la moneda del primer ítem
 En la nueva OC, si se cambia a mano la moneda del primer ítem entre $ y S/, el costo se convierte con un tipo de cambio fijo de 3.75 (`USD_TO_PEN` en `app.js`). Es anterior a estos cambios y no se ha consultado con Datnya si debe mantenerse.
+
+### 🔵 Traslado al hosting oficial del cliente (pendiente de definir)
+Falta saber qué tipo de hosting tiene el cliente. De eso depende el camino:
+- **Hosting con Node.js y PostgreSQL** (VPS o nube): se traslada casi tal cual. Se exportan las tablas `vaak_*` y los usuarios, se instala la aplicación y se configuran las variables de entorno (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `VAAK_APP_ORIGIN`, `VAAK_RATE_LIMIT_HMAC_SECRET`, `VAAK_RELEASE_ID`). Supabase también puede instalarse en el propio servidor (con Docker).
+- **Hosting compartido tipo cPanel** (normalmente PHP y MySQL, sin PostgreSQL): hay que reescribir la parte de servidor (inicio de sesión, usuarios, datos compartidos y archivos) para MySQL, y el hosting debe permitir aplicaciones Node.js. Es un trabajo considerable.
+- Después del traslado conviene **mantener Vercel como entorno de prueba**: cada cambio se prueba primero aquí y luego se pasa al oficial.
 
 ### 🟢 `VAAK_RELEASE_ID` en Vercel
 Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se perdió al sacar `.env.local` del repositorio. Se arregla agregándola en el panel de Vercel.
