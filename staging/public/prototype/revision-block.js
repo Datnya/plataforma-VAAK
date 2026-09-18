@@ -75,8 +75,9 @@
       .map(
         (entry) =>
           `<p class="hpg-ref-revision-head">Revision ${esc(entry.version)} — ${esc(entry.userName || "")} · ${esc(stamp(entry.at))}</p>` +
-          (entry.changes || []).map((change) => `<p>• ${esc(changeLine(change))}</p>`).join("") +
-          `<p class="hpg-ref-revision-reason">Reason: ${esc(entry.reason || "")}</p>`
+          (entry.changes || []).map((change) => `<p>• ${esc(changeLine(change))}${change.reason ? ` <span class="hpg-ref-revision-why">(Reason: ${esc(change.reason)})</span>` : ""}</p>`).join("") +
+          // Las revisiones antiguas tienen un solo motivo general.
+          (entry.reason ? `<p class="hpg-ref-revision-reason">Reason: ${esc(entry.reason)}</p>` : "")
       )
       .join("");
     return `<div class="hpg-ref-revision"><p class="hpg-ref-stars">${stars}</p>${body}<p class="hpg-ref-stars">${stars}</p></div>`;

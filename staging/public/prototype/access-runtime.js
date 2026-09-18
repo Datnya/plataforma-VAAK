@@ -33,14 +33,35 @@
   // Campos que se registran al revisar cada tipo de documento.
   const SPEC_FIELDS=Object.freeze(['name','code','productCode','category','area','vendorSource','size','color','material','quantity','unit','cost','description','reference','specStatus','procurementTeam']);
   const INVOICE_FIELDS=Object.freeze(['requestDetail','poNumber','poReferenceArea','invoiceNumber','sourceManufacturer','payableTo','payableAddress','payableContact','paymentTerms','requestDate','dueDate','invoiceDate','currency','invoiceCurrency','totalRequest','goods','freight','packing','additionalCharges','overage','customs','salesTax','invoiceTotal','paymentAmount','paymentPayableTo']);
-  function diffRecord(current,next,fields){let changes=[];fields.forEach(field=>{if(next[field]===undefined)return;if(!sameText(current[field],next[field]))changes.push({field,from:String(current[field]??''),to:String(next[field]??'')})});return changes}
+  // Un monto escrito con otro formato ($ 1,450.00 / $ 1450.00) no es un cambio.
+  const MONEY_DIFF_FIELDS=new Set(['cost',...INVOICE_MONEY_FIELDS]);
+  const sameMoney=(a,b)=>Money.currencyFrom(a,'')===Money.currencyFrom(b,'')&&Money.parse(a)===Money.parse(b);
+  function diffRecord(current,next,fields){let changes=[];fields.forEach(field=>{if(next[field]===undefined)return;if(MONEY_DIFF_FIELDS.has(field)&&sameMoney(current[field],next[field]))return;if(!sameText(current[field],next[field]))changes.push({field,from:String(current[field]??''),to:String(next[field]??'')})});return changes}
   // Deja la version anterior guardada y sube el numero de revision.
   function pushRevision(record,changes,reason,state,actorId){
-    let actor=state.users.find(user=>user.id===actorId),version=Number(record.revision||1)+1;
+    let actor=state.users.find(user=>user.id===actorId),version=Number(record.revision||0)+1;
     let history=Array.isArray(record.revisions)?record.revisions.slice():[];
     history.push({version,reason,changes,userId:actorId||'',userName:actor?.name||actor?.username||'',at:new Date().toISOString(),snapshot:copy(stripHistory(record))});
     record.revision=version;record.revisions=history;
     return version}
+  // Mismo calculo que la pantalla, para que el bloqueo no dependa del navegador.
+  // Cada cambio lleva su propio motivo. La clave identifica el cambio igual en
+  // la pantalla y en el motor: el campo, o el item y la parte que cambio.
+  function revisionChangeKey(change){return change.field==='item'?`item${change.index}.${change.part}`:change.field}
+  function attachReasons(changes,reasons){let map=reasons&&typeof reasons==='object'?reasons:{};changes.forEach(change=>{change.reason=String(map[revisionChangeKey(change)]||'').trim()});return changes.every(change=>change.reason)}
+  // Lo usa la pantalla para listar los cambios mientras se edita.
+  function revisionChanges(type,current,next){
+    if(!current||!next)return [];
+    if(type==='order')return diffOrder(current,normalizeOrderMoney({...next}));
+    if(type==='spec'){let n={...next};if(n.cost!==undefined)n.cost=normalizeSpecCost(n.cost);return diffRecord(current,n,SPEC_FIELDS)}
+    if(type==='invoice')return diffRecord(current,normalizeInvoiceMoney({...next}),INVOICE_FIELDS);
+    return []}
+  function specAgotado(state,specId){
+    let spec=(state.specs||[]).find(s=>s.id===specId);if(!spec)return false;
+    let total=Number(String(spec.quantity??'').replace(/[^0-9.]/g,''))||Number(String(spec.quantityOrdered??'').replace(/[^0-9.]/g,''))||0;
+    if(!(total>0))return false;
+    let usada=(state.orders||[]).reduce((sum,order)=>String(order.status||'').toLowerCase()==='cancelled'?sum:sum+(order.items||[]).reduce((s,item)=>item.specId===specId?s+(Number(item.quantity)||0):s,0),0);
+    return usada>=total}
   function nuevoTrackingNumber(state){
     let usados=new Set((state?.orders||[]).map(order=>String(order.trackingNumber||'')));
     let anio=new Date().getFullYear();
@@ -84,34 +105,35 @@
       'edit-supplier':{open:(c,x)=>({kind:'supplier-editor',mode:'edit',target:copy(x.state.suppliers.find(s=>s.id===c.targetId))}),commit:(state,op,p)=>{let target=state.suppliers.find(x=>x.id===op.targetId);if(!target)return false;Object.assign(target,{name:p.name,ruc:p.ruc,email:p.email,website:(p.website||'').trim(),address:(p.address||'').trim(),contact:(p.contact||'').trim(),contactPosition:(p.contactPosition||'').trim(),phone:(p.phone||'').trim(),contact2:(p.contact2||'').trim(),contactPosition2:(p.contactPosition2||'').trim(),phone2:(p.phone2||'').trim(),category:(p.categories&&p.categories.length?p.categories[0]:(p.category||'').trim()),categories:Array.isArray(p.categories)?p.categories:[]});return true}},
       'toggle-supplier':{open:(c,x)=>({kind:'confirm-supplier',target:copy(x.state.suppliers.find(s=>s.id===c.targetId))}),commit:(state,op)=>{let target=state.suppliers.find(x=>x.id===op.targetId);if(!target)return false;target.active=!target.active;return true}},
       'delete-supplier':{open:(c,x)=>({kind:'confirm-delete-supplier',target:copy(x.state.suppliers.find(s=>s.id===c.targetId))}),commit:(state,op)=>{let idx=state.suppliers.findIndex(x=>x.id===op.targetId);if(idx<0)return false;state.suppliers.splice(idx,1);state.supplierProjectLinks=state.supplierProjectLinks.filter(x=>x.supplierId!==op.targetId);return true}},
-      'new-spec':{open:()=>({kind:'spec-editor'}),commit:(state,op,p)=>{state.specs.push({id:`sp-${Date.now()}`,projectId:p.projectId,name:p.name,code:p.code||'',productCode:(p.productCode||'').trim(),size:p.size||'',quantity:p.quantity||'',unit:p.unit||'',quantityOrdered:(p.quantityOrdered||'').trim(),material:(p.material||'').trim(),category:p.category,color:p.color,cost:normalizeSpecCost(p.cost),description:(p.description||'').trim(),procurementTeam:p.procurementTeam==='OSE'?'OSE':'FFE',vendorSource:(p.vendorSource||'').trim(),area:(p.area||'').trim(),specStatus:(p.specStatus||'').trim(),reference:(p.reference||'').trim(),image:p.image||''});return true},'async-commit':(state,op,p)=>{state.specs.push({id:`sp-${Date.now()}`,projectId:p.projectId,name:p.name,code:p.code||'',productCode:(p.productCode||'').trim(),size:p.size||'',quantity:p.quantity||'',unit:p.unit||'',quantityOrdered:(p.quantityOrdered||'').trim(),material:(p.material||'').trim(),category:p.category,color:p.color,cost:normalizeSpecCost(p.cost),description:(p.description||'').trim(),procurementTeam:p.procurementTeam==='OSE'?'OSE':'FFE',vendorSource:(p.vendorSource||'').trim(),area:(p.area||'').trim(),specStatus:(p.specStatus||'').trim(),reference:(p.reference||'').trim(),image:p.image||''});return true}},
+      'new-spec':{open:()=>({kind:'spec-editor'}),commit:(state,op,p)=>{state.specs.push({id:`sp-${Date.now()}`,projectId:p.projectId,name:p.name,code:p.code||'',productCode:(p.productCode||'').trim(),size:p.size||'',quantity:p.quantity||'',unit:p.unit||'',quantityOrdered:(p.quantityOrdered||'').trim(),material:(p.material||'').trim(),category:p.category,color:p.color,cost:normalizeSpecCost(p.cost),description:(p.description||'').trim(),procurementTeam:p.procurementTeam==='OSE'?'OSE':'FFE',vendorSource:(p.vendorSource||'').trim(),area:(p.area||'').trim(),specStatus:(p.specStatus||'').trim(),reference:(p.reference||'').trim(),image:p.image||'',createdBy:op.actorId||'',createdByName:state.users.find(u=>u.id===op.actorId)?.name||'',createdAt:new Date().toISOString()});return true},'async-commit':(state,op,p)=>{state.specs.push({id:`sp-${Date.now()}`,projectId:p.projectId,name:p.name,code:p.code||'',productCode:(p.productCode||'').trim(),size:p.size||'',quantity:p.quantity||'',unit:p.unit||'',quantityOrdered:(p.quantityOrdered||'').trim(),material:(p.material||'').trim(),category:p.category,color:p.color,cost:normalizeSpecCost(p.cost),description:(p.description||'').trim(),procurementTeam:p.procurementTeam==='OSE'?'OSE':'FFE',vendorSource:(p.vendorSource||'').trim(),area:(p.area||'').trim(),specStatus:(p.specStatus||'').trim(),reference:(p.reference||'').trim(),image:p.image||'',createdBy:op.actorId||'',createdByName:state.users.find(u=>u.id===op.actorId)?.name||'',createdAt:new Date().toISOString()});return true}},
       'spec-versions':{open:(c,x)=>({kind:'record-versions',recordType:'spec',target:copy(x.state.specs.find(s=>s.id===c.targetId))})},
       'revise-spec':{open:(c,x)=>({kind:'record-revision',recordType:'spec',target:copy(x.state.specs.find(s=>s.id===c.targetId))}),commit:(state,op,p)=>{
         let spec=state.specs.find(x=>x.id===op.targetId);if(!spec)return false;
-        let reason=String(p.reason||'').trim();if(!reason)return false;
+        if(specAgotado(state,spec.id))return false;
         let next={...p};if(next.cost!==undefined)next.cost=normalizeSpecCost(next.cost);
         let changes=diffRecord(spec,next,SPEC_FIELDS);if(!changes.length)return false;
-        let version=pushRevision(spec,changes,reason,state,op.actorId);
+        if(!attachReasons(changes,p.reasons))return false;
+        let version=pushRevision(spec,changes,'',state,op.actorId);
         SPEC_FIELDS.forEach(field=>{if(next[field]!==undefined)spec[field]=next[field]});
         return {version}}},
-      'edit-spec':{open:(c,x)=>({kind:'spec-editor',mode:'edit',target:copy(x.state.specs.find(s=>s.id===c.targetId))}),commit:(state,op,p)=>{let target=state.specs.find(x=>x.id===op.targetId);if(!target)return false;Object.assign(target,{name:p.name,code:p.code||target.code||'',productCode:(p.productCode||'').trim(),size:p.size||'',quantity:p.quantity||'',unit:p.unit||'',quantityOrdered:(p.quantityOrdered||'').trim(),material:(p.material||'').trim(),category:p.category,color:p.color,cost:normalizeSpecCost(p.cost),description:(p.description||'').trim(),procurementTeam:p.procurementTeam==='OSE'?'OSE':'FFE',vendorSource:(p.vendorSource||'').trim(),area:(p.area||'').trim(),specStatus:(p.specStatus||'').trim(),reference:(p.reference||'').trim()});if(p.projectId)target.projectId=p.projectId;if(p.image)target.image=p.image;return true}},
+      'edit-spec':{open:(c,x)=>({kind:'spec-editor',mode:'edit',target:copy(x.state.specs.find(s=>s.id===c.targetId))}),commit:(state,op,p)=>{let target=state.specs.find(x=>x.id===op.targetId);if(!target)return false;if(specAgotado(state,target.id))return false;Object.assign(target,{name:p.name,code:p.code||target.code||'',productCode:(p.productCode||'').trim(),size:p.size||'',quantity:p.quantity||'',unit:p.unit||'',quantityOrdered:(p.quantityOrdered||'').trim(),material:(p.material||'').trim(),category:p.category,color:p.color,cost:normalizeSpecCost(p.cost),description:(p.description||'').trim(),procurementTeam:p.procurementTeam==='OSE'?'OSE':'FFE',vendorSource:(p.vendorSource||'').trim(),area:(p.area||'').trim(),specStatus:(p.specStatus||'').trim(),reference:(p.reference||'').trim()});if(p.projectId)target.projectId=p.projectId;if(p.image)target.image=p.image;return true}},
       'duplicate-spec':{open:(c,x)=>{let target=x.state.specs.find(s=>s.id===c.targetId);return {kind:'confirm-duplicate-spec',target:copy(target),suggestedCode:nextDuplicateSpecCode(x.state,target)}},commit:(state,op,p)=>{let source=state.specs.find(item=>item.id===op.targetId),code=String(p.code||'').trim();if(!source||!code||state.specs.some(item=>String(item.code||'').trim().toLowerCase()===code.toLowerCase()))return false;let duplicate=copy(source);duplicate.id=`sp-${Date.now()}-${state.specs.length+1}`;duplicate.code=code;state.specs.push(duplicate);return {id:duplicate.id,code}}},
       'delete-spec':{open:(c,x)=>({kind:'confirm-delete-spec',target:copy(x.state.specs.find(s=>s.id===c.targetId))}),commit:(state,op)=>{let idx=state.specs.findIndex(x=>x.id===op.targetId);if(idx<0)return false;state.specs.splice(idx,1);return true}},
       'order-versions':{open:(c,x)=>({kind:'order-versions',target:copy(x.state.orders.find(o=>o.id===c.targetId))})},
       'revise-order':{open:(c,x)=>({kind:'order-revision',target:copy(x.state.orders.find(o=>o.id===c.targetId))}),commit:(state,op,p)=>{
         let order=state.orders.find(o=>o.id===op.targetId);if(!order)return false;
-        let reason=String(p.reason||'').trim();if(!reason)return false;
         let next=normalizeOrderMoney({...p});
         let changes=diffOrder(order,next);if(!changes.length)return false;
-        let actor=state.users.find(u=>u.id===op.actorId),version=Number(order.revision||1)+1;
+        if(!attachReasons(changes,p.reasons))return false;
+        let actor=state.users.find(u=>u.id===op.actorId),version=Number(order.revision||0)+1;
         let history=Array.isArray(order.revisions)?order.revisions.slice():[];
-        history.push({version,reason,changes,userId:op.actorId||'',userName:actor?.name||actor?.username||'',at:new Date().toISOString(),snapshot:copy(stripHistory(order))});
+        history.push({version,reason:'',changes,userId:op.actorId||'',userName:actor?.name||actor?.username||'',at:new Date().toISOString(),snapshot:copy(stripHistory(order))});
         REVISABLE_FIELDS.forEach(field=>{if(next[field]!==undefined)order[field]=next[field]});
         if(Array.isArray(next.items))order.items=copy(next.items);
         if(Array.isArray(next.adjustments))order.adjustments=copy(next.adjustments);
         order.revision=version;order.revisions=history;order.status='approved';
         return {version}}},
-      'new-order':{open:()=>({kind:'order-editor',items:[{}]}),commit:(state,op,p)=>{p=normalizeOrderMoney(p);let next=Math.max(0,...state.orders.map(o=>Number((o.trackingNumber||'').match(/(\d+)$/)?.[1]||0)))+1,actor=state.users.find(u=>u.id===op.actorId),ocTeam=p.ocTeam==='OSE'?'OSE':'FFE',number=nextPurchaseOrderNumber(state,p.projectId,ocTeam);if(!number)return false;let ordProject=state.projects.find(item=>item.id===p.projectId),ordTerms=Array.isArray(ordProject?.terms)&&ordProject.terms.length?ordProject.terms.slice():null;state.orders.push({...p,id:`o-${Date.now()}-${next}`,projectId:p.projectId,projectCode:ordProject?.code||'',...(ordTerms?{conditions:ordTerms}:{}),ocTeam,number,trackingNumber:nuevoTrackingNumber(state),trackingStatus:'Preparation',trackingUpdatedBy:{username:actor?.username||'',name:actor?.name||''},trackingUpdatedAt:new Date().toISOString()});return true}},
+      'new-order':{open:()=>({kind:'order-editor',items:[{}]}),commit:(state,op,p)=>{p=normalizeOrderMoney(p);let next=Math.max(0,...state.orders.map(o=>Number((o.trackingNumber||'').match(/(\d+)$/)?.[1]||0)))+1,actor=state.users.find(u=>u.id===op.actorId),ocTeam=p.ocTeam==='OSE'?'OSE':'FFE',number=nextPurchaseOrderNumber(state,p.projectId,ocTeam);if(!number)return false;let ordProject=state.projects.find(item=>item.id===p.projectId),ordTerms=Array.isArray(ordProject?.terms)&&ordProject.terms.length?ordProject.terms.slice():null;state.orders.push({...p,id:`o-${Date.now()}-${next}`,projectId:p.projectId,projectCode:ordProject?.code||'',...(ordTerms?{conditions:ordTerms}:{}),ocTeam,number,trackingNumber:nuevoTrackingNumber(state),trackingStatus:'Preparation',trackingUpdatedBy:{username:actor?.username||'',name:actor?.name||''},trackingUpdatedAt:new Date().toISOString(),createdBy:op.actorId||'',createdByName:actor?.name||actor?.username||'',createdAt:new Date().toISOString()});return true}},
       'edit-order-tracking':{open:(c,x)=>({kind:'tracking-editor',target:copy(x.state.orders.find(o=>o.id===c.targetId))}),commit:(state,op,p)=>{let order=state.orders.find(o=>o.id===op.targetId),actor=state.users.find(u=>u.id===op.actorId);if(!order||!['Preparation','In transit','Out for delivery','Delivered'].includes(p.status))return false;if(!order.trackingNumber){let next=Math.max(0,...state.orders.map(o=>Number((o.trackingNumber||'').match(/(\d+)$/)?.[1]||0)))+1;order.trackingNumber=`TRK-2026-${String(next).padStart(5,'0')}`}order.trackingStatus=p.status;order.trackingUpdatedBy={username:actor?.username||'',name:actor?.name||''};order.trackingUpdatedAt=new Date().toISOString();return true}},
       'assign-team-objective':{open:(c,x)=>({kind:'team-objective-editor',mode:'new',users:copy(x.state.users.filter(u=>u.active&&['Worker','Admin'].includes(u.role)))}),commit:(state,op,p)=>{let assignees=[...new Set((p.assignees||[p.assignee]).filter(Boolean))];if(!assignees.length||!assignees.every(uid=>state.users.some(u=>u.id===uid&&u.active&&['Worker','Admin'].includes(u.role))))return false;state.tasks.push({id:`t-${Date.now()}`,title:p.title,description:p.description||'',assignee:assignees[0],assignees,status:'Pending',progress:0,period:p.period||'Weekly',due:p.due||''});return true}},
       'edit-team-objective':{open:(c,x)=>({kind:'team-objective-editor',mode:'edit',target:copy(x.state.tasks.find(t=>t.id===c.targetId)),users:copy(x.state.users.filter(u=>u.active&&['Worker','Admin'].includes(u.role)))}),commit:(state,op,p,ctx)=>{let task=state.tasks.find(t=>t.id===op.targetId);let assignees=[...new Set((p.assignees||[p.assignee]).filter(Boolean))];if(!task||!assignees.length||!assignees.every(uid=>state.users.some(u=>u.id===uid&&u.active&&['Worker','Admin'].includes(u.role))))return false;let status=p.status||task.status,autoProgress={'Pending':0,'In Progress':50,'Completed':100};let statusChanged=status!==task.status;Object.assign(task,{title:p.title,description:p.description||'',assignee:assignees[0],assignees,period:p.period||'Weekly',due:p.due||'',status,progress:autoProgress[status]??50});delete task.reference;if(statusChanged){task.statusUpdatedAt=new Date().toLocaleString('es-PE',{year:'numeric',month:'2-digit',day:'2-digit',hour:'2-digit',minute:'2-digit'});task.statusUpdatedBy=ctx?.user?.name||''}return true}},
@@ -128,13 +150,31 @@
       'add-team-member':{open:(c,x)=>({kind:'team-member-editor',target:copy(x.state.projects.find(p=>p.id===c.targetId))}),commit:(state,op,p)=>{let project=state.projects.find(x=>x.id===op.targetId);if(!project)return false;let ids=p.selectedClients;if(!ids||!ids.length)return false;if(!project.team)project.team=[];let company=state.projectCompanies.find(x=>x.projectId===op.targetId);for(let id of ids){if(project.team.some(m=>m.userId===id))continue;let user=state.users.find(u=>u.id===id);if(!user)continue;project.team.push({userId:user.id,name:user.name,role:(user.position||'').trim(),phone:(user.phone||'').trim()});if(user.role==='Client'&&company&&!state.clientProjectLinks.some(x=>x.clientId===id&&x.projectId===op.targetId)){state.clientProjectLinks.push({clientId:id,companyId:company.companyId,projectId:op.targetId})}}return true}},
       'edit-banner':{open:(c,x)=>({kind:'banner-editor',target:copy(x.state.projects.find(p=>p.id===c.targetId))}),'async-commit':(state,op,p)=>{let project=state.projects.find(x=>x.id===op.targetId),images=(p.images||[]).filter(Boolean).slice(0,5);if(!project||!images.length)return false;project.cover=images[0];project.gallery=images.slice(1);return true}},
       'invoice-versions':{open:(c,x)=>{let project=x.state.projects.find(p=>p.id===c.targetId),invoice=(project?.invoices||[]).find(i=>i.id===c.payload?.invoiceId);return {kind:'record-versions',recordType:'invoice',target:copy(invoice),projectId:c.targetId}}},
+      // Datos que se llenan a mano cuando el pago ya se ejecuto. Van todos
+      // juntos o ninguno, y no se imprimen en el formato: solo van al Excel.
+      'register-payment':{open:(c,x)=>{let project=x.state.projects.find(p=>p.id===c.targetId),invoice=(project?.invoices||[]).find(i=>i.id===c.payload?.invoiceId);return {kind:'payment-register',target:copy(invoice),projectId:c.targetId,draft:{invoiceId:c.payload?.invoiceId||''}}},commit:(state,op,p)=>{
+        let project=state.projects.find(x=>x.id===op.targetId);if(!project)return false;
+        let invoice=(project.invoices||[]).find(i=>i.id===op.draft?.invoiceId);if(!invoice)return false;
+        let paidAmount=String(p.paidAmount??'').trim(),paymentDate=String(p.paymentDate??'').trim();
+        let transferNumber=String(p.transferNumber??'').trim(),paymentComments=String(p.paymentComments??'').trim();
+        let pendingAmount=String(p.pendingAmount??'').trim();
+        if(!paidAmount||!paymentDate||!transferNumber||!paymentComments||!pendingAmount)return false;
+        if(!Number.isFinite(Number(paidAmount))||!Number.isFinite(Number(pendingAmount)))return false;
+        let actor=state.users.find(user=>user.id===op.actorId);
+        invoice.paidAmount=Money.round(Number(paidAmount));
+        invoice.pendingAmount=Money.round(Number(pendingAmount));
+        invoice.paymentDate=paymentDate;invoice.transferNumber=transferNumber;invoice.paymentComments=paymentComments;
+        invoice.paymentRegisteredBy=op.actorId||'';
+        invoice.paymentRegisteredByName=actor?.name||actor?.username||'';
+        invoice.paymentRegisteredAt=new Date().toISOString();
+        return {registeredAt:invoice.paymentRegisteredAt}}},
       'revise-invoice':{open:(c,x)=>{let project=x.state.projects.find(p=>p.id===c.targetId),invoice=(project?.invoices||[]).find(i=>i.id===c.payload?.invoiceId);return {kind:'record-revision',recordType:'invoice',target:copy(invoice),projectId:c.targetId,draft:{invoiceId:c.payload?.invoiceId||''}}},commit:(state,op,p)=>{
         let project=state.projects.find(x=>x.id===op.targetId);if(!project)return false;
         let invoice=(project.invoices||[]).find(i=>i.id===op.draft?.invoiceId);if(!invoice)return false;
-        let reason=String(p.reason||'').trim();if(!reason)return false;
         let next=normalizeInvoiceMoney({...p});
         let changes=diffRecord(invoice,next,INVOICE_FIELDS);if(!changes.length)return false;
-        let version=pushRevision(invoice,changes,reason,state,op.actorId);
+        if(!attachReasons(changes,p.reasons))return false;
+        let version=pushRevision(invoice,changes,'',state,op.actorId);
         INVOICE_FIELDS.forEach(field=>{if(next[field]!==undefined)invoice[field]=next[field]});
         return {version}}},
       'new-invoice':{open:(c,x)=>({kind:'invoice-editor',target:copy(x.state.projects.find(p=>p.id===c.targetId))}),commit:(state,op,p)=>{p=normalizeInvoiceMoney(p);let project=state.projects.find(p=>p.id===op.targetId);if(!project)return false;(project.invoices||=[]).push({...p,id:`inv-${Date.now()}`,number:nextPaymentRequestNumber(state,op.targetId),issuedBy:state.users.find(u=>u.id===op.actorId)?.name||'',createdAt:new Date().toISOString()});return true}},
@@ -154,5 +194,5 @@
     const openAuthorizedOperation=command=>dispatchAction({...command,phase:'open'});
     return freeze({STORE,SESSION,LEGACY_STORE,LEGACY_SESSION,dispatchAction,navigateTo,renderCurrentRoute,openAuthorizedOperation,refreshFromStorage,loadFreshContext,syncRemoteUsers,signOut:()=>{tabStorage.removeItem(SESSION);tabStorage.setItem(BOOTSTRAP,'logout');tokens.clear()},signIn:id=>{tabStorage.setItem(SESSION,id);tabStorage.setItem(BOOTSTRAP,'login');tokens.clear()},getTrace:()=>trace.slice(),getDispatcherCount:()=>dispatcherCount,setRoute:(value,id)=>{route=value;if(id)selectedProjectId=id}})
   }
-  return freeze({createRuntime,nextPurchaseOrderNumber,nextPaymentRequestNumber,STORE,SESSION,LEGACY_STORE,LEGACY_SESSION});
+  return freeze({createRuntime,nextPurchaseOrderNumber,nextPaymentRequestNumber,revisionChanges,revisionChangeKey,STORE,SESSION,LEGACY_STORE,LEGACY_SESSION});
 });

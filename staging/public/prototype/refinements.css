@@ -1018,3 +1018,31 @@ body.vaak-modal-open{overflow:hidden!important}
 .banner-crop-controls input{width:100%;accent-color:#a9761b}
 .banner-crop-editor>footer{display:flex;justify-content:flex-end;gap:.65rem;margin-top:1rem}
 @media(max-width:700px){.banner-resolution-guide>div,.banner-crop-controls{grid-template-columns:1fr}.banner-crop-editor>header{align-items:flex-start;flex-direction:column}.banner-crop-editor>footer{flex-direction:column-reverse}.banner-crop-editor>footer button{width:100%}}
+
+/* Spec cerrado porque una OC ya consumio toda su cantidad. */
+.spec-closed-tag{display:inline-flex;align-items:center;gap:6px;padding:.45rem .65rem;border-radius:8px;background:#eef6ef;color:#2f6b3a;font-size:.68rem;font-weight:800;line-height:1.2}
+.spec-closed-tag .ui-icon{width:14px;height:14px}
+/* Resumen del pago registrado a mano en el requerimiento. */
+.invoice-paid-note{display:block;margin-top:.25rem;color:#2f6b3a;line-height:1.45}
+
+/* Motivo por cada cambio en las revisiones. */
+.rev-reasons-list{display:grid;gap:.6rem}
+.rev-reason-row{display:grid;gap:.3rem;padding:.55rem .7rem;border:1px solid var(--line,#e5ddd2);border-radius:8px;background:#fcfaf7}
+.rev-reason-row>span{font-size:.72rem;font-weight:700;color:var(--ink,#302218);overflow-wrap:anywhere}
+.rev-reason-row>input{width:100%}
+.rev-reason-row>input.rev-reason-missing{border-color:#b42318;background:#fff5f4}
+.rev-reasons-empty{margin:0;color:#8a7b6c;font-size:.72rem}
+.rev-history-why{display:block;margin-top:.15rem;color:#6a4d3b;font-size:.72rem}
+/* Status del documento en las tarjetas. */
+.doc-status{display:block;margin-top:.3rem;color:#6a4d3b;font-size:.68rem;line-height:1.35}
+.doc-status b{font-weight:800}
+.spec-card-body .doc-status{margin:.35rem 0 .5rem}
+.project-order-docstatus{display:grid;gap:.2rem}
+.project-order-docstatus>span:last-child{font-size:.74rem;color:#6a4d3b}
+/* Montos con simbolo de moneda en la solicitud de pago. */
+.money-input{display:flex;align-items:stretch}
+.money-input>.money-symbol{display:inline-flex;align-items:center;padding:0 .6rem;border:1px solid var(--line,#e5ddd2);border-right:0;border-radius:8px 0 0 8px;background:#f5efe7;color:#6a4d3b;font-weight:800;font-size:.75rem;white-space:nowrap}
+.money-input>input{flex:1;min-width:0;border-radius:0 8px 8px 0!important;text-align:right}
+.invoice-oc-alert{display:grid;gap:.3rem;margin:.6rem 0 0;padding:.6rem .8rem;border:1px solid #f1b8b3;border-radius:8px;background:#fff5f4;color:#b42318;font-size:.74rem;font-weight:700}
+.invoice-oc-alert[hidden]{display:none}
+.client-row-actions{display:inline-flex;gap:.4rem;flex-wrap:wrap}

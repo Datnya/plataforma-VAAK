@@ -64,6 +64,19 @@
   const displayNumber = value => new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(value)||0);
   const uniqueText = (...values) => [...new Set(values.flatMap(value=>String(value??'').split('|')).map(value=>value.trim()).filter(Boolean))].join(' | ');
   const safeName = value => String(value||'Project').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'');
+  // El item de la orden guarda el id interno del spec; aqui se traduce al
+  // codigo visible (SPEC-682). Sin esto el Excel imprimia sp-1789657319006.
+  const codigoDeSpec = (specs,specId) => {
+    if(!specId||!Array.isArray(specs))return '';
+    const spec=specs.find(item=>item.id===specId);
+    if(!spec)return '';
+    if(spec.code)return spec.code;
+    // Misma regla que specCode() en app.js, para que el Excel diga lo mismo que la pantalla.
+    const raw=String(spec.id||''),digits=raw.replace(/\D/g,'');
+    if(digits)return 'SPEC-'+digits.slice(-3).padStart(3,'0');
+    let h=0;for(let i=0;i<raw.length;i++)h=(h*31+raw.charCodeAt(i))>>>0;
+    return 'SPEC-'+String(h%900+100);
+  };
   const projectHeading = project => `${project.code||'—'} · ${String(project.name||'PROJECT').toUpperCase()}`;
 
   const cell = (row,column,value,style,kind='text') => {
@@ -78,7 +91,7 @@
   };
 
   const sheet = ({kind,project,metrics,headers,rows,widths}) => {
-    const isPo=kind==='po',columnCount=headers.length,lastColumn=col(columnCount-1),title=isPo?'PO Item Listing':'Invoice Details';
+    const isPo=kind==='po',columnCount=headers.length,lastColumn=col(columnCount-1),title=isPo?'PO Item Listing':'Payment Request Details';
     const titleStyle=isPo?23:21,projectStyle=isPo?25:23,subtitleStyle=isPo?26:24,metricLabelStyle=isPo?21:26,metricValueStyle=isPo?22:27;
     const metricColumns=isPo?[7,9,11,13,15,17]:[5,7,9,11,13];
     const mergedTitleEnd=isPo?'M':'K',mergedSubtitleEnd=isPo?'S':'Q';
@@ -112,7 +125,7 @@
   const download = (name,bytes) => { const url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})),link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1500); };
   const exportableOrder = order => ['approved','cancelled'].includes(String(order.status||'approved').toLowerCase())&&!order.isDraft;
 
-  const purchaseOrders = async (project,orders) => {
+  const purchaseOrders = async (project,orders,specs) => {
     const selected=orders.filter(order=>order.projectId===project.id&&exportableOrder(order));
     const records=[];
     selected.forEach(order=>{
@@ -122,7 +135,7 @@
         const status=String(order.status).toLowerCase()==='cancelled'?'CANCELLED':'POC';
         records.push([
           textEntry(order.number||'',alt(5,6)),
-          textEntry(item.reference||item.code||item.specCode||item.specId||`${order.number||'PO'}-${String(itemIndex+1).padStart(3,'0')}`,alt(7,8)),
+          textEntry(item.reference||item.code||item.specCode||codigoDeSpec(specs,item.specId)||`${order.number||'PO'}-${String(itemIndex+1).padStart(3,'0')}`,alt(7,8)),
           textEntry(item.description||item.name||item.productName||'',alt(3,4)),
           textEntry(uniqueText(order.manufacturer,item.manufacturer,order.source,item.source,order.supplier),alt(9,10)),
           numberEntry(quantity,alt(3,4)),
@@ -168,19 +181,22 @@
         textEntry(curr,alt(9,10)),
         dateEntry(invoice.requestDate,alt(15,16)),
         textEntry(invoice.number||'',alt(7,8)),
-        textEntry(invoice.paymentEvidence||'',alt(3,4)),
-        numberEntry(moneyValue(invoice.paymentAmount||invoice.invoiceTotal||invoice.totalRequest),alt(11,12)),
-        dateEntry(invoice.transferDate||invoice.paymentDate||invoice.approvalDate,alt(15,16)),
+        textEntry(invoice.transferNumber||invoice.paymentEvidence||'',alt(3,4)),
+        numberEntry(moneyValue(invoice.paidAmount??invoice.paymentAmount??invoice.invoiceTotal??invoice.totalRequest),alt(11,12)),
+        dateEntry(invoice.paymentDate||invoice.transferDate||invoice.approvalDate,alt(15,16)),
         textEntry(invoice.invoiceNote||'',alt(3,4)),
-        textEntry(invoice.hpgComments||invoice.requestDetail||'',alt(3,4)),
+        textEntry(invoice.paymentComments||invoice.hpgComments||invoice.requestDetail||'',alt(3,4)),
         textEntry(invoice.deliveryLocation||project.warehouse||'',alt(3,4)),
-        textEntry(invoice.destination||uniqueText(project.city,project.country)||'',alt(3,4))
+        textEntry(invoice.destination||uniqueText(project.city,project.country)||'',alt(3,4)),
+        numberEntry(invoice.paymentRegisteredAt?moneyValue(invoice.pendingAmount):'',alt(11,12)),
+        textEntry(invoice.paymentRegisteredByName||'',alt(3,4)),
+        dateEntry(invoice.paymentRegisteredAt,alt(15,16))
       ];
     });
     const totals=records.reduce((all,row)=>{const curr=row[8].value;all[curr]=(all[curr]||0)+Number(row[7].value||0);return all;},{});
-    const xml=sheet({kind:'invoice',project,metrics:[{label:'INVOICES',value:selected.length},{label:'PAYMENT REQ.',value:selected.filter(invoice=>invoice.number).length},{label:'INVOICED PEN',value:totals.PEN||0},{label:'INVOICED USD',value:totals.USD||0},{label:'INVOICED EUR',value:totals.EUR||0}],headers:['TYPE','PO NUMBER','PO DATE','MANUFACTURER','TOTAL ORDER VALUE','INVOICE #','INV. DATE','INV. AMOUNT','CUR','PR DATE','PR NUMBER','PAYMENT EVIDENCE','AMOUNT PAID','TRANSFER DATE','INVOICE NOTE','HPG COMMENTS','DELIVERY LOCATION','DESTINATION'],rows:records,widths:[10,17,12,32,19,17,12,17,7,13.88671875,17,24,17,13,52,20,17,15]});
+    const xml=sheet({kind:'invoice',project,metrics:[{label:'INVOICES',value:selected.length},{label:'PAYMENT REQ.',value:selected.filter(invoice=>invoice.number).length},{label:'INVOICED PEN',value:totals.PEN||0},{label:'INVOICED USD',value:totals.USD||0},{label:'INVOICED EUR',value:totals.EUR||0}],headers:['TYPE','PO NUMBER','PO DATE','MANUFACTURER','TOTAL ORDER VALUE','INVOICE #','INV. DATE','INV. AMOUNT','CUR','PR DATE','PR NUMBER','PAYMENT EVIDENCE','AMOUNT PAID','TRANSFER DATE','INVOICE NOTE','HPG COMMENTS','DELIVERY LOCATION','DESTINATION','PENDING BALANCE','PAYMENT REGISTERED BY','REGISTERED ON'],rows:records,widths:[10,17,12,32,19,17,12,17,7,13.88671875,17,24,17,13,52,20,17,15,18,26,16]});
     const bytes=await packageFile('InvoiceList',xml,REPORT_ASSETS.invoiceStyles);
-    download(`VAAK_Reporte Invoice Details_${safeName(project.name)}.xlsx`,bytes);
+    download(`VAAK_Reporte Requerimientos de Pago Details_${safeName(project.name)}.xlsx`,bytes);
     return {rows:records.length,invoices:selected.length};
   };
 

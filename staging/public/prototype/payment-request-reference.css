@@ -27,7 +27,7 @@
 .pr-parties-box article{padding:16px 19px;overflow-wrap:anywhere}.pr-parties-box article+article{border-left:1px solid #d7c6b3}
 .pr-parties-box strong{display:block;margin-top:6px;color:var(--pr-ink);font-size:12px;line-height:1.25;overflow-wrap:anywhere}.pr-parties-box p{margin:5px 0 0;font-size:10px;line-height:1.35;white-space:pre-wrap;overflow-wrap:anywhere}
 .pr-entry-table{border-bottom:1px solid #d7c6b3}
-.pr-entry-head,.pr-entry-values{display:grid;grid-template-columns:10.5% 17% 9% 9% 10.5% 17% 8.5% 18.5%;align-items:center}
+.pr-entry-head,.pr-entry-values{display:grid;grid-template-columns:13% 21% 11% 11% 13% 9% 22%;align-items:center}
 .pr-entry-head{min-height:32px;padding:0 12px;background:var(--pr-brown);color:#fff;font-size:7.5px;font-weight:700;letter-spacing:.06em}.pr-entry-head span:last-child{text-align:right}
 .pr-entry-values{min-height:32px;padding:0 12px;color:var(--pr-ink);font-size:9.5px}.pr-entry-values>*{white-space:normal;overflow-wrap:anywhere;word-break:break-word}.pr-entry-values>*:last-child{text-align:right}.pr-entry-values>strong:first-child{color:var(--pr-gold)}
 .pr-breakdown-row,.pr-totals-row{display:grid;grid-template-columns:repeat(8,1fr)}

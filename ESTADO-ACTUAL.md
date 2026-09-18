@@ -156,7 +156,7 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 ### Órdenes de compra
 - Al abrir una versión guardada, el pie tiene «← Volver a versiones» para regresar al historial sin cerrar todo
 - El número de tracking es **aleatorio y comprobado contra los ya emitidos**. Antes era correlativo y podía repetirse si dos personas emitían a la vez; además la interfaz inventaba uno por posición cuando la orden no lo tenía guardado, lo que producía duplicados visibles
-- **Revisiones:** el botón "Realizar revisión" está en la tarjeta de seguimiento de cada OC (dentro del proyecto), junto a Actualizar estado / Ver orden / Descargar. Crea Rev. 2, 3… con registro de qué cambió, por qué, quién y cuándo. El PDF lo imprime entre líneas de asteriscos. "Ver versiones" permite abrir cualquier versión anterior
+- **Revisiones:** el botón "Realizar revisión" está en la tarjeta de seguimiento de cada OC (dentro del proyecto), junto a Actualizar estado / Ver orden / Descargar. Crea Rev. 1, 2, 3… (la primera revisión es la 1; el documento sin revisar es el «Original») con registro de qué cambió, por qué, quién y cuándo. El PDF lo imprime entre líneas de asteriscos. "Ver versiones" permite abrir cualquier versión anterior
 - IGV fijo 18%; IVA y VAT con porcentaje editable según el país
 - Descuentos y recargos manuales ilimitados (concepto + suma/resta + monto)
 - Las líneas de impuesto y CIF desaparecen si están en cero
@@ -165,11 +165,17 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - En el formulario de spec, «Proveedor / fuente» es un desplegable de los proveedores registrados; «Área» es un desplegable de los 65 rubros
 - La ficha técnica compone la cantidad con la unidad (ej. «5 EACH») a partir de los campos «Cantidad» y «Unidad de medida». Existía un tercer campo, «Cantidad pedida», que repetía ambos y mandaba sobre ellos: se eliminó. Para los specs antiguos que solo tienen ese campo, la cantidad y la unidad se extraen de ahí
 - **La vinculación de cantidades depende de que el spec tenga lleno el campo «Cantidad».** Si está vacío, la OC no puede prellenar ni poner tope: no hay con qué comparar
-- En la OC no se puede pedir más cantidad de la registrada en el spec: avisa en rojo y no deja emitir
+- En la OC no se puede pedir más cantidad de la **disponible** en el spec (cantidad del spec menos lo ya pedido en otras OC no canceladas): avisa en rojo y no deja emitir
+- **Specs consumidos:** si las OC ya usan toda la cantidad de un spec, el spec queda **cerrado**: la tarjeta dice «Cerrado · usado por completo en una OC», desaparecen Editar y Realizar revisión, y no se ofrece al generar una OC nueva. El motor (`specAgotado` en `access-runtime.js`) también rechaza editarlo o revisarlo. Al **revisar** una OC, sus propios specs siguen disponibles (se descuenta todo menos esa misma orden), y si la revisión baja la cantidad, el spec se reabre solo. Un spec sin «Cantidad» nunca se cierra
+- **Reporte Excel de OC:** la columna ITEM # muestra el código del spec tal como se ve en pantalla (el guardado o el derivado de su id, misma regla que `specCode()`). Antes mostraba el id interno (`sp-1789657319006`)
 - Contacto del proyecto configurable en Configuración del sistema, editable por documento
 
 ### Revisiones (los tres documentos)
-Órdenes de compra, specs y solicitudes de pago comparten la misma dinámica: botón «Realizar revisión», motivo obligatorio, se guarda quién cambió qué y cuándo, sube el número de versión y se conserva una instantánea de la anterior. «Ver versiones» muestra el historial. Los tres formatos imprimen el bloque entre líneas de asteriscos (en la OC sobre los items, en la ficha y en la solicitud sobre DESCRIPTION y REQUEST DETAIL).
+Órdenes de compra, specs y solicitudes de pago comparten la misma dinámica: botón «Realizar revisión», **un motivo obligatorio por cada cambio** (no uno general), se guarda quién cambió qué y cuándo, sube el número de versión y se conserva una instantánea de la anterior.
+
+**Motivo por cambio:** mientras se edita, el formulario lista en vivo cada cambio detectado con su casilla de motivo. Si falta uno, no guarda y lo marca en rojo. La lista usa el mismo cálculo que el motor (`VAAKRuntime.revisionChanges` y `revisionChangeKey`, exportados desde `access-runtime.js`), así lo que se ve es lo que se guarda. Cada cambio guarda su `reason`; el `reason` general de la entrada queda vacío. Las revisiones antiguas, con un solo motivo general, se siguen mostrando igual. Los montos se comparan por valor (`$ 1,450.00` = `$ 1450.00` no es un cambio). En la OC, el item conserva su descripción mientras no se cambie el spec.
+
+**Status del documento (solo en pantalla, no en el PDF):** las tarjetas de OC, specs y solicitudes muestran la última versión, quién la hizo y cuándo; si no hay revisiones, «Original» con su autor y fecha. Los documentos creados antes del 17-sep no guardaban autor, así que muestran solo «Original». «Ver versiones» muestra el historial. Los tres formatos imprimen el bloque entre líneas de asteriscos (en la OC sobre los items, en la ficha y en la solicitud sobre DESCRIPTION y REQUEST DETAIL).
 
 El motor es genérico: `diffRecord` y `pushRevision` en `access-runtime.js`, con una lista de campos por tipo de documento. Las OC solo se revisan si están aprobadas; los specs y las solicitudes, siempre.
 
@@ -182,15 +188,25 @@ Los usuarios conectados ahora (punto verde) se muestran primero. El reordenamien
 ### Requerimiento de pago
 La sección financiera del proyecto se llama «Requerimiento de pago», su botón «Emisión de nueva solicitud de pago» y su encabezado «Historial».
 
+**Formulario:** «Pagar a:» (antes «Pagadero a»). «Dirección fiscal del proveedor» se llena sola al elegir la OC con la dirección registrada del proveedor (búsqueda por id o por nombre sin importar mayúsculas ni espacios). Los montos muestran el símbolo de la moneda elegida delante y se formatean como moneda (1,500.00). La moneda de la OC se precarga bien (antes se ponía PEN/USD, que no existen en el desplegable, y quedaba vacía). Si el total de la solicitud, el monto a pagar o la moneda no coinciden con la OC elegida, sale una **alerta en rojo que no bloquea** (hay pagos parciales y adelantos).
+
+**Formato A4:** se quitó la columna PAYABLE TO de la tabla INVOICE ENTRY DETAILS. El recuadro PAYABLE TO de PARTIES y la frase «Please make payments payable to…» se mantienen, por decisión de Datnya.
+
 El formato imprimible ya no recorta el texto: la hoja tiene `min-height` en vez de `height` fija y se quitaron los `max-height`, `overflow:hidden` y `text-overflow:ellipsis` que cortaban el detalle y las celdas. Con textos largos la hoja crece a más de una página.
 
 Las solicitudes de pago se crean y se revisan. **No hay edición libre: todo cambio pasa por una revisión** y queda registrado.
+
+**Registro del pago** (botón «Registrar pago» / «Editar pago» en cada solicitud, admin y trabajador): valor pagado, día del pago, número de transferencia, monto pendiente a cancelar y comentarios. Se llenan **todos juntos o ninguno** (error en rojo si falta uno; el motor también lo valida). Se guarda quién lo registró y cuándo, y se muestra bajo la solicitud. Campos: `paidAmount`, `paymentDate`, `transferNumber`, `pendingAmount`, `paymentComments`, `paymentRegisteredBy/ByName/At`. **No salen en el PDF ni en la previsualización** (a propósito se usan nombres nuevos: `paymentAmount` sí se imprime y no se tocó).
+
+El reporte Excel se llama **«Reporte de requerimientos de pago»** (hoja «Payment Request Details»). Usa esos datos en PAYMENT EVIDENCE, AMOUNT PAID, TRANSFER DATE y HPG COMMENTS, y agrega al final PENDING BALANCE, PAYMENT REGISTERED BY y REGISTERED ON.
 
 ### Otros
 - 19 monedas (Latinoamérica + dólar + euro). Sol y dólar se guardan con símbolo; el resto con código ISO
 - Previsualizaciones en A4 real (794px) escaladas para caber
 - **Los cuadros emergentes no se cierran al hacer clic fuera**, solo con Cerrar/Cancelar/X
 - Usuarios cliente: sin interruptores de acceso, un solo proyecto, alta automática en la tarjeta de equipo
+- **El cliente descarga sus OC:** botón «Descargar» en su historial y «Descargar PDF» dentro de la vista. Antes el botón de la vista existía pero respondía «no autorizado» porque la impresión exigía rol admin o trabajador. Ahora el cliente puede imprimir solo las OC que tiene permiso de ver (se comprueba con la política `preview-order`)
+- **Pie de página de la ficha técnica:** quedaba a media hoja porque la regla genérica `.spec-preview footer{margin-top:1.5rem}` le ganaba a `.hpg-ts-footer{margin-top:auto}`. Se reforzó el selector
 
 ---
 
@@ -207,6 +223,9 @@ Quedan **fuera**: `projectMemberships`, `clientProjectLinks`, `clientOrderAuthor
 
 ### 🟡 Proyectos con datos borrados
 Un bug corregido el 17-sep (commit `2f33b09b`) borraba razón social, dirección fiscal, dirección de almacén, ciudad y país al guardar la tarjeta "Áreas del proyecto". Ya no ocurre, pero **lo ya borrado sigue borrado**. Se puede recuperar del historial de `vaak_company_data_history`. Falta que Datnya identifique qué proyectos quedaron afectados.
+
+### 🟠 Los montos se redondean a un decimal
+`Money.round` en `money-utils.js` usa `e1`: redondea a **un** decimal y luego muestra dos (99.99 → 100.00, 1234.56 → 1234.60). Es así desde que se creó el archivo. No se ha tocado porque cambiaría todos los montos que se guarden desde ese momento; está pendiente de que Datnya lo apruebe.
 
 ### 🟢 `VAAK_RELEASE_ID` en Vercel
 Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se perdió al sacar `.env.local` del repositorio. Se arregla agregándola en el panel de Vercel.
@@ -226,6 +245,8 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - `app.js` está minificado. Para editarlo, escribe un script de parche con anclas de texto exactas que verifique que hay **exactamente una** coincidencia antes de tocar nada.
 - En `String.replace()`, la secuencia `$'` es un comodín. **Usa siempre una función como reemplazo** (`.replace(a, () => b)`), o destrozarás el archivo.
 - Valida con `node --check <archivo>` después de cada edición.
+- `access-runtime.js` mezcla saltos de línea Windows (`
+`) y Unix. Un ancla que cruce un salto de línea puede no coincidir: prefiere anclas dentro de una sola línea.
 - El hook de `git-lfs` falla con un error de memoria después de cada commit. Es ruido, el commit se creó bien.
 
 ---
@@ -236,6 +257,8 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **15 sep:** usuarios conectados a Supabase Auth
 - **16 sep:** foto de perfil, presencia, campos de proyecto, datos compartidos entre usuarios
 - **17 sep:** todo lo de la sección 6 (términos, revisiones, impuestos, monedas, A4, rubros, clientes, Tax ID, equipo del cliente automático, colores en los PDF, requerimiento de pago)
+- **17 sep (tarde):** registro del pago, reporte de requerimientos de pago, revisiones numeradas desde 1, cierre de specs consumidos, códigos reales en el Excel de OC
+- **17 sep (noche):** motivo por cada cambio en las revisiones, status del documento, alerta de monto/moneda en la solicitud, «Pagar a:», montos con formato moneda, dirección fiscal automática, sin columna PAYABLE TO, descarga de OC para el cliente, pie de la ficha técnica
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:
 
