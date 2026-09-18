@@ -4,7 +4,7 @@
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
 **Última actualización:** 17 de septiembre de 2026
-**Último commit documentado:** `f7a0e1c` (ver `git log`)
+**Último commit documentado:** `f4de435e` (ver `git log`)
 
 ---
 
@@ -69,12 +69,13 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 | `a4-preview.js` | Escala las previsualizaciones a A4 real |
 | `revision-block.js` | Bloque de revisiones entre asteriscos, compartido por los tres formatos |
 | `purchase-order-template.js` | Formato imprimible de la OC |
-| `payment-request-template.js` | Formato de la factura |
+| `payment-request-template.js` | Formato del requerimiento de pago (solicitud de pago) |
+| `reports.js` | Reportes Excel de OC y de requerimientos de pago (estilos en `assets/reports/*.xml`) |
 | `technical-sheet-template.js` | Formato de la ficha técnica del spec |
 | `money-utils.js` | Dinero y **catálogo de 19 monedas** |
 | `presentation.js` | Traductor automático es/en de nodos de texto |
 
-### ⚠️ Dos trampas que te van a morder
+### ⚠️ Trampas que te van a morder
 
 **1. Al editar `index.html` sube el `?v=N`.** Si no, los navegadores sirven la versión vieja y parecerá que tu cambio no funcionó.
 
@@ -131,11 +132,11 @@ Sirve los archivos reales de `staging/public/prototype/` y solo desactiva en mem
 ### Flujo de trabajo que Datnya exige
 
 1. Haces el cambio en `staging/public/prototype/`
-2. Lo pruebas tú en el localhost
-3. **Ella lo revisa y lo aprueba**
-4. Recién entonces commit + push
+2. Lo pruebas tú en el localhost (y, si el cambio depende de la sincronización, con la simulación descrita en las notas técnicas)
+3. Actualizas **este documento** en el mismo commit
+4. Commit + push a `main` y verificas que los archivos en vivo son idénticos a los locales
 
-No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
+Datnya autoriza subir directamente una vez implementado y verificado. **Excepción:** si dice «no subas todavía» (por ejemplo, porque va a mandar más cambios), espera a que lo pida y súbelo todo junto.
 
 ---
 
@@ -238,6 +239,12 @@ Quedan **fuera**: `projectMemberships`, `clientProjectLinks`, `clientOrderAuthor
 ### 🟡 Proyectos con datos borrados
 Un bug corregido el 17-sep (commit `2f33b09b`) borraba razón social, dirección fiscal, dirección de almacén, ciudad y país al guardar la tarjeta "Áreas del proyecto". Ya no ocurre, pero **lo ya borrado sigue borrado**. Se puede recuperar del historial de `vaak_company_data_history`. Falta que Datnya identifique qué proyectos quedaron afectados.
 
+### 🟡 Eliminar proyecto: pendiente de prueba en producción
+El fallo reportado el 17-sep no se pudo reproducir en local, ni siquiera simulando la sincronización. Se corrigió la causa más probable (ver sección 6). Falta que Datnya lo pruebe con un proyecto de prueba que tenga un cliente vinculado. El borrado del cliente en Supabase (`VAAKRemoteUsers.remove`) solo existe en producción y no se pudo probar en local.
+
+### 🟡 Conversión fija dólar ↔ sol al cambiar la moneda del primer ítem
+En la nueva OC, si se cambia a mano la moneda del primer ítem entre $ y S/, el costo se convierte con un tipo de cambio fijo de 3.75 (`USD_TO_PEN` en `app.js`). Es anterior a estos cambios y no se ha consultado con Datnya si debe mantenerse.
+
 ### 🟢 `VAAK_RELEASE_ID` en Vercel
 Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se perdió al sacar `.env.local` del repositorio. Se arregla agregándola en el panel de Vercel.
 
@@ -259,8 +266,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - Tras crear, editar o eliminar usuarios, `directory()` del puente vuelve a emitir `vaak:session` con la lista nueva. Antes la sincronización compartida seguía usando la lista del inicio de sesión y podía volver a mostrar localmente usuarios ya eliminados
 - Para reproducir problemas de sincronización sin tocar producción: una demo con `shared-sync.js` activo y `/api/data` simulado en memoria, abriendo dos orígenes (`localhost` y `127.0.0.1`) como dos navegadores distintos
 - En la vista de pruebas en segundo plano `requestAnimationFrame` no se ejecuta: para lógica que debe correr sí o sí, usa `setTimeout`.
-- `access-runtime.js` mezcla saltos de línea Windows (`
-`) y Unix. Un ancla que cruce un salto de línea puede no coincidir: prefiere anclas dentro de una sola línea.
+- `access-runtime.js`, `money-utils.js` y `staging-bridge.js` mezclan saltos de línea Windows (CRLF) y Unix (LF). Un ancla que cruce un salto de línea puede no coincidir: prefiere anclas dentro de una sola línea.
 - El hook de `git-lfs` falla con un error de memoria después de cada commit. Es ruido, el commit se creó bien.
 
 ---
@@ -272,10 +278,10 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **16 sep:** foto de perfil, presencia, campos de proyecto, datos compartidos entre usuarios
 - **17 sep:** todo lo de la sección 6 (términos, revisiones, impuestos, monedas, A4, rubros, clientes, Tax ID, equipo del cliente automático, colores en los PDF, requerimiento de pago)
 - **17 sep (tarde):** registro del pago, reporte de requerimientos de pago, revisiones numeradas desde 1, cierre de specs consumidos, códigos reales en el Excel de OC
-- **17 sep (cierre, 3):** eliminar proyecto completo (con clientes) y robusto; confirmación de eliminar OC con su número
-- **17 sep (cierre, 2):** una sola moneda por OC
-- **17 sep (cierre):** tres decimales, separador de miles en formularios, filas de la OC con datos reales del spec y su moneda, terms con texto largo, moneda y unidad en los Excel, tracking aleatorio en todos los casos, rediseño de las tarjetas de specs y solicitudes
 - **17 sep (noche):** motivo por cada cambio en las revisiones, status del documento, alerta de monto/moneda en la solicitud, «Pagar a:», montos con formato moneda, dirección fiscal automática, sin columna PAYABLE TO, descarga de OC para el cliente, pie de la ficha técnica
+- **17 sep (cierre):** tres decimales, separador de miles en formularios, filas de la OC con datos reales del spec y su moneda, terms con texto largo, moneda y unidad en los Excel, tracking aleatorio en todos los casos, rediseño de las tarjetas de specs y solicitudes
+- **17 sep (cierre, 2):** una sola moneda por OC
+- **17 sep (cierre, 3):** eliminar proyecto completo (con clientes) y robusto; confirmación de eliminar OC con su número
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:
 
