@@ -39,12 +39,21 @@ Orden obligatorio, sin excepciones:
 - Comprobar desde internet: `curl https://<link>/verificar.php` (debe decir «Todo listo») y `curl https://<link>/api/health`.
 - **Pendiente (etapa 6):** publicación automática GitHub → FTP (a PRUEBA con cada push a `main`; al OFICIAL con una acción manual tras el visto bueno). Datnya crea la cuenta FTP y guarda las claves ella misma en GitHub.
 
+**Actualizaciones publicadas** (cada una vive en `Claude outputs/actualizaciones/actualizacion-N/`, que no va al repositorio; anotar aquí cada publicación):
+
+| # | Qué trae | SQL a importar antes | PRUEBA | OFICIAL |
+|---|---|---|---|---|
+| 1 | Servidor con mysqli (sin pdo_mysql ni mbstring) | — | ✅ 18-sep | ✅ (venía en el ZIP de instalación) |
+| 2 | Todo guardado en el hosting: borradores de OC y avisos descartados compartidos; registro de accesos de clientes en el servidor con botón «Vaciar registro»; permisos de proyectos iguales para todos (ver sección 7) | `actualizacion-2-registro-accesos.sql` (crea `vaak_client_access_log`) | ⏳ | ⏳ (solo después del visto bueno en PRUEBA) |
+
+Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia → Importar el `.sql` (una sola vez); 2) subir y extraer el ZIP en la carpeta de ESA copia; 3) `verificar.php` debe decir «Todo listo». Los paquetes de instalación completos de `Claude outputs/instalacion-*/` son del 18-sep: para una instalación nueva, regenerarlos con `armar-publicacion.js` y el `esquema.sql` actual.
+
 ### 3. Dónde se guardan los datos de la plataforma OFICIAL — MUY IMPORTANTE
 - **Todo lo que el cliente carga en la plataforma oficial se guarda únicamente en SU hosting**, en la base de datos MySQL **`wwwhpgilatam_vaakoficial`**: proyectos, OC, specs, requerimientos de pago, proveedores, objetivos, usuarios (contraseñas cifradas con bcrypt, nunca en texto), fotos de perfil y todas las imágenes subidas (portadas, imágenes de specs). Nada va a Supabase, a Vercel ni a ningún servicio externo.
 - Los **PDF y Excel** (OC, fichas técnicas, requerimientos de pago, reportes) **no se guardan como archivos**: se generan en el navegador en el momento, a partir de esos datos, y siempre se pueden volver a descargar.
 - **El repositorio de GitHub (`Datnya/plataforma-VAAK`, público) guarda solo el código, nunca datos del cliente.** Nunca subir ahí `config.php`, contraseñas, exportaciones de la base ni capturas con datos reales.
 - Actualizar la plataforma (subir archivos nuevos) **no toca la base de datos**: los datos del cliente se conservan.
-- Excepciones que hoy quedan **solo en el navegador de cada persona** (no en la base): borradores de OC, rubros de OC personalizados, registro de accesos de clientes y avisos descartados. Sigue además el 🔴 de la sección 7 (permisos de cliente y asignaciones de trabajador no se comparten entre usuarios). **Conviene resolverlos pronto**, primero en PRUEBA, ahora que hay uso real.
+- **Desde la actualización 2 no queda información solo en la computadora de nadie** (pedido expreso de Datnya: «NADA debe quedar guardado solo en la computadora de un usuario»). Los borradores de OC, los rubros personalizados (de OC y de specs), el contacto de la empresa y los avisos descartados (una lista por usuario) viajan en el documento compartido (`EXTRAS` de `shared-sync.js`, combinados elemento por elemento para no perder lo que dos personas guardan a la vez). El registro de accesos de clientes lo escribe **el servidor** en la tabla `vaak_client_access_log` cada vez que un cliente inicia sesión (antes lo escribía el navegador del cliente, que no puede guardar datos, así que nunca llegaba). Lo único que queda en cada navegador es: el idioma elegido, un caché de consultas de RUC a SUNAT, los datos de la sesión abierta y la copia de trabajo del documento compartido (`vaak-local-v8`, que se sincroniza). Si se agrega algo nuevo que use `localStorage`, **debe** ir a `EXTRAS` o al servidor.
 - **Pendiente:** copias de seguridad de `wwwhpgilatam_vaakoficial` (cPanel → Copia de seguridad, o phpMyAdmin → Exportar), con la frecuencia que acuerde Datnya.
 
 ### 4. Vercel ya no es el entorno de prueba
@@ -117,7 +126,7 @@ Todo está en `servidor-php/`:
 - `herramientas/crear-admin.php` — crea empresa y primer administrador en una base vacía (en el traslado real no hace falta: los usuarios vienen de Supabase).
 - `herramientas/enrutador-local.php` — imita el `.htaccess` para probar con `php -S`.
 
-**Diferencias con la versión Vercel (a propósito):** la sesión es una cookie propia (`vaak-sesion`, 30 días) en vez de Supabase Auth; las imágenes se guardan en MySQL; no hay «Olvidé mi contraseña» por correo. Las respuestas JSON son idénticas, así que la interfaz no se tocó.
+**Diferencias con la versión Vercel (a propósito):** la sesión es una cookie propia (`vaak-sesion`, 30 días) en vez de Supabase Auth; las imágenes se guardan en MySQL; no hay «Olvidé mi contraseña» por correo. Las respuestas JSON son idénticas, así que la interfaz no se tocó. **Rutas que solo existen en PHP** (actualización 2): `GET /api/admin/access-log` (administradores y trabajadores) y `DELETE /api/admin/access-log` (vaciar; solo administradores, con CSRF). Vercel no las tiene: ahí el registro sale vacío.
 
 **Probado en local el 18-sep (PHP 8.2.33 + MySQL 8.0.46):** 45 pruebas automáticas de rutas, todas bien (inicio de sesión y sus errores, CSRF y origen, bloqueo tras muchos intentos, crear/editar/deshabilitar/borrar usuarios, protección del último administrador, guardado con revisiones y conflicto 409, el cliente solo recibe su proyecto, imágenes, foto de perfil, presencia, `{}` y acentos intactos). Además, la plataforma real en el navegador: administrador crea proyecto con portada y un cliente desde el formulario, recarga y todo sigue; el cliente ve solo su proyecto; el trabajador entra y ve los proyectos.
 
@@ -366,6 +375,7 @@ El reporte Excel se llama **«Reporte de requerimientos de pago»** (hoja «Paym
 - Usuarios cliente: sin interruptores de acceso, un solo proyecto, alta automática en la tarjeta de equipo
 - **El cliente descarga sus OC:** botón «Descargar» en su historial y «Descargar PDF» dentro de la vista. Antes el botón de la vista existía pero respondía «no autorizado» porque la impresión exigía rol admin o trabajador. Ahora el cliente puede imprimir solo las OC que tiene permiso de ver (se comprueba con la política `preview-order`)
 - **Pie de página de la ficha técnica:** quedaba a media hoja porque la regla genérica `.spec-preview footer{margin-top:1.5rem}` le ganaba a `.hpg-ts-footer{margin-top:auto}`. Se reforzó el selector
+- **Registro de acceso de clientes (Herramientas):** lo escribe el servidor al iniciar sesión cada cliente (nombre, cargo, proyectos y fecha/hora). Botón rojo **«Vaciar registro»** arriba a la derecha, solo para administradores: pide confirmación en una ventana al centro de la pantalla («¿Estás seguro…?», con la cantidad de registros) y, si falla, muestra el motivo en rojo sin borrar nada. Los trabajadores con acceso a la herramienta ven el registro pero no el botón
 
 ---
 
@@ -374,14 +384,12 @@ El reporte Excel se llama **«Reporte de requerimientos de pago»** (hoja «Paym
 ### 🟡 La traducción automática cambia palabras dentro de nombres
 `presentation.js` traduce el texto de la pantalla palabra por palabra; por eso un usuario llamado «Rosa Cliente» aparece como «Rosa Client» en la lista de usuarios (en la base de datos el nombre está bien). Pasa igual en Vercel. Pendiente de consultar con Datnya si se corrige.
 
-### 🔴 Permisos de cliente y asignaciones de trabajador no se comparten
-`shared-sync.js` sincroniza `projects, orders, suppliers, specs, tasks, projectCompanies, supplierProjectLinks`.
+### ✅ Permisos de proyectos iguales para todos (resuelto en la actualización 2, 18-sep)
+**Qué pasaba:** los permisos de proyectos (a qué proyectos entra cada trabajador y cada cliente) se guardan en el servidor, en la membresía de cada usuario (`local_project_ids` y `project_scope` de `vaak_user_company_memberships`), y cada navegador arma con eso `projectMemberships` y `clientProjectLinks` (`syncRemoteUsers` de `access-runtime.js`). Pero **solo el administrador recibía la lista de usuarios**: los trabajadores veían permisos viejos o incompletos, y ningún navegador se enteraba de un cambio hecho por otro administrador hasta recargar.
 
-Quedan **fuera**: `projectMemberships`, `clientProjectLinks`, `clientOrderAuthorizations`. Peor: `writeDoc()` las reconstruye desde la copia local de cada navegador.
+**Cómo quedó:** `/api/auth/session` entrega el directorio a administradores **y trabajadores** (los clientes no lo reciben). `staging-bridge.js` vuelve a leer la sesión cada 60 s y al volver a la pestaña; si cambió algún usuario, rol o proyecto, lo aplica sin recargar (si hay un formulario abierto o alguien está escribiendo, espera a que termine). Probado con dos navegadores: el trabajador vio su nuevo proyecto en 10 s. «Agregar miembro al equipo del cliente» (operación `add-team-member`; hoy sin botón visible, los clientes se asignan en Gestión de usuarios) también guarda el proyecto en la membresía del servidor. `clientOrderAuthorizations` no se crea en ninguna parte (solo se filtra): no hay nada que compartir.
 
-**Síntoma:** agregas un cliente a un proyecto, los demás ven su nombre pero el permiso real no llega. Parece un bug aleatorio de permisos.
-
-**Arreglo:** agregarlas a `COLLECTIONS` con su clave compuesta en `LINK_KEYS` y dejar de reconstruirlas desde lo local.
+**No hace falta** meter esas colecciones en `COLLECTIONS`: la fuente de verdad es la membresía del servidor, que además es la que usa `vaak_estado_para_miembro` para filtrar lo que ve un cliente.
 
 ### 🟡 Proyectos con datos borrados
 Un bug corregido el 17-sep (commit `2f33b09b`) borraba razón social, dirección fiscal, dirección de almacén, ciudad y país al guardar la tarjeta "Áreas del proyecto". Ya no ocurre, pero **lo ya borrado sigue borrado**. Se puede recuperar del historial de `vaak_company_data_history`. Falta que Datnya identifique qué proyectos quedaron afectados.
@@ -448,6 +456,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **17 sep (cierre, 2):** una sola moneda por OC
 - **17 sep (cierre, 3):** eliminar proyecto completo (con clientes) y robusto; confirmación de eliminar OC con su número
 - **18 sep:** guía práctica de uso (PDF y Word); corrección de montos invisibles en los campos; el enlace de Vercel queda como entorno de prueba; **decisión y plan aprobado para trasladar la plataforma al hosting del cliente con PHP + MySQL** (sección 0)
+- **18 sep (actualización 2):** nada queda solo en la computadora de un usuario (borradores de OC y avisos descartados compartidos; registro de accesos escrito por el servidor, con botón «Vaciar registro» y confirmación en el centro de la pantalla); permisos de proyectos iguales para todos (directorio también para trabajadores y relectura cada 60 s). Probado en local con dos navegadores; pendiente publicar en PRUEBA y, con visto bueno, en OFICIAL
 - **18 sep (cierre):** plataforma OFICIAL instalada en `plataforma.hpgilatam.com` (base `wwwhpgilatam_vaakoficial`, administradora Datnya); no se migran datos (todo lo de Vercel era de prueba); reglas de trabajo PRUEBA → OFICIAL al inicio del documento
 - **18 sep (noche):** en el hosting la carpeta corre PHP 8.2 pero sin pdo_mysql ni mbstring → el servidor pasa a mysqli (`nucleo/bd.php`) y reemplazos de mbstring; ZIP subido y extraído en `staging.hpgilatam.com/public`
 - **18 sep (tarde):** subdominio de prueba confirmado (`staging.hpgilatam.com`); etapa 2 del traslado: servidor PHP + MySQL construido en `servidor-php/` y probado en local con la plataforma real (45 pruebas de rutas + recorrido en el navegador con administrador, trabajador y cliente)

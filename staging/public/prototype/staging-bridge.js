@@ -13,6 +13,11 @@
   };
   window.VAAKRemote = Object.freeze({ request: (url, options) => request(url, options) });
   let presenceSignedIn = false;
+  let lastSession = null;
+  let directoryKey = "";
+  // What the session says about people and their projects, without presence times (they change
+  // every minute): when it changes, another administrator edited users or project access.
+  const directoryKeyOf = (data) => (data ? JSON.stringify([data.user, (data.users || []).map(({ lastSeenAt, signedOutAt, ...user }) => user)]) : "");
   let lastActivityAt = Date.now();
   let lastHeartbeatAt = 0;
   const sendHeartbeat = async (force) => {
@@ -30,6 +35,8 @@
     const data = await response.json().catch(() => ({}));
     csrfToken = data.csrfToken || csrfToken;
     let applied = false;
+    lastSession = response.ok && data.authenticated ? data : null;
+    directoryKey = directoryKeyOf(lastSession);
     if (response.ok && data.authenticated) applied = app()?.applyRemoteSession(data) === true;
     else app()?.clearRemoteSession();
     const wasSignedIn = presenceSignedIn;
@@ -276,6 +283,126 @@
       return { failed };
     },
   });
+
+  /* The screen is busy while a form or dialog is open or someone is typing: redrawing it then would lose their work. */
+  const screenBusy = () => {
+    const modal = document.getElementById("modal-root");
+    if ((modal && modal.children.length) || document.querySelector(".vaak-confirm-backdrop")) return true;
+    const active = document.activeElement;
+    const root = document.getElementById("app");
+    return Boolean(active && root && root.contains(active) && (active.matches("input,textarea,select") || active.isContentEditable));
+  };
+
+  /* Users and project access come from the server (each person's projects are stored in their
+     membership). Every minute the session is read again; if an administrator changed someone's
+     projects, role or status, every open browser applies it without reloading. */
+  let directoryPending = false;
+  const refreshDirectory = async () => {
+    if (!presenceSignedIn || document.hidden || userMutationPending) return;
+    try {
+      const response = await fetch("/api/auth/session", { credentials: "same-origin", cache: "no-store" });
+      const data = await response.json().catch(() => ({}));
+      csrfToken = data.csrfToken || csrfToken;
+      if (!response.ok || !data.authenticated) { await session(); return; }
+      if (directoryKeyOf(data) === directoryKey && !directoryPending) return;
+      if (screenBusy()) { directoryPending = true; return; }
+      directoryPending = false;
+      await session();
+    } catch { /* offline: try again on the next round */ }
+  };
+  setInterval(refreshDirectory, 60000);
+  setInterval(() => { if (directoryPending && !screenBusy()) refreshDirectory(); }, 3000);
+  document.addEventListener("visibilitychange", () => { if (!document.hidden) refreshDirectory(); });
+
+  /* Client access log: stored on the server (vaak_client_access_log), written when a client signs in. */
+  const accessLog = { entries: [], loadedAt: 0, loading: false, error: "" };
+  const redrawAccessLog = () => { if (document.getElementById("access-log-search") && !screenBusy()) app()?.rerender?.(); };
+  const loadAccessLog = async () => {
+    if (accessLog.loading) return;
+    accessLog.loading = true;
+    try {
+      const data = await request("/api/admin/access-log", { cache: "no-store" });
+      accessLog.entries = Array.isArray(data.entries) ? data.entries : [];
+      accessLog.error = "";
+    } catch (error) {
+      const es = appSpanish();
+      accessLog.error = !error?.status
+        ? (es ? "No se pudo cargar el registro: no hay conexión con el servidor." : "The log could not be loaded: the server cannot be reached.")
+        : (es ? "No se pudo cargar el registro (error " + error.status + "). Recarga la página." : "The log could not be loaded (error " + error.status + "). Reload the page.");
+    } finally {
+      accessLog.loading = false;
+      accessLog.loadedAt = Date.now();
+      redrawAccessLog();
+    }
+  };
+  window.VAAKAccessLog = Object.freeze({
+    view: () => { if (Date.now() - accessLog.loadedAt > 15000) setTimeout(loadAccessLog, 0); return accessLog.entries.slice(); },
+    loading: () => accessLog.loading && !accessLog.entries.length,
+    error: () => accessLog.error,
+    canClear: () => lastSession?.user?.role === "Admin",
+  });
+  document.addEventListener("click", async (event) => {
+    const button = event.target.closest?.("[data-access-log-clear]");
+    if (!button || button.disabled) return;
+    event.preventDefault(); event.stopImmediatePropagation();
+    const es = appSpanish();
+    const total = accessLog.entries.length;
+    const ok = await showConfirm({
+      title: es ? "Vaciar registro de accesos" : "Clear access log",
+      paragraphs: es
+        ? ["¿Estás seguro de que deseas vaciar el registro de acceso de clientes?", "Se eliminarán <strong>" + total + "</strong> registro(s) de forma permanente y no se podrán recuperar."]
+        : ["Are you sure you want to clear the client access log?", "<strong>" + total + "</strong> record(s) will be permanently deleted and cannot be recovered."],
+      confirmLabel: es ? "Sí, vaciar registro" : "Yes, clear log",
+      danger: true,
+    });
+    if (!ok) return;
+    setButtonBusy(button, true, es ? "Vaciando..." : "Clearing...");
+    try {
+      await request("/api/admin/access-log", { method: "DELETE" });
+      accessLog.entries = [];
+      accessLog.error = "";
+      accessLog.loadedAt = Date.now();
+      app()?.rerender?.();
+      app()?.showMessage(es ? "Registro de accesos vaciado." : "Access log cleared.");
+    } catch (error) {
+      accessLog.error = !error?.status
+        ? (es ? "No se pudo vaciar el registro: no hay conexión con el servidor." : "The log could not be cleared: the server cannot be reached.")
+        : error.status === 403
+          ? (es ? "No se pudo vaciar el registro: solo un administrador puede hacerlo, o tu sesión expiró. Recarga la página." : "The log could not be cleared: only an administrator can do it, or your session expired. Reload the page.")
+          : (es ? "No se pudo vaciar el registro (error " + error.status + "). Inténtalo de nuevo." : "The log could not be cleared (error " + error.status + "). Try again.");
+      if (button.isConnected) setButtonBusy(button, false);
+      app()?.rerender?.();
+    }
+  }, true);
+
+  /* «Add member to client team» gives that client access to the project. Access lives in the
+     client's membership on the server, so it is saved there too; otherwise only this browser
+     would know and the client could not see the project. */
+  const localUsers = () => { try { return JSON.parse(localStorage.getItem("vaak-local-v8") || "{}").users || []; } catch { return []; } };
+  const grantClientProject = async (clientIds, projectId) => {
+    const es = appSpanish();
+    const failed = [];
+    for (const id of clientIds) {
+      const user = localUsers().find((item) => item.id === id);
+      if (!user || user.role !== "Client" || user.projectScope === "all" || (user.projectIds || []).includes(projectId)) continue;
+      try {
+        await request(`/api/admin/users/${encodeURIComponent(id)}`, { method: "PATCH", headers: { "content-type": "application/json" }, body: JSON.stringify({ projectScope: "selected", projectIds: [...(user.projectIds || []), projectId] }) });
+      } catch (error) { failed.push(user.name || id); }
+    }
+    try { await directory(); } catch { /* the next refresh applies it */ }
+    if (failed.length) {
+      app()?.showMessage(es
+        ? "No se pudo dar acceso al proyecto a: " + failed.join(", ") + ". Revisa tu conexión y vuelve a agregarlos, o asígnales el proyecto en Gestión de usuarios."
+        : "Project access could not be granted to: " + failed.join(", ") + ". Check your connection and add them again, or assign the project in User management.");
+    }
+  };
+  document.addEventListener("submit", (event) => {
+    if (event.target.id !== "authorized-form") return;
+    const operation = app()?.getActiveOperation();
+    if (operation?.kind !== "team-member-editor" || !operation.target?.id) return;
+    const ids = Array.from(event.target.querySelectorAll('input[name="selectedClients"]:checked:not(:disabled)')).map((input) => input.value);
+    if (ids.length) setTimeout(() => grantClientProject(ids, operation.target.id), 0);
+  }, true);
   const formPayload = (form, operation) => {
     const values = Object.fromEntries(new FormData(form).entries());
     const draft = operation.draft || {};

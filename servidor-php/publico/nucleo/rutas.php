@@ -68,9 +68,10 @@ function ruta_login(): void {
     if ($espera) $falla('too_many_attempts', 429, ['retryAfterSeconds' => $espera]);
     $falla('invalid_password', 401);
   }
-  $q = $db->prepare("SELECT id FROM vaak_user_company_memberships WHERE user_id = ? AND status = 'active' LIMIT 1");
+  $q = $db->prepare("SELECT company_id, role, project_scope, local_project_ids FROM vaak_user_company_memberships WHERE user_id = ? AND status = 'active' ORDER BY created_at LIMIT 1");
   $q->execute([$perfil['id']]);
-  if (!$q->fetch()) $falla('no_membership', 403);
+  $membresia = $q->fetch();
+  if (!$membresia) $falla('no_membership', 403);
 
   // Hash con parametros viejos (por ejemplo, importado de Supabase): se actualiza.
   if (password_needs_rehash($perfil['password_hash'], PASSWORD_BCRYPT)) {
@@ -79,6 +80,9 @@ function ruta_login(): void {
   $db->prepare('DELETE FROM vaak_auth_rate_limits WHERE attempt_key = ?')->execute([$llave]);
   $db->prepare('UPDATE vaak_profiles SET last_seen_at = UTC_TIMESTAMP(3), signed_out_at = NULL WHERE id = ?')->execute([$perfil['id']]);
   vaak_crear_sesion($perfil['id']);
+  if ($membresia['role'] === 'client') {
+    try { vaak_registrar_acceso_cliente($perfil['id'], $membresia); } catch (Throwable $e) { error_log('[VAAK] registro de acceso: ' . $e->getMessage()); }
+  }
   $token = vaak_emitir_csrf();
   vaak_json(['ok' => true], 200, ['x-vaak-csrf' => $token]);
 }
@@ -113,7 +117,9 @@ function ruta_sesion(): void {
       }
       $cuerpo['authenticated'] = true;
       $cuerpo['user'] = $u;
-      if ($m['role'] === 'admin') $cuerpo['users'] = vaak_listar_usuarios($m['company_id']);
+      // Administradores y trabajadores reciben el directorio de la empresa: de ahi
+      // salen los proyectos asignados a cada trabajador y cliente, iguales para todos.
+      if ($m['role'] !== 'client') $cuerpo['users'] = vaak_listar_usuarios($m['company_id']);
     }
   }
   $cuerpo['csrfToken'] = vaak_emitir_csrf();
@@ -466,6 +472,53 @@ function ruta_imagen_leer(string $id): void {
   header('Cache-Control: private, max-age=31536000, immutable');
   header('Content-Length: ' . strlen($f['data']));
   echo $f['data'];
+}
+
+// ======================= REGISTRO DE ACCESOS DE CLIENTES =======================
+// Se guarda en la base del hosting al iniciar sesion un cliente, con el nombre,
+// cargo y proyectos que tenia en ese momento (si luego cambian, el registro no).
+
+function vaak_registrar_acceso_cliente(string $userId, array $membresia): void {
+  $db = vaak_db();
+  $q = $db->prepare('SELECT display_name, login_email, position FROM vaak_profiles WHERE id = ?');
+  $q->execute([$userId]);
+  $p = $q->fetch() ?: [];
+  $q = $db->prepare('SELECT state FROM vaak_company_data WHERE company_id = ?');
+  $q->execute([$membresia['company_id']]);
+  $estado = json_decode((string)($q->fetchColumn() ?: 'null'));
+  $ids = array_flip(array_map('strval', vaak_json_lista($membresia['local_project_ids'])));
+  $nombres = [];
+  foreach ((is_object($estado) && is_array($estado->store->projects ?? null)) ? $estado->store->projects : [] as $proyecto) {
+    if (!is_object($proyecto) || !isset($proyecto->id)) continue;
+    if ($membresia['project_scope'] === 'all' || isset($ids[(string)$proyecto->id])) $nombres[] = (string)($proyecto->name ?? '');
+  }
+  $db->prepare('INSERT INTO vaak_client_access_log (company_id, user_id, name, position, project) VALUES (?, ?, ?, ?, ?)')
+    ->execute([$membresia['company_id'], $userId, (string)($p['display_name'] ?? $p['login_email'] ?? ''), (string)($p['position'] ?? ''), implode(', ', array_filter($nombres))]);
+}
+
+// GET /api/admin/access-log — administradores y trabajadores (la seccion se
+// muestra segun los permisos de cada uno). Del mas antiguo al mas reciente.
+function ruta_accesos_listar(): void {
+  $miembro = vaak_miembro();
+  if (!$miembro) vaak_fallar(['ok' => false, 'error' => 'unauthorized'], 401);
+  if ($miembro['role'] === 'client') vaak_fallar(['ok' => false, 'error' => 'forbidden'], 403);
+  $q = vaak_db()->prepare('SELECT name, position, project, created_at FROM vaak_client_access_log WHERE company_id = ? ORDER BY id DESC LIMIT 5000');
+  $q->execute([$miembro['companyId']]);
+  $filas = array_reverse($q->fetchAll());
+  vaak_json(['ok' => true, 'entries' => array_map(fn($f) => [
+    'name' => $f['name'], 'position' => $f['position'], 'project' => $f['project'], 'date' => vaak_iso($f['created_at']),
+  ], $filas)]);
+}
+
+// DELETE /api/admin/access-log — vacia el registro. Solo administradores.
+function ruta_accesos_vaciar(): void {
+  vaak_exigir_escritura();
+  $admin = vaak_admin();
+  if (!$admin) vaak_fallar(['ok' => false, 'error' => 'forbidden'], 403);
+  $q = vaak_db()->prepare('DELETE FROM vaak_client_access_log WHERE company_id = ?');
+  $q->execute([$admin['companyId']]);
+  vaak_db()->prepare("INSERT INTO vaak_audit_events (company_id, actor_user_id, action, resource_type, resource_id) VALUES (?, ?, 'access_log.cleared', 'access_log', NULL)")->execute([$admin['companyId'], $admin['userId']]);
+  vaak_json(['ok' => true]);
 }
 
 // GET /api/health

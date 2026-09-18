@@ -29,6 +29,8 @@ $tabla = [
   'PUT data' => 'ruta_datos_guardar',
   'PUT data/assets' => 'ruta_imagen_guardar',
   'GET health' => 'ruta_salud',
+  'GET admin/access-log' => 'ruta_accesos_listar',
+  'DELETE admin/access-log' => 'ruta_accesos_vaciar',
 ];
 
 try {

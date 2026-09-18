@@ -29,7 +29,9 @@ if (is_array($config)) {
       $valor = function ($sql) use ($db) { $f = $db->query($sql)->fetch_row(); return $f[0]; };
       fila($filas, $bien, true, 'Conexión a la base de datos', 'correcta (MySQL ' . $valor('SELECT VERSION()') . ')');
       $tablas = (int)$valor("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name LIKE 'vaak\_%'");
-      fila($filas, $bien, $tablas >= 10, 'Tablas de VAAK', $tablas >= 10 ? "$tablas tablas creadas" : "hay $tablas de 10: falta importar esquema.sql en phpMyAdmin");
+      fila($filas, $bien, $tablas >= 10, 'Tablas de VAAK', $tablas >= 10 ? "$tablas tablas creadas" : "hay $tablas: falta importar esquema.sql en phpMyAdmin");
+      $registro = (int)$valor("SELECT COUNT(*) FROM information_schema.tables WHERE table_schema = DATABASE() AND table_name = 'vaak_client_access_log'");
+      if ($tablas >= 10) fila($filas, $bien, $registro === 1, 'Tabla del registro de accesos', $registro === 1 ? 'creada' : 'falta importar actualizacion-2-registro-accesos.sql en phpMyAdmin');
       if ($tablas >= 10) {
         $admins = (int)$valor("SELECT COUNT(*) FROM vaak_user_company_memberships WHERE role = 'admin' AND status = 'active'");
         fila($filas, $bien, $admins > 0, 'Administrador', $admins > 0 ? "$admins administrador(es) activo(s)" : 'no hay ningún administrador: falta importar el archivo del primer administrador');

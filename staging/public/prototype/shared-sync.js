@@ -5,7 +5,11 @@
   const STORE = "vaak-local-v8";
   const META = "vaak-shared-sync-v1";
   const COLLECTIONS = ["projects", "orders", "suppliers", "specs", "tasks", "projectCompanies", "supplierProjectLinks"];
-  const EXTRAS = ["vaak-custom-oc-rubros", "vaak-custom-rubros", "vaak-removed-spec-rubros", "vaak-client-access-log", "vaak-company-contact"];
+  // Everything else the app keeps in localStorage that must be shared: catalogs, company contact,
+  // purchase order drafts and each user's dismissed notifications (an object keyed by user id).
+  // The client access log is not here: the server writes it at login (/api/admin/access-log).
+  const EXTRAS = ["vaak-custom-oc-rubros", "vaak-custom-rubros", "vaak-removed-spec-rubros", "vaak-company-contact", "vaak-oc-drafts", "vaak-dismissed-notifs"];
+  const DISMISSED = "vaak-dismissed-notifs";
   const LINK_KEYS = { projectCompanies: ["projectId", "companyId"], supplierProjectLinks: ["supplierId", "projectId"] };
   const ASSET_MIN = 4096;
   const ASSET_MAX_BYTES = 3000000;
@@ -181,9 +185,29 @@
     const extras = {};
     EXTRAS.forEach((key) => {
       const bv = b.extras?.[key] ?? null, lv = l.extras?.[key] ?? null, rv = r.extras?.[key] ?? null;
-      extras[key] = lv === bv ? rv : lv;
+      extras[key] = mergeExtra(bv, lv, rv);
     });
     return { version: 1, store, extras };
+  }
+  // Extras are JSON strings. Lists (drafts, rubros) and per-user objects are merged item by item,
+  // so two people saving a draft or a rubro at the same time keep both.
+  const parse = (text) => { try { return text == null ? undefined : JSON.parse(text); } catch { return undefined; } };
+  const extraKey = (item) => {
+    if (typeof item === "string" || typeof item === "number") return "v:" + item;
+    if (!plain(item)) return null;
+    const key = item.draftId ?? item.id ?? item.code;
+    return key == null ? null : "k:" + String(key);
+  };
+  function mergeExtra(bv, lv, rv) {
+    if (lv === bv) return rv;
+    if (rv === bv || lv === rv) return lv;
+    const b = parse(bv), l = parse(lv), r = parse(rv);
+    if (Array.isArray(l) && Array.isArray(r) && (b === undefined || Array.isArray(b))) {
+      const merged = mergeList(b || [], l, r, extraKey);
+      return merged === l ? lv : JSON.stringify(merged);
+    }
+    if (plain(l) && plain(r) && (b === undefined || plain(b))) return JSON.stringify(merge(b || {}, l, r));
+    return lv;
   }
 
   // ---- write a shared document into this browser ----
@@ -329,5 +353,17 @@
 
   window.addEventListener("storage", (event) => { if (event.key === META) loadMeta(); });
   loadMeta();
+  // Dismissed notifications, per user, inside the shared document. Older browsers kept a plain
+  // list for whoever was signed in; it is read as the current user's list.
+  const currentUserId = () => { try { return sessionStorage.getItem("vaak-session-tab-v1") || session?.user?.id || "guest"; } catch { return session?.user?.id || "guest"; } };
+  const dismissedMap = () => {
+    const value = parse(localStorage.getItem(DISMISSED));
+    if (Array.isArray(value)) return { [currentUserId()]: value };
+    return plain(value) ? value : {};
+  };
+  window.VAAKDismissed = Object.freeze({
+    get: () => { const list = dismissedMap()[currentUserId()]; return Array.isArray(list) ? list.slice() : []; },
+    set: (list) => { const map = dismissedMap(); map[currentUserId()] = [...new Set(list)]; localStorage.setItem(DISMISSED, JSON.stringify(map)); },
+  });
   window.VAAKSharedSync = { pull: () => run(() => pull(true)), push: () => run(() => push()), status: () => ({ revision, pendingApply, hasBase: Boolean(base) }) };
 })();
