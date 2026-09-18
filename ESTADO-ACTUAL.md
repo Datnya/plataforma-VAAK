@@ -34,8 +34,8 @@ Pasos del subdominio de prueba:
 3. ✅ PHP 8.2 solo para la carpeta (línea `AddHandler` del `.htaccess`); la cuenta sigue en 7.3.
 4. ✅ `actualizacion-1.zip` (servidor con mysqli) subido y extraído.
 5. ✅ Datnya pegó la contraseña en `nucleo/config.php` con el editor del Administrador de archivos. `verificar.php`: conexión correcta (MySQL 8.0.43).
-6. ⏳ **Siguiente:** en **phpMyAdmin**, base `wwwhpgilatam_vaakprueba` → Importar `1-tablas.sql`; luego Importar `2-primer-administrador.sql` (una sola vez cada uno). Se le dieron las instrucciones; falta su «listo». Verificar con `verificar.php` (debe decir 10 tablas y 1 administrador → «Todo listo»).
-7. ⏳ Datnya entra a `https://staging.hpgilatam.com` con `admin.prueba` y la contraseña temporal (se le dio en el chat) y la cambia desde Herramientas → Gestión de usuarios → Editar. Revisar juntos que la plataforma funcione (proyecto, OC, imágenes, usuarios).
+6. ✅ En phpMyAdmin se importaron `1-tablas.sql` (12 consultas; un aviso #1681 por `TINYINT(1)` es inofensivo) y `2-primer-administrador.sql` (3 filas). `verificar.php` dice «Todo listo» (10 tablas, 1 administrador). Claude probó desde internet: el inicio de sesión de `admin.prueba`, la sesión y `/api/data` responden bien (revisión 0, sin datos todavía).
+7. ⏳ **Siguiente:** Datnya entra a `https://staging.hpgilatam.com` con `admin.prueba` y la contraseña temporal (se le dio en el chat) y la cambia desde Herramientas → Gestión de usuarios → Editar. Revisar juntos que la plataforma funcione (proyecto, OC, imágenes, usuarios).
 8. ⏳ Después: **etapa 4** (copiar los datos reales de Supabase). Hay que preparar la consulta que Datnya ejecuta en el panel de Supabase (perfiles con hashes bcrypt de `auth.users`, membresías, `vaak_company_data`, imágenes) y un importador. Al importar, se vacían las tablas de prueba (el usuario `admin.prueba` desaparece y quedan los usuarios reales con sus contraseñas).
 9. Pendiente de Datnya: elegir el dominio oficial (`plataforma.hpgilatam.com` gratis, o un dominio nuevo que hay que comprar).
 
