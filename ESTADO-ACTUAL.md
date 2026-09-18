@@ -8,6 +8,39 @@
 
 ---
 
+## 0. EN QUÉ ESTAMOS AHORA — léelo primero
+
+**Proyecto en curso: trasladar la plataforma al hosting oficial del cliente.** Aprobado por Datnya el 18-sep-2026.
+
+La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Supabase). Ahora hay que llevarla al hosting del cliente, que **no puede ejecutar Node.js** y solo ofrece **PHP + MySQL**. Por eso la parte de servidor se reescribe en PHP. Detalles técnicos y el inventario de lo que hay que reproducir: sección 7, «Traslado al hosting oficial».
+
+### Etapas y avance
+
+| # | Etapa | Quién | Estado |
+|---|---|---|---|
+| 1 | Preparar el hosting: subdominio **oficial** y subdominio de **prueba**, una base de datos MySQL para cada uno, una cuenta FTP | Datnya, guiada | 🟡 Datnya cree haber creado ya el subdominio de prueba; va a enviar una captura de los dominios del cPanel para confirmarlo. Falta el oficial (nombre aún no definido; ella piensa en algo como «plataforma vaak») y las bases de datos |
+| 2 | Construir el servidor PHP 8.2 + MySQL 8.0 con **las mismas rutas y respuestas** que `staging/app/api/*`, y probarlo completo en local | Claude | 🟡 En curso |
+| 3 | Subirlo al subdominio de prueba con una copia de los datos; Datnya lo revisa | Claude + Datnya | ⏳ |
+| 4 | Trasladar los datos: consulta en el panel de Supabase (Datnya la ejecuta) → conversión → carga en MySQL → verificar cantidades | Claude + Datnya | ⏳ |
+| 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
+| 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
+
+**Mientras tanto la plataforma sigue funcionando en Vercel** y se puede seguir mejorando ahí. Todo cambio que se haga en `staging/public/prototype/` durante el traslado debe seguir funcionando con el servidor PHP (las rutas `/api/*` no cambian).
+
+**Decisiones ya tomadas (no volver a discutirlas):**
+- El cliente **no cambia su plan** (Perú Hosting, «Plan Avanzado», compartido con cPanel). Nada de VPS.
+- Los datos van **dentro del hosting del cliente**: MySQL del propio cPanel. Nada de Supabase ni servicios externos.
+- El servidor PHP responde **igual** que el actual para que la interfaz casi no cambie.
+- El entorno de prueba final será un **subdominio de prueba en el mismo hosting** con su propia base de datos; Vercel se retira al terminar.
+- Los usuarios conservan su contraseña (hashes bcrypt de Supabase → `password_verify` de PHP).
+- Recuperar contraseña: el administrador la cambia desde «Editar usuario». Un «Olvidé mi contraseña» por correo queda como mejora opcional.
+
+**Autorizaciones de Datnya:** aprobó el plan completo y autorizó todo lo necesario para que salga bien, incluida la descarga de PHP y MySQL para las pruebas locales.
+
+### Otros entregables recientes
+- **Guía práctica de uso** (50 páginas) en `Claude outputs/Guia-practica-VAAK.pdf` y **versión Word editable** `Claude outputs/Guia-practica-VAAK.docx` (Datnya ajustará textos ella misma). Las fuentes para regenerarla están en `Claude outputs/guia-fuente/`: capturas automáticas de la demo con datos ficticios (`capturas.js` + `datos.js`), maquetación (`construir.js` + `guia.css`) y Word (`extraer.js` + `construir-word.js`). **La carpeta `Claude outputs/` no se sube al repositorio** (el repositorio es público).
+- La guía **no menciona el enlace de Vercel**; cuando exista el dominio oficial, Datnya lo agregará.
+
 ## 1. Qué es esto
 
 Plataforma de procura (compras) para hotelería. Gestiona proyectos, specs, órdenes de compra (OC), proveedores, facturas y usuarios.
@@ -287,7 +320,8 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - Los botones deben mostrar **animación de carga**; los errores deben decir **el motivo, en rojo**.
 - Pide **confirmación** antes de acciones sensibles (cambio de rol, cambio de código de proyecto).
 - **Si algo no queda claro, pregúntale antes de implementar.** Lo dice explícitamente y lo agradece.
-- Quiere ver todo funcionando en el link de Vercel.
+- Quiere ver todo funcionando en el link de prueba (hoy Vercel; más adelante el subdominio de prueba del hosting).
+- **Cada vez que se hace algo nuevo hay que actualizar este documento**, en el mismo commit. Lo pidió explícitamente y lo repite: es la forma de que un modelo nuevo retome sin perder contexto.
 
 ### Notas técnicas para no repetir errores ya cometidos
 
@@ -313,6 +347,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **17 sep (cierre):** tres decimales, separador de miles en formularios, filas de la OC con datos reales del spec y su moneda, terms con texto largo, moneda y unidad en los Excel, tracking aleatorio en todos los casos, rediseño de las tarjetas de specs y solicitudes
 - **17 sep (cierre, 2):** una sola moneda por OC
 - **17 sep (cierre, 3):** eliminar proyecto completo (con clientes) y robusto; confirmación de eliminar OC con su número
+- **18 sep:** guía práctica de uso (PDF y Word); corrección de montos invisibles en los campos; el enlace de Vercel queda como entorno de prueba; **decisión y plan aprobado para trasladar la plataforma al hosting del cliente con PHP + MySQL** (sección 0)
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:
 
