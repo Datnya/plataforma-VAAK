@@ -8,6 +8,55 @@
 
 ---
 
+## ⭐ REGLAS DE TRABAJO DESDE EL 18-SEP-2026 — léelas antes que nada
+
+La plataforma ya **no vive en Vercel**. Vive en el **hosting del cliente** (Perú Hosting, cPanel de la cuenta `wwwhpgilatam`), en **dos copias separadas**:
+
+| | **PRUEBA (staging)** | **OFICIAL (producción)** |
+|---|---|---|
+| Link | `https://staging.hpgilatam.com` | `https://plataforma.hpgilatam.com` |
+| Carpeta en el hosting | `/staging.hpgilatam.com/public` | `/plataforma.hpgilatam.com` |
+| Base de datos MySQL | `wwwhpgilatam_vaakprueba` (usuario `wwwhpgilatam_vaak`) | `wwwhpgilatam_vaakoficial` (usuario `wwwhpgilatam_vaakoficial`) |
+| Quién la usa | Datnya (y Claude) para probar | El cliente y su equipo, con datos **reales** |
+| Datos | De prueba; se pueden borrar | **Reales. Nunca se borran ni se tocan a mano** |
+
+### 1. Todo cambio va primero a PRUEBA y solo después al OFICIAL
+Orden obligatorio, sin excepciones:
+1. Datnya pide el cambio.
+2. Se hace **en el repositorio** (`staging/public/prototype/` para la interfaz, `servidor-php/` para el servidor) y se prueba **en local** (sección «Servidor PHP» más abajo).
+3. Commit + push a `main`, con este documento actualizado en el mismo commit.
+4. Se publica en **PRUEBA** (`staging.hpgilatam.com`).
+5. **Datnya lo revisa en PRUEBA** y da el visto bueno.
+6. Recién entonces se publica **exactamente lo mismo** en el **OFICIAL** (`plataforma.hpgilatam.com`).
+
+**Prohibido:** probar cambios en el OFICIAL; editar archivos a mano en el cPanel (el código vive en GitHub y lo editado a mano se pierde en la siguiente publicación); publicar en el OFICIAL algo que Datnya no revisó en PRUEBA.
+
+### 2. Cómo se publica (hoy, a mano)
+- Claude arma un ZIP **solo con los archivos que cambiaron**, con rutas `/` (ejemplo: `Claude outputs/instalacion-prueba/actualizacion-1.zip`, hecho con `ZipArchive` de PHP; los ZIP de PowerShell usan `\` y Linux los extrae mal).
+- Datnya lo sube con **Administrador de archivos → Cargar** a la carpeta correcta (tabla de arriba) y hace **clic derecho → Extraer**, aceptando reemplazar.
+- **Un ZIP de actualización nunca incluye `nucleo/config.php`**: cada copia tiene el suyo, con su propia base de datos, contraseña y secreto. Si se pisa, esa copia deja de funcionar.
+- Si cambian `index.html` o `app.js` de `staging/public/prototype/`, se pasan por `servidor-php/herramientas/armar-publicacion.js` (quita Supabase y cambia la ruta base) y del resultado se toman los archivos cambiados.
+- Comprobar desde internet: `curl https://<link>/verificar.php` (debe decir «Todo listo») y `curl https://<link>/api/health`.
+- **Pendiente (etapa 6):** publicación automática GitHub → FTP (a PRUEBA con cada push a `main`; al OFICIAL con una acción manual tras el visto bueno). Datnya crea la cuenta FTP y guarda las claves ella misma en GitHub.
+
+### 3. Dónde se guardan los datos de la plataforma OFICIAL — MUY IMPORTANTE
+- **Todo lo que el cliente carga en la plataforma oficial se guarda únicamente en SU hosting**, en la base de datos MySQL **`wwwhpgilatam_vaakoficial`**: proyectos, OC, specs, requerimientos de pago, proveedores, objetivos, usuarios (contraseñas cifradas con bcrypt, nunca en texto), fotos de perfil y todas las imágenes subidas (portadas, imágenes de specs). Nada va a Supabase, a Vercel ni a ningún servicio externo.
+- Los **PDF y Excel** (OC, fichas técnicas, requerimientos de pago, reportes) **no se guardan como archivos**: se generan en el navegador en el momento, a partir de esos datos, y siempre se pueden volver a descargar.
+- **El repositorio de GitHub (`Datnya/plataforma-VAAK`, público) guarda solo el código, nunca datos del cliente.** Nunca subir ahí `config.php`, contraseñas, exportaciones de la base ni capturas con datos reales.
+- Actualizar la plataforma (subir archivos nuevos) **no toca la base de datos**: los datos del cliente se conservan.
+- Excepciones que hoy quedan **solo en el navegador de cada persona** (no en la base): borradores de OC, rubros de OC personalizados, registro de accesos de clientes y avisos descartados. Sigue además el 🔴 de la sección 7 (permisos de cliente y asignaciones de trabajador no se comparten entre usuarios). **Conviene resolverlos pronto**, primero en PRUEBA, ahora que hay uso real.
+- **Pendiente:** copias de seguridad de `wwwhpgilatam_vaakoficial` (cPanel → Copia de seguridad, o phpMyAdmin → Exportar), con la frecuencia que acuerde Datnya.
+
+### 4. Vercel ya no es el entorno de prueba
+`git push` a `main` **sigue desplegando en Vercel** (`plataforma-vaak.vercel.app`, Next.js + Supabase), pero **eso ya no publica nada en el hosting del cliente** y no se usa para probar. Se retira en la etapa 6. No mostrárselo al cliente.
+
+### 5. Cuidados en el cPanel del cliente
+- **Nunca** pulsar «Aplicar» en «Seleccionar versión de PHP»: cambia la versión de toda la cuenta, y la web del cliente (`hpgilatam.com`) usa PHP 7.3. Nuestras carpetas piden PHP 8.2 con una línea del `.htaccess`.
+- No tocar `hpgilatam.com` (`/public_html`) ni `website.hpgilatam.com`. `hpginternational.com` está en otro servidor y no depende de este cPanel.
+- Datnya no es técnica: guiarla **un paso a la vez**, con los nombres exactos de los botones (su cPanel mezcla español e inglés), y esperar su captura o su «listo». Las contraseñas **nunca** pasan por el chat: ella las pega en `config.php` con el editor del Administrador de archivos.
+
+---
+
 ## 0. EN QUÉ ESTAMOS AHORA — léelo primero
 
 **Proyecto en curso: trasladar la plataforma al hosting oficial del cliente.** Aprobado por Datnya el 18-sep-2026.
@@ -109,29 +158,34 @@ Consecuencias para quien trabaje aquí:
 ## 2. Rama y despliegue — LO MÁS IMPORTANTE
 
 ```
-Rama de trabajo:  main
-Despliegue:       automático en Vercel con cada push a main
-Root Directory:   staging
+Rama de trabajo:  main (no hay otras ramas)
+Código:           GitHub Datnya/plataforma-VAAK (público: solo código, nunca datos)
+PRUEBA:           https://staging.hpgilatam.com     (hosting del cliente)
+OFICIAL:          https://plataforma.hpgilatam.com  (hosting del cliente)
+Vercel:           sigue desplegando con cada push, pero ya NO es el entorno de prueba
 ```
 
-**No existen otras ramas de trabajo.** Todo se commitea y se pushea directamente a `main`, y Vercel despliega solo. Un push tarda entre 1 y 4 minutos en estar en vivo.
+**Publicar = subir los archivos al hosting**: primero a PRUEBA y, con el visto bueno de Datnya, al OFICIAL. Un push a `main` guarda el código pero **no** actualiza el hosting (hasta que exista la publicación automática de la etapa 6). Ver «⭐ REGLAS DE TRABAJO» al inicio.
 
-`git push` **funciona** desde la máquina de Datnya (las credenciales están en el Administrador de Credenciales de Windows). No uses el editor web de GitHub: un handoff antiguo decía que no había acceso a push, eso ya no es cierto.
+`git push` **funciona** desde la máquina de Datnya (las credenciales están en el Administrador de Credenciales de Windows). No uses el editor web de GitHub.
 
-### Cómo verificar que un cambio llegó a producción
+### Cómo verificar que un cambio llegó al hosting
 
-No confíes en que el push bastó. Compara el archivo en vivo contra el local:
+Compara el archivo en vivo contra el armado local (el `app.js` publicado cambia `/prototype/assets/` por `/assets/`, así que compáralo con la salida de `armar-publicacion.js`):
 
 ```bash
-curl -s https://plataforma-vaak.vercel.app/prototype/app.js | sha256sum
-sha256sum staging/public/prototype/app.js
+curl -s https://staging.hpgilatam.com/money-utils.js | sha256sum
+sha256sum staging/public/prototype/money-utils.js
 ```
 
-Y revisa la salud del sitio: `curl -s https://plataforma-vaak.vercel.app/api/health`
+Y revisa la instalación: `curl -s https://staging.hpgilatam.com/verificar.php` y `curl -s https://staging.hpgilatam.com/api/health` (igual con `plataforma.hpgilatam.com`).
 
 ---
 
 ## 3. Arquitectura — el punto que más confunde
+
+> ⚠️ **Esta sección describe la versión de Vercel (Next.js + Supabase), que ya no es la que usa el cliente.** En el hosting del cliente el servidor es PHP + MySQL (`servidor-php/`) con las mismas rutas `/api/*`; la interfaz (`staging/public/prototype/`) es la misma. Ver «⭐ REGLAS DE TRABAJO» (punto 3: dónde se guardan los datos) y «Servidor PHP (etapa 2)» en la sección 0.
+
 
 Hay **dos copias del prototipo** y solo una llega a producción:
 
@@ -177,6 +231,9 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 ---
 
 ## 4. Dónde viven los datos
+
+> ⚠️ **Esta sección describe la versión de Vercel (Next.js + Supabase), que ya no es la que usa el cliente.** En el hosting del cliente el servidor es PHP + MySQL (`servidor-php/`) con las mismas rutas `/api/*`; la interfaz (`staging/public/prototype/`) es la misma. Ver «⭐ REGLAS DE TRABAJO» (punto 3: dónde se guardan los datos) y «Servidor PHP (etapa 2)» en la sección 0.
+
 
 | Dato | Dónde |
 |---|---|
@@ -363,7 +420,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - Los botones deben mostrar **animación de carga**; los errores deben decir **el motivo, en rojo**.
 - Pide **confirmación** antes de acciones sensibles (cambio de rol, cambio de código de proyecto).
 - **Si algo no queda claro, pregúntale antes de implementar.** Lo dice explícitamente y lo agradece.
-- Quiere ver todo funcionando en el link de prueba (hoy Vercel; más adelante el subdominio de prueba del hosting).
+- Quiere ver todo funcionando **primero en PRUEBA (`staging.hpgilatam.com`)**; solo con su visto bueno se publica en el OFICIAL (`plataforma.hpgilatam.com`).
 - **Cada vez que se hace algo nuevo hay que actualizar este documento**, en el mismo commit. Lo pidió explícitamente y lo repite: es la forma de que un modelo nuevo retome sin perder contexto.
 
 ### Notas técnicas para no repetir errores ya cometidos
@@ -391,6 +448,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **17 sep (cierre, 2):** una sola moneda por OC
 - **17 sep (cierre, 3):** eliminar proyecto completo (con clientes) y robusto; confirmación de eliminar OC con su número
 - **18 sep:** guía práctica de uso (PDF y Word); corrección de montos invisibles en los campos; el enlace de Vercel queda como entorno de prueba; **decisión y plan aprobado para trasladar la plataforma al hosting del cliente con PHP + MySQL** (sección 0)
+- **18 sep (cierre):** plataforma OFICIAL instalada en `plataforma.hpgilatam.com` (base `wwwhpgilatam_vaakoficial`, administradora Datnya); no se migran datos (todo lo de Vercel era de prueba); reglas de trabajo PRUEBA → OFICIAL al inicio del documento
 - **18 sep (noche):** en el hosting la carpeta corre PHP 8.2 pero sin pdo_mysql ni mbstring → el servidor pasa a mysqli (`nucleo/bd.php`) y reemplazos de mbstring; ZIP subido y extraído en `staging.hpgilatam.com/public`
 - **18 sep (tarde):** subdominio de prueba confirmado (`staging.hpgilatam.com`); etapa 2 del traslado: servidor PHP + MySQL construido en `servidor-php/` y probado en local con la plataforma real (45 pruebas de rutas + recorrido en el navegador con administrador, trabajador y cliente)
 
