@@ -18,7 +18,7 @@ La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Sup
 
 | # | Etapa | Quién | Estado |
 |---|---|---|---|
-| 1 | Preparar el hosting: subdominio **oficial** y subdominio de **prueba**, una base de datos MySQL para cada uno, una cuenta FTP | Datnya, guiada | 🟡 Datnya cree haber creado ya el subdominio de prueba; va a enviar una captura de los dominios del cPanel para confirmarlo. Falta el oficial (nombre aún no definido; ella piensa en algo como «plataforma vaak») y las bases de datos |
+| 1 | Preparar el hosting: subdominio **oficial** y subdominio de **prueba**, una base de datos MySQL para cada uno | Datnya, guiada | 🟡 **Subdominio de prueba confirmado (18-sep): `staging.hpgilatam.com`**, carpeta `/staging.hpgilatam.com/public`, responde por HTTPS y está vacía (solo `cgi-bin`). El dominio principal del cliente es `hpgilatam.com` (su web, en `/public_html` — **no tocar**); también existe `website.hpgilatam.com` (no es nuestro). Falta: base de datos de prueba (Datnya, con el asistente), revisar que el subdominio use PHP 8.2, y definir el oficial (gratis si es subdominio de hpgilatam.com, p. ej. `plataforma.hpgilatam.com`; un dominio nuevo hay que comprarlo) |
 | 2 | Construir el servidor PHP 8.2 + MySQL 8.0 con **las mismas rutas y respuestas** que `staging/app/api/*`, y probarlo completo en local | Claude | 🟢 Construido y probado en local (ver «Servidor PHP» abajo). Falta solo subirlo (etapa 3) |
 | 3 | Subirlo al subdominio de prueba con una copia de los datos; Datnya lo revisa | Claude + Datnya | ⏳ |
 | 4 | Trasladar los datos: consulta en el panel de Supabase (Datnya la ejecuta) → conversión → carga en MySQL → verificar cantidades | Claude + Datnya | ⏳ |
@@ -34,6 +34,8 @@ La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Sup
 - El entorno de prueba final será un **subdominio de prueba en el mismo hosting** con su propia base de datos; Vercel se retira al terminar.
 - Los usuarios conservan su contraseña (hashes bcrypt de Supabase → `password_verify` de PHP).
 - Recuperar contraseña: el administrador la cambia desde «Editar usuario». Un «Olvidé mi contraseña» por correo queda como mejora opcional.
+
+**Cómo se sube (decidido 18-sep):** Datnya no sabe usar cPanel, así que se le guía paso a paso. Claude prepara un ZIP; Datnya lo sube con el «Administrador de archivos» y lo extrae. **La contraseña de la base de datos no pasa por el chat:** Datnya la escribe ella misma en `nucleo/config.php` desde el Administrador de archivos. Las tablas se crean importando `esquema.sql` en phpMyAdmin. La cuenta FTP recién hace falta en la etapa 6 (publicación automática).
 
 **Autorizaciones de Datnya:** aprobó el plan completo y autorizó todo lo necesario para que salga bien, incluida la descarga de PHP y MySQL para las pruebas locales.
 
@@ -365,7 +367,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **17 sep (cierre, 2):** una sola moneda por OC
 - **17 sep (cierre, 3):** eliminar proyecto completo (con clientes) y robusto; confirmación de eliminar OC con su número
 - **18 sep:** guía práctica de uso (PDF y Word); corrección de montos invisibles en los campos; el enlace de Vercel queda como entorno de prueba; **decisión y plan aprobado para trasladar la plataforma al hosting del cliente con PHP + MySQL** (sección 0)
-- **18 sep (tarde):** etapa 2 del traslado: servidor PHP + MySQL construido en `servidor-php/` y probado en local con la plataforma real (45 pruebas de rutas + recorrido en el navegador con administrador, trabajador y cliente)
+- **18 sep (tarde):** subdominio de prueba confirmado (`staging.hpgilatam.com`); etapa 2 del traslado: servidor PHP + MySQL construido en `servidor-php/` y probado en local con la plataforma real (45 pruebas de rutas + recorrido en el navegador con administrador, trabajador y cliente)
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:
 
