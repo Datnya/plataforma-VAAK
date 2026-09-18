@@ -1101,3 +1101,8 @@ textarea.auto-grow{resize:vertical;min-height:2.6rem;overflow:hidden;line-height
 .card-v2 .card-btn.spec-duplicate-button{display:inline-flex!important;width:auto;min-width:0!important;padding:0 .8rem!important;color:#4a3426}
 .card-v2 .card-btn.spec-duplicate-button .ui-icon{width:16px;height:16px}
 .card-v2-note strong{display:inline!important;font-size:inherit}
+
+/* Una sola moneda por OC: las filas siguientes muestran la del primer item. */
+.po-currency-locked{pointer-events:none;background:#f5efe7!important;color:#6a4d3b!important;cursor:not-allowed}
+.po-currency-alert{display:block;margin-top:.35rem;color:#b42318;font-size:.72rem;font-weight:700;line-height:1.35}
+.po-currency-alert[hidden]{display:none}

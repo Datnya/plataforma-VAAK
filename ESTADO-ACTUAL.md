@@ -166,6 +166,7 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - La ficha técnica compone la cantidad con la unidad (ej. «5 EACH») a partir de los campos «Cantidad» y «Unidad de medida». Existía un tercer campo, «Cantidad pedida», que repetía ambos y mandaba sobre ellos: se eliminó. Para los specs antiguos que solo tienen ese campo, la cantidad y la unidad se extraen de ahí
 - **La vinculación de cantidades depende de que el spec tenga lleno el campo «Cantidad».** Si está vacío, la OC no puede prellenar ni poner tope: no hay con qué comparar
 - **Todas las filas de la nueva OC jalan los datos del spec** (antes, desde la segunda fila no se llenaba la cantidad porque se armaban con otra plantilla). La moneda de la fila es la del costo del spec, cualquiera que sea (antes solo reconocía $ y S/). La cantidad se precarga con lo **disponible**, y si el mismo spec va en varias filas, entre todas no pueden pasar lo disponible
+- **Una sola moneda por OC, siempre** (decisión de Datnya). La define el primer ítem; en las demás filas el selector de moneda queda bloqueado y la sigue. Un spec cuyo costo está en otra moneda se marca en rojo y no deja emitir. Aplica también a las revisiones. El motor rechaza una OC o una revisión con monedas mezcladas. El total se suma en la moneda de la OC (antes convertía dólares a soles con un tipo de cambio fijo de 3.75 y mostraba el total en S/)
 - **Terms** es un cuadro de texto largo: Enter crea una línea nueva, el cuadro crece hacia abajo y el A4 respeta los saltos de línea
 - En la OC no se puede pedir más cantidad de la **disponible** en el spec (cantidad del spec menos lo ya pedido en otras OC no canceladas): avisa en rojo y no deja emitir
 - **Specs consumidos:** si las OC ya usan toda la cantidad de un spec, el spec queda **cerrado**: la tarjeta dice «Cerrado · usado por completo en una OC», desaparecen Editar y Realizar revisión, y no se ofrece al generar una OC nueva. El motor (`specAgotado` en `access-runtime.js`) también rechaza editarlo o revisarlo. Al **revisar** una OC, sus propios specs siguen disponibles (se descuenta todo menos esa misma orden), y si la revisión baja la cantidad, el spec se reabre solo. Un spec sin «Cantidad» nunca se cierra
@@ -252,6 +253,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - `app.js` está minificado. Para editarlo, escribe un script de parche con anclas de texto exactas que verifique que hay **exactamente una** coincidencia antes de tocar nada.
 - En `String.replace()`, la secuencia `$'` es un comodín. **Usa siempre una función como reemplazo** (`.replace(a, () => b)`), o destrozarás el archivo.
 - Valida con `node --check <archivo>` después de cada edición.
+- En la vista de pruebas en segundo plano `requestAnimationFrame` no se ejecuta: para lógica que debe correr sí o sí, usa `setTimeout`.
 - `access-runtime.js` mezcla saltos de línea Windows (`
 `) y Unix. Un ancla que cruce un salto de línea puede no coincidir: prefiere anclas dentro de una sola línea.
 - El hook de `git-lfs` falla con un error de memoria después de cada commit. Es ruido, el commit se creó bien.
@@ -265,6 +267,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **16 sep:** foto de perfil, presencia, campos de proyecto, datos compartidos entre usuarios
 - **17 sep:** todo lo de la sección 6 (términos, revisiones, impuestos, monedas, A4, rubros, clientes, Tax ID, equipo del cliente automático, colores en los PDF, requerimiento de pago)
 - **17 sep (tarde):** registro del pago, reporte de requerimientos de pago, revisiones numeradas desde 1, cierre de specs consumidos, códigos reales en el Excel de OC
+- **17 sep (cierre, 2):** una sola moneda por OC
 - **17 sep (cierre):** tres decimales, separador de miles en formularios, filas de la OC con datos reales del spec y su moneda, terms con texto largo, moneda y unidad en los Excel, tracking aleatorio en todos los casos, rediseño de las tarjetas de specs y solicitudes
 - **17 sep (noche):** motivo por cada cambio en las revisiones, status del documento, alerta de monto/moneda en la solicitud, «Pagar a:», montos con formato moneda, dirección fiscal automática, sin columna PAYABLE TO, descarga de OC para el cliente, pie de la ficha técnica
 
