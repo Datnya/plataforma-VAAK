@@ -259,11 +259,22 @@ El fallo reportado el 17-sep no se pudo reproducir en local, ni siquiera simulan
 ### 🟡 Conversión fija dólar ↔ sol al cambiar la moneda del primer ítem
 En la nueva OC, si se cambia a mano la moneda del primer ítem entre $ y S/, el costo se convierte con un tipo de cambio fijo de 3.75 (`USD_TO_PEN` en `app.js`). Es anterior a estos cambios y no se ha consultado con Datnya si debe mantenerse.
 
-### 🔵 Traslado al hosting oficial del cliente (pendiente de definir)
-Falta saber qué tipo de hosting tiene el cliente. De eso depende el camino:
-- **Hosting con Node.js y PostgreSQL** (VPS o nube): se traslada casi tal cual. Se exportan las tablas `vaak_*` y los usuarios, se instala la aplicación y se configuran las variables de entorno (`NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY`, `SUPABASE_SECRET_KEY`, `VAAK_APP_ORIGIN`, `VAAK_RATE_LIMIT_HMAC_SECRET`, `VAAK_RELEASE_ID`). Supabase también puede instalarse en el propio servidor (con Docker).
-- **Hosting compartido tipo cPanel** (normalmente PHP y MySQL, sin PostgreSQL): hay que reescribir la parte de servidor (inicio de sesión, usuarios, datos compartidos y archivos) para MySQL, y el hosting debe permitir aplicaciones Node.js. Es un trabajo considerable.
-- Después del traslado conviene **mantener Vercel como entorno de prueba**: cada cambio se prueba primero aquí y luego se pasa al oficial.
+### 🔵 Traslado al hosting oficial del cliente — DECIDIDO: PHP + MySQL (18-sep)
+**Hosting del cliente:** Perú Hosting (hostingperu.com.pe), «Plan Avanzado», compartido con cPanel. Según el proveedor: **Node.js solo en planes VPS**, base de datos **MySQL 8.0**, PHP 8.2 (5.7 a 8.4), FTP; no mencionan SSH ni Git. **El cliente no cambiará de plan** y exige que los datos queden **dentro de su hosting**.
+
+**Decisión:** reescribir la parte de servidor (las rutas `/api/*`, hoy en Next.js + Supabase) en **PHP 8.2 + MySQL 8.0**, con **las mismas direcciones y respuestas**, para que la interfaz (`staging/public/prototype/`) casi no cambie. Se quitan Supabase y Next.js.
+
+Lo que debe reproducirse (inventario hecho el 18-sep, 14 rutas):
+- Inicio y cierre de sesión, sesión actual, protección CSRF (cookie `vaak-csrf` + cabecera `x-vaak-csrf`), bloqueo por intentos fallidos.
+- Usuarios: listar, crear, editar, deshabilitar, eliminar; nunca dejar a la empresa sin administrador activo.
+- `/api/data`: documento compartido con control de concurrencia por `revision` (409 si otro guardó antes), historial de las últimas 150 versiones y filtrado para clientes (solo sus proyectos).
+- `/api/data/assets`: imágenes identificadas por su SHA-256.
+- Foto de perfil, presencia (conectado ahora), salud del servicio.
+- **No se usan** y no se migran: `/api/storage/sign`, `/api/tracking/[token]` y las tablas antiguas del diseño inicial (proyectos, OC, specs como tablas separadas, etc.). Todo vive en `vaak_company_data`.
+- Las contraseñas de Supabase son bcrypt: PHP las valida con `password_verify`, así que **los usuarios conservan su contraseña**.
+- La recuperación de contraseña hoy solo atiende enlaces enviados desde el panel de Supabase; en la versión PHP el administrador cambia la contraseña desde «Editar usuario».
+
+Plan por etapas: ver el mensaje del 18-sep y, cuando se apruebe, esta sección se actualizará con el avance.
 
 ### 🟢 `VAAK_RELEASE_ID` en Vercel
 Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se perdió al sacar `.env.local` del repositorio. Se arregla agregándola en el panel de Vercel.
