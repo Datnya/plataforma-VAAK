@@ -4,6 +4,26 @@
 // del cliente, respondiendo en las mismas rutas y con los mismos formatos.
 declare(strict_types=1);
 
+require_once __DIR__ . '/bd.php';
+
+// El hosting no trae mbstring para PHP 8.2; estas dos bastan para lo que se usa.
+if (!function_exists('mb_strtolower')) {
+  function mb_strtolower(string $texto): string {
+    static $mapa = null;
+    if ($mapa === null) {
+      $mayus = 'ÁÉÍÓÚÜÑÀÈÌÒÙÂÊÎÔÛÄËÏÖÇÃÕÅÆØÝŸŠŽŒ';
+      $minus = 'áéíóúüñàèìòùâêîôûäëïöçãõåæøýÿšžœ';
+      $mapa = array_combine(preg_split('//u', $mayus, -1, PREG_SPLIT_NO_EMPTY), preg_split('//u', $minus, -1, PREG_SPLIT_NO_EMPTY));
+    }
+    return strtr(strtolower($texto), $mapa);
+  }
+}
+if (!function_exists('mb_strlen')) {
+  function mb_strlen(string $texto): int {
+    return (int)preg_match_all('/./us', $texto);
+  }
+}
+
 const VAAK_CSRF_COOKIE = 'vaak-csrf';
 const VAAK_SESSION_COOKIE = 'vaak-sesion';
 const VAAK_SESSION_DAYS = 30;
@@ -18,19 +38,13 @@ function vaak_config(): array {
   return $config;
 }
 
-function vaak_db(): PDO {
-  static $pdo = null;
-  if ($pdo === null) {
-    $c = vaak_config()['db'];
-    $dsn = sprintf('mysql:host=%s;port=%d;dbname=%s;charset=utf8mb4', $c['host'], (int)($c['port'] ?? 3306), $c['nombre']);
-    $pdo = new PDO($dsn, $c['usuario'], $c['clave'], [
-      PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
-      PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
-      PDO::ATTR_EMULATE_PREPARES => false,
-    ]);
-    $pdo->exec("SET time_zone = '+00:00'");
+function vaak_db(): VaakBd {
+  static $db = null;
+  if ($db === null) {
+    $db = new VaakBd(vaak_config()['db']);
+    $db->exec("SET time_zone = '+00:00'");
   }
-  return $pdo;
+  return $db;
 }
 
 // ---------- respuestas ----------

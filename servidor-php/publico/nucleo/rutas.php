@@ -187,7 +187,7 @@ function ruta_usuarios_crear(): void {
     $db->commit();
   } catch (Throwable $e) {
     if ($db->inTransaction()) $db->rollBack();
-    if ($e instanceof PDOException && (int)($e->errorInfo[1] ?? 0) === 1062) vaak_fallar(['ok' => false, 'error' => 'identity_exists'], 409);
+    if (vaak_bd_errno($e) === 1062) vaak_fallar(['ok' => false, 'error' => 'identity_exists'], 409);
     vaak_fallar(['ok' => false, 'error' => 'provisioning_failed'], 500);
   }
   vaak_json(['ok' => true, 'id' => $legacyId], 201);
@@ -248,7 +248,7 @@ function ruta_usuarios_editar(string $legacyId): void {
     $db->commit();
   } catch (Throwable $e) {
     if ($db->inTransaction()) $db->rollBack();
-    if ($e instanceof PDOException && (int)($e->errorInfo[1] ?? 0) === 1062) vaak_fallar(['ok' => false, 'error' => 'identity_conflict'], 409);
+    if (vaak_bd_errno($e) === 1062) vaak_fallar(['ok' => false, 'error' => 'identity_conflict'], 409);
     vaak_fallar(['ok' => false, 'error' => 'membership_update_failed'], 409);
   }
   vaak_json(['ok' => true]);
@@ -409,8 +409,8 @@ function ruta_datos_guardar(): void {
     if ($miembro['role'] !== 'admin') $conflicto();
     try {
       $db->prepare('INSERT INTO vaak_company_data (company_id, state, revision, updated_at, updated_by) VALUES (?, ?, 1, UTC_TIMESTAMP(3), ?)')->execute([$empresa, $texto, $miembro['userId']]);
-    } catch (PDOException $e) {
-      if ((int)($e->errorInfo[1] ?? 0) === 1062) $conflicto();
+    } catch (mysqli_sql_exception $e) {
+      if (vaak_bd_errno($e) === 1062) $conflicto();
       vaak_fallar(['ok' => false, 'error' => 'service_unavailable'], 503);
     }
     vaak_json(['ok' => true, 'revision' => 1]);
