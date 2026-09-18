@@ -44,3 +44,6 @@
 
 
 @media print{@page{size:A4;margin:0}.hpg-reference-po,.hpg-reference-po *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}.hpg-reference-po{width:210mm!important;max-width:none!important;min-height:297mm;padding:13mm 11mm 9mm!important}.hpg-ref-items thead{display:table-header-group}.hpg-ref-items tr,.hpg-ref-summary,.hpg-ref-parties,.hpg-ref-commercial,.hpg-ref-marks,.hpg-ref-payment,.hpg-ref-approvals{break-inside:avoid}.hpg-ref-approvals-section{break-before:page}.hpg-ref-footer{break-inside:avoid}}
+
+/* TERMS: texto largo con saltos de linea; la celda crece hacia abajo. */
+.hpg-ref-commercial .hpg-ref-terms-cell strong{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-weight:600}

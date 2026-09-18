@@ -1,12 +1,12 @@
 /* Exportador XLSX local basado en los formatos maestros HPG proporcionados. */
 (() => {
   const enc = new TextEncoder();
-  const Money=window.VAAKMoney||{round:value=>Math.round((Number(String(value??'').replace(/[^0-9.-]/g,''))||0)*10)/10};
+  const Money=window.VAAKMoney||{round:value=>Math.round((Number(String(value??'').replace(/[^0-9.-]/g,''))||0)*1000)/1000};
   const assetCache = new Map();
   const REPORT_ASSETS = {
     logo: 'assets/reports/hpg-report-logo.png',
-    poStyles: 'assets/reports/po-styles.xml',
-    invoiceStyles: 'assets/reports/invoice-styles.xml'
+    poStyles: 'assets/reports/po-styles.xml?v=2',
+    invoiceStyles: 'assets/reports/invoice-styles.xml?v=2'
   };
 
   const escapeXml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;' }[char]));
@@ -50,7 +50,7 @@
   const isBlank = value => value===null||value===undefined||value==='';
   const numberValue = value => Number(String(value ?? '').replace(/[^0-9.-]/g,'')) || 0;
   const moneyValue = value => Money.round(value);
-  const normalizeCurrency = value => {const text=String(value??'').trim().toUpperCase();if(text.includes('USD')||text.includes('$'))return 'USD';if(text.includes('EUR')||text.includes('€'))return 'EUR';if(text.includes('COP'))return 'COP';return 'PEN';};
+  const normalizeCurrency = value => {const raw=String(value??'').trim(),api=window.VAAKMoney;if(raw&&api){const found=api.currencyFrom(raw,'');if(found)return api.codeOf(found);if(/^[A-Z]{3}$/i.test(raw))return raw.toUpperCase()}const text=raw.toUpperCase();if(text.includes('USD')||text.includes('$'))return 'USD';if(text.includes('EUR')||text.includes('€'))return 'EUR';if(text.includes('COP'))return 'COP';return 'PEN';};
   const excelDate = value => {
     if(isBlank(value))return null;
     if(typeof value==='number')return value;
@@ -61,11 +61,15 @@
     else date=new Date(text);
     return Number.isNaN(date.getTime())?null:(Date.UTC(date.getUTCFullYear(),date.getUTCMonth(),date.getUTCDate())-Date.UTC(1899,11,30))/86400000;
   };
-  const displayNumber = value => new Intl.NumberFormat('en-US',{maximumFractionDigits:2}).format(Number(value)||0);
+  const displayNumber = value => new Intl.NumberFormat('en-US',{maximumFractionDigits:3}).format(Number(value)||0);
   const uniqueText = (...values) => [...new Set(values.flatMap(value=>String(value??'').split('|')).map(value=>value.trim()).filter(Boolean))].join(' | ');
   const safeName = value => String(value||'Project').normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/gi,'_').replace(/^_+|_+$/g,'');
   // El item de la orden guarda el id interno del spec; aqui se traduce al
   // codigo visible (SPEC-682). Sin esto el Excel imprimia sp-1789657319006.
+  const unidadDeSpec = (specs,specId) => {
+    const spec=Array.isArray(specs)&&specId?specs.find(item=>item.id===specId):null;
+    return spec?String(spec.unit||'').trim():'';
+  };
   const codigoDeSpec = (specs,specId) => {
     if(!specId||!Array.isArray(specs))return '';
     const spec=specs.find(item=>item.id===specId);
@@ -139,7 +143,7 @@
           textEntry(item.description||item.name||item.productName||'',alt(3,4)),
           textEntry(uniqueText(order.manufacturer,item.manufacturer,order.source,item.source,order.supplier),alt(9,10)),
           numberEntry(quantity,alt(3,4)),
-          textEntry(item.unit||item.unitMeasure||'ea',alt(9,10)),
+          textEntry(item.unit||item.unitMeasure||unidadDeSpec(specs,item.specId)||'ea',alt(9,10)),
           textEntry(orderCurrency,alt(9,10)),
           numberEntry(unitCost,alt(11,12)),
           numberEntry(moneyValue(quantity*unitCost),alt(13,14)),

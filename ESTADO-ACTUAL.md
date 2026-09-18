@@ -155,7 +155,7 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 
 ### Órdenes de compra
 - Al abrir una versión guardada, el pie tiene «← Volver a versiones» para regresar al historial sin cerrar todo
-- El número de tracking es **aleatorio y comprobado contra los ya emitidos**. Antes era correlativo y podía repetirse si dos personas emitían a la vez; además la interfaz inventaba uno por posición cuando la orden no lo tenía guardado, lo que producía duplicados visibles
+- El número de tracking es **aleatorio y comprobado contra los ya emitidos**, tanto al emitir como al actualizar el estado de una orden antigua sin tracking (ese último caso todavía generaba un correlativo). Antes era correlativo y podía repetirse si dos personas emitían a la vez; además la interfaz inventaba uno por posición cuando la orden no lo tenía guardado, lo que producía duplicados visibles
 - **Revisiones:** el botón "Realizar revisión" está en la tarjeta de seguimiento de cada OC (dentro del proyecto), junto a Actualizar estado / Ver orden / Descargar. Crea Rev. 1, 2, 3… (la primera revisión es la 1; el documento sin revisar es el «Original») con registro de qué cambió, por qué, quién y cuándo. El PDF lo imprime entre líneas de asteriscos. "Ver versiones" permite abrir cualquier versión anterior
 - IGV fijo 18%; IVA y VAT con porcentaje editable según el país
 - Descuentos y recargos manuales ilimitados (concepto + suma/resta + monto)
@@ -165,8 +165,11 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - En el formulario de spec, «Proveedor / fuente» es un desplegable de los proveedores registrados; «Área» es un desplegable de los 65 rubros
 - La ficha técnica compone la cantidad con la unidad (ej. «5 EACH») a partir de los campos «Cantidad» y «Unidad de medida». Existía un tercer campo, «Cantidad pedida», que repetía ambos y mandaba sobre ellos: se eliminó. Para los specs antiguos que solo tienen ese campo, la cantidad y la unidad se extraen de ahí
 - **La vinculación de cantidades depende de que el spec tenga lleno el campo «Cantidad».** Si está vacío, la OC no puede prellenar ni poner tope: no hay con qué comparar
+- **Todas las filas de la nueva OC jalan los datos del spec** (antes, desde la segunda fila no se llenaba la cantidad porque se armaban con otra plantilla). La moneda de la fila es la del costo del spec, cualquiera que sea (antes solo reconocía $ y S/). La cantidad se precarga con lo **disponible**, y si el mismo spec va en varias filas, entre todas no pueden pasar lo disponible
+- **Terms** es un cuadro de texto largo: Enter crea una línea nueva, el cuadro crece hacia abajo y el A4 respeta los saltos de línea
 - En la OC no se puede pedir más cantidad de la **disponible** en el spec (cantidad del spec menos lo ya pedido en otras OC no canceladas): avisa en rojo y no deja emitir
 - **Specs consumidos:** si las OC ya usan toda la cantidad de un spec, el spec queda **cerrado**: la tarjeta dice «Cerrado · usado por completo en una OC», desaparecen Editar y Realizar revisión, y no se ofrece al generar una OC nueva. El motor (`specAgotado` en `access-runtime.js`) también rechaza editarlo o revisarlo. Al **revisar** una OC, sus propios specs siguen disponibles (se descuenta todo menos esa misma orden), y si la revisión baja la cantidad, el spec se reabre solo. Un spec sin «Cantidad» nunca se cierra
+- **Reportes Excel:** la columna CUR muestra la moneda real de la OC o de la solicitud (antes todo lo que no era USD, EUR o COP salía como PEN). La unidad sale del spec cuando el item no la tiene
 - **Reporte Excel de OC:** la columna ITEM # muestra el código del spec tal como se ve en pantalla (el guardado o el derivado de su id, misma regla que `specCode()`). Antes mostraba el id interno (`sp-1789657319006`)
 - Contacto del proyecto configurable en Configuración del sistema, editable por documento
 
@@ -198,7 +201,14 @@ Las solicitudes de pago se crean y se revisan. **No hay edición libre: todo cam
 
 **Registro del pago** (botón «Registrar pago» / «Editar pago» en cada solicitud, admin y trabajador): valor pagado, día del pago, número de transferencia, monto pendiente a cancelar y comentarios. Se llenan **todos juntos o ninguno** (error en rojo si falta uno; el motor también lo valida). Se guarda quién lo registró y cuándo, y se muestra bajo la solicitud. Campos: `paidAmount`, `paymentDate`, `transferNumber`, `pendingAmount`, `paymentComments`, `paymentRegisteredBy/ByName/At`. **No salen en el PDF ni en la previsualización** (a propósito se usan nombres nuevos: `paymentAmount` sí se imprime y no se tocó).
 
+**Tarjetas (specs y solicitudes):** mismo diseño en ambas. Arriba el código/número y el status como etiqueta; en medio los datos (rubro, monto, cantidad / total de la solicitud); una franja verde con el pago registrado; abajo la acción principal a la izquierda (Ficha técnica / Ver) y las de edición a la derecha, todas con icono, texto y 34 px de alto. Plantillas en `specCardBody` e `invoiceCardMarkup`; estilos `.card-v2` y `.card-btn` en `refinements.css`. El botón Duplicar lo agrega `enhanceProjectSpecQuantities` después de pintar.
+
 El reporte Excel se llama **«Reporte de requerimientos de pago»** (hoja «Payment Request Details»). Usa esos datos en PAYMENT EVIDENCE, AMOUNT PAID, TRANSFER DATE y HPG COMMENTS, y agrega al final PENDING BALANCE, PAYMENT REGISTERED BY y REGISTERED ON.
+
+### Montos
+- **Tres decimales** (pedido de Datnya: tenerlo siempre en cuenta). `Money.round` redondea a 3; `Money.fixed` guarda con 2 decimales mínimo y el tercero solo si existe (380.00, 12.345); `Money.format` agrega separador de miles para mostrar. Antes redondeaba a **un** decimal (99.99 → 100.00). Los formatos A4, los reportes y el Excel (formato `#,##0.00#`) usan la misma regla
+- **Separador de miles en los formularios:** los campos de monto son numéricos y no pueden mostrar comas, así que `enmascararMonto` (en `app.js`) pone encima una capa con el monto formateado mientras el campo no se edita. El valor real no cambia: ningún cálculo ni envío se entera. Se aplica a los campos que reconoce `isMoneyInput` (costos, flete, CIF, impuesto, ajustes, montos de solicitud y de pago). El formulario de solicitud de pago usa campos de texto con símbolo de moneda (otro mecanismo, anterior)
+- Los campos de monto ya no usan `step=0.10`, que hacía que el navegador rechazara montos con centavos
 
 ### Otros
 - 19 monedas (Latinoamérica + dólar + euro). Sol y dólar se guardan con símbolo; el resto con código ISO
@@ -223,9 +233,6 @@ Quedan **fuera**: `projectMemberships`, `clientProjectLinks`, `clientOrderAuthor
 
 ### 🟡 Proyectos con datos borrados
 Un bug corregido el 17-sep (commit `2f33b09b`) borraba razón social, dirección fiscal, dirección de almacén, ciudad y país al guardar la tarjeta "Áreas del proyecto". Ya no ocurre, pero **lo ya borrado sigue borrado**. Se puede recuperar del historial de `vaak_company_data_history`. Falta que Datnya identifique qué proyectos quedaron afectados.
-
-### 🟠 Los montos se redondean a un decimal
-`Money.round` en `money-utils.js` usa `e1`: redondea a **un** decimal y luego muestra dos (99.99 → 100.00, 1234.56 → 1234.60). Es así desde que se creó el archivo. No se ha tocado porque cambiaría todos los montos que se guarden desde ese momento; está pendiente de que Datnya lo apruebe.
 
 ### 🟢 `VAAK_RELEASE_ID` en Vercel
 Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se perdió al sacar `.env.local` del repositorio. Se arregla agregándola en el panel de Vercel.
@@ -258,6 +265,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **16 sep:** foto de perfil, presencia, campos de proyecto, datos compartidos entre usuarios
 - **17 sep:** todo lo de la sección 6 (términos, revisiones, impuestos, monedas, A4, rubros, clientes, Tax ID, equipo del cliente automático, colores en los PDF, requerimiento de pago)
 - **17 sep (tarde):** registro del pago, reporte de requerimientos de pago, revisiones numeradas desde 1, cierre de specs consumidos, códigos reales en el Excel de OC
+- **17 sep (cierre):** tres decimales, separador de miles en formularios, filas de la OC con datos reales del spec y su moneda, terms con texto largo, moneda y unidad en los Excel, tracking aleatorio en todos los casos, rediseño de las tarjetas de specs y solicitudes
 - **17 sep (noche):** motivo por cada cambio en las revisiones, status del documento, alerta de monto/moneda en la solicitud, «Pagar a:», montos con formato moneda, dirección fiscal automática, sin columna PAYABLE TO, descarga de OC para el cliente, pie de la ficha técnica
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:

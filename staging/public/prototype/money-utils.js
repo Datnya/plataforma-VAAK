@@ -20,9 +20,10 @@
   };
   const round=value=>{
     let amount=parse(value);
-    return Number(`${Math.round(Number(`${amount}e1`))}e-1`);
+    return Number(`${Math.round(Number(`${amount}e3`))}e-3`);
   };
-  const fixed=value=>round(value).toFixed(2);
+  const fixed=value=>{const text=round(value).toFixed(3);return text.endsWith('0')?text.slice(0,-1):text};
+  const format=value=>round(value).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:3});
   const currencyFrom=(value,fallback='S/')=>{
     let match=String(value??'').trim().match(/^(PEN|USD|EUR|COP|MXN|CLP|ARS|BRL|UYU|PYG|BOB|VES|CRC|GTQ|HNL|NIO|PAB|DOP|CUP|S\/|\$|€)/i);
     return match?match[1].toUpperCase():fallback;
@@ -55,5 +56,5 @@
   ]);
   const codeOf=value=>value==="$"?"USD":value==="S/"?"PEN":value==="€"?"EUR":String(value||"").toUpperCase();
   const nameOf=(value,spanish=true)=>{let found=CURRENCIES.find(item=>item.value===value||codeOf(item.value)===codeOf(value));return found?(spanish?found.name:found.english):String(value||"")};
-  return Object.freeze({parse,round,fixed,currencyFrom,currencyValue,storedCurrencyValue,CURRENCIES,codeOf,nameOf});
+  return Object.freeze({parse,round,fixed,format,currencyFrom,currencyValue,storedCurrencyValue,CURRENCIES,codeOf,nameOf});
 });
