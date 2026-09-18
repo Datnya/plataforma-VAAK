@@ -261,7 +261,21 @@
   const directory = async () => {
     const [users, current] = await Promise.all([request("/api/admin/users"), request("/api/auth/session")]);
     app()?.completeRemoteUserMutation({ users: users.users, user: current.user });
+    if (current.authenticated) window.dispatchEvent(new CustomEvent("vaak:session", { detail: { ...current, users: users.users } }));
   };
+  // Elimina varios usuarios en el servidor (los clientes de un proyecto que se
+  // elimina) y refresca el directorio una sola vez al final.
+  window.VAAKRemoteUsers = Object.freeze({
+    remove: async (ids) => {
+      const failed = [];
+      for (const id of ids) {
+        try { await request(`/api/admin/users/${encodeURIComponent(id)}`, { method: "DELETE" }); }
+        catch (error) { if (error?.status !== 404) failed.push({ id, code: error?.code || (error?.status ? "http_" + error.status : "network") }); }
+      }
+      try { await directory(); } catch { /* the next session refresh updates it */ }
+      return { failed };
+    },
+  });
   const formPayload = (form, operation) => {
     const values = Object.fromEntries(new FormData(form).entries());
     const draft = operation.draft || {};

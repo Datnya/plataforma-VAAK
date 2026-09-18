@@ -1106,3 +1106,14 @@ textarea.auto-grow{resize:vertical;min-height:2.6rem;overflow:hidden;line-height
 .po-currency-locked{pointer-events:none;background:#f5efe7!important;color:#6a4d3b!important;cursor:not-allowed}
 .po-currency-alert{display:block;margin-top:.35rem;color:#b42318;font-size:.72rem;font-weight:700;line-height:1.35}
 .po-currency-alert[hidden]{display:none}
+
+/* Eliminar proyecto: que se ve afectado y errores con motivo. */
+.delete-project-scope{margin:.6rem 0 .9rem;padding:.7rem .9rem;border:1px solid #f1c9c4;border-radius:8px;background:#fff7f6;color:#5c2a24;font-size:.8rem}
+.delete-project-scope p{margin:0 0 .35rem}
+.delete-project-scope ul{margin:0 0 .35rem;padding-left:1.1rem;display:grid;gap:.15rem}
+.delete-project-clients{font-weight:700}
+.delete-project-warning{margin:.35rem 0 0!important;color:#b42318;font-weight:800;font-size:.76rem}
+.delete-project-error{margin:.6rem 0 0;padding:.55rem .75rem;border:1px solid #f1b8b3;border-radius:8px;background:#fff5f4;color:#b42318;font-size:.78rem;font-weight:700;line-height:1.4}
+.delete-project-error[hidden]{display:none}
+.btn-spinner{display:inline-block;width:.9em;height:.9em;margin-right:.35rem;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-.12em;animation:vaak-giro .7s linear infinite}
+@keyframes vaak-giro{to{transform:rotate(360deg)}}

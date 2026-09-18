@@ -142,6 +142,8 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 ## 6. Funciones implementadas (todas en producción)
 
 ### Proyectos
+- **Eliminar proyecto (zona de riesgo):** borra el proyecto con **todo** su contenido: OC, specs, requerimientos de pago, vínculos con empresa/proveedores/trabajadores, borradores de OC y los **usuarios cliente vinculados solo a ese proyecto** (en producción se eliminan también en Supabase con `VAAKRemoteUsers.remove`, que agrega `staging-bridge.js`). La ventana muestra antes cuánto se va a borrar y los nombres de los clientes. Los proveedores no se borran: son un directorio de la empresa. La frase de confirmación ignora espacios repetidos, mayúsculas y tildes
+- Si la operación queda vencida mientras la ventana está abierta (los datos cambiaron por detrás), se renueva y se confirma sola; si aun así falla, la ventana **no se cierra** y dice el motivo en rojo. Antes se cerraba con un aviso genérico y el proyecto seguía ahí: es la causa más probable del fallo reportado el 17-sep, que no se pudo reproducir en local
 - Nombre, código, razón social e **Identificación fiscal / Tax ID** (sin límite de caracteres) como campos separados
 - Al cambiar el código, las OC ya emitidas conservan el suyo
 - Tarjetas: Datos generales · Áreas del proyecto · Equipo del cliente
@@ -172,6 +174,7 @@ No subas nada sin su visto bueno, salvo que te lo pida explícitamente.
 - **Specs consumidos:** si las OC ya usan toda la cantidad de un spec, el spec queda **cerrado**: la tarjeta dice «Cerrado · usado por completo en una OC», desaparecen Editar y Realizar revisión, y no se ofrece al generar una OC nueva. El motor (`specAgotado` en `access-runtime.js`) también rechaza editarlo o revisarlo. Al **revisar** una OC, sus propios specs siguen disponibles (se descuenta todo menos esa misma orden), y si la revisión baja la cantidad, el spec se reabre solo. Un spec sin «Cantidad» nunca se cierra
 - **Reportes Excel:** la columna CUR muestra la moneda real de la OC o de la solicitud (antes todo lo que no era USD, EUR o COP salía como PEN). La unidad sale del spec cuando el item no la tiene
 - **Reporte Excel de OC:** la columna ITEM # muestra el código del spec tal como se ve en pantalla (el guardado o el derivado de su id, misma regla que `specCode()`). Antes mostraba el id interno (`sp-1789657319006`)
+- **Eliminar OC** (historial de OC y registro del proyecto): la confirmación pregunta por la OC con su número, proveedor y monto, avisa que no se puede deshacer, y si falla lo dice dentro de la ventana
 - Contacto del proyecto configurable en Configuración del sistema, editable por documento
 
 ### Revisiones (los tres documentos)
@@ -253,6 +256,8 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - `app.js` está minificado. Para editarlo, escribe un script de parche con anclas de texto exactas que verifique que hay **exactamente una** coincidencia antes de tocar nada.
 - En `String.replace()`, la secuencia `$'` es un comodín. **Usa siempre una función como reemplazo** (`.replace(a, () => b)`), o destrozarás el archivo.
 - Valida con `node --check <archivo>` después de cada edición.
+- Tras crear, editar o eliminar usuarios, `directory()` del puente vuelve a emitir `vaak:session` con la lista nueva. Antes la sincronización compartida seguía usando la lista del inicio de sesión y podía volver a mostrar localmente usuarios ya eliminados
+- Para reproducir problemas de sincronización sin tocar producción: una demo con `shared-sync.js` activo y `/api/data` simulado en memoria, abriendo dos orígenes (`localhost` y `127.0.0.1`) como dos navegadores distintos
 - En la vista de pruebas en segundo plano `requestAnimationFrame` no se ejecuta: para lógica que debe correr sí o sí, usa `setTimeout`.
 - `access-runtime.js` mezcla saltos de línea Windows (`
 `) y Unix. Un ancla que cruce un salto de línea puede no coincidir: prefiere anclas dentro de una sola línea.
@@ -267,6 +272,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **16 sep:** foto de perfil, presencia, campos de proyecto, datos compartidos entre usuarios
 - **17 sep:** todo lo de la sección 6 (términos, revisiones, impuestos, monedas, A4, rubros, clientes, Tax ID, equipo del cliente automático, colores en los PDF, requerimiento de pago)
 - **17 sep (tarde):** registro del pago, reporte de requerimientos de pago, revisiones numeradas desde 1, cierre de specs consumidos, códigos reales en el Excel de OC
+- **17 sep (cierre, 3):** eliminar proyecto completo (con clientes) y robusto; confirmación de eliminar OC con su número
 - **17 sep (cierre, 2):** una sola moneda por OC
 - **17 sep (cierre):** tres decimales, separador de miles en formularios, filas de la OC con datos reales del spec y su moneda, terms con texto largo, moneda y unidad en los Excel, tracking aleatorio en todos los casos, rediseño de las tarjetas de specs y solicitudes
 - **17 sep (noche):** motivo por cada cambio en las revisiones, status del documento, alerta de monto/moneda en la solicitud, «Pagar a:», montos con formato moneda, dirección fiscal automática, sin columna PAYABLE TO, descarga de OC para el cliente, pie de la ficha técnica
