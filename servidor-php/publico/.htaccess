@@ -2,6 +2,10 @@
 DirectoryIndex index.html
 Options -Indexes
 
+# Perú Hosting (CloudLinux): la cuenta usa PHP 7.3 para la web del cliente.
+# Solo esta carpeta usa PHP 8.2; no se cambia la versión del resto de la cuenta.
+AddHandler application/x-httpd-alt-php82___lsphp .php
+
 <IfModule mod_rewrite.c>
   RewriteEngine On
   # La plataforma antes vivia en /prototype/: se mantienen esas direcciones.
