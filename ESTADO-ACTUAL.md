@@ -3,8 +3,8 @@
 > **Si eres un modelo de IA que acaba de llegar a este proyecto: lee este documento completo antes de tocar nada.**
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
-**Última actualización:** 17 de septiembre de 2026
-**Último commit documentado:** ver `git log -1` (ver `git log`)
+**Última actualización:** 18 de septiembre de 2026
+**Último commit documentado:** el más reciente de `main` (ver `git log -1`); este documento se actualiza en el mismo commit que cada cambio
 
 ---
 
@@ -19,7 +19,7 @@ La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Sup
 | # | Etapa | Quién | Estado |
 |---|---|---|---|
 | 1 | Preparar el hosting: subdominio **oficial** y subdominio de **prueba**, una base de datos MySQL para cada uno, una cuenta FTP | Datnya, guiada | 🟡 Datnya cree haber creado ya el subdominio de prueba; va a enviar una captura de los dominios del cPanel para confirmarlo. Falta el oficial (nombre aún no definido; ella piensa en algo como «plataforma vaak») y las bases de datos |
-| 2 | Construir el servidor PHP 8.2 + MySQL 8.0 con **las mismas rutas y respuestas** que `staging/app/api/*`, y probarlo completo en local | Claude | 🟡 En curso |
+| 2 | Construir el servidor PHP 8.2 + MySQL 8.0 con **las mismas rutas y respuestas** que `staging/app/api/*`, y probarlo completo en local | Claude | 🟢 Construido y probado en local (ver «Servidor PHP» abajo). Falta solo subirlo (etapa 3) |
 | 3 | Subirlo al subdominio de prueba con una copia de los datos; Datnya lo revisa | Claude + Datnya | ⏳ |
 | 4 | Trasladar los datos: consulta en el panel de Supabase (Datnya la ejecuta) → conversión → carga en MySQL → verificar cantidades | Claude + Datnya | ⏳ |
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
@@ -36,6 +36,20 @@ La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Sup
 - Recuperar contraseña: el administrador la cambia desde «Editar usuario». Un «Olvidé mi contraseña» por correo queda como mejora opcional.
 
 **Autorizaciones de Datnya:** aprobó el plan completo y autorizó todo lo necesario para que salga bien, incluida la descarga de PHP y MySQL para las pruebas locales.
+
+### Servidor PHP (etapa 2) — cómo está hecho y cómo probarlo
+Todo está en `servidor-php/`:
+- `publico/` — lo que va al hosting junto con la interfaz: `api.php` (recibe todas las rutas `/api/*`), `.htaccess` (direcciones, cabeceras de seguridad, redirige `/prototype/*` a la raíz) y `nucleo/` (código del servidor, **nunca se sirve**): `arranque.php` (base de datos, respuestas, CSRF), `sesion.php` (sesiones, roles, usuarios), `rutas.php` (una función por ruta, comentada con la ruta de Next.js que reproduce). `nucleo/config.ejemplo.php` muestra la configuración; el `config.php` real (claves de la base de datos) **no se sube al repositorio** (está en `.gitignore`).
+- `sql/esquema.sql` — las tablas MySQL (mismos nombres `vaak_*` que en Supabase; sesiones y bloqueo de intentos en tablas propias; imágenes dentro de la base).
+- `herramientas/armar-publicacion.js` — arma la carpeta lista para subir: copia `staging/public/prototype/` + `servidor-php/publico/`, quita Supabase y `password-recovery.js` de `index.html`, cambia `<base href="/prototype/">` por `/`. Uso: `node servidor-php/herramientas/armar-publicacion.js <destino> [config.php]`. Si `index.html` cambia y ya no puede limpiarlo, se detiene con un aviso.
+- `herramientas/crear-admin.php` — crea empresa y primer administrador en una base vacía (en el traslado real no hace falta: los usuarios vienen de Supabase).
+- `herramientas/enrutador-local.php` — imita el `.htaccess` para probar con `php -S`.
+
+**Diferencias con la versión Vercel (a propósito):** la sesión es una cookie propia (`vaak-sesion`, 30 días) en vez de Supabase Auth; las imágenes se guardan en MySQL; no hay «Olvidé mi contraseña» por correo. Las respuestas JSON son idénticas, así que la interfaz no se tocó.
+
+**Probado en local el 18-sep (PHP 8.2.33 + MySQL 8.0.46):** 45 pruebas automáticas de rutas, todas bien (inicio de sesión y sus errores, CSRF y origen, bloqueo tras muchos intentos, crear/editar/deshabilitar/borrar usuarios, protección del último administrador, guardado con revisiones y conflicto 409, el cliente solo recibe su proyecto, imágenes, foto de perfil, presencia, `{}` y acentos intactos). Además, la plataforma real en el navegador: administrador crea proyecto con portada y un cliente desde el formulario, recarga y todo sigue; el cliente ve solo su proyecto; el trabajador entra y ve los proyectos.
+
+**Herramientas locales (solo en la computadora de Datnya, fuera del repositorio):** `C:/Users/HP/vaak-herramientas/` — `php/php.exe`, `mysql/bin/mysqld.exe` (datos en `mysql-datos`, puerto 3307, usuario root sin clave, base `vaak_prueba`), `config-local/config.php` y `sitio-local/` (la carpeta armada). Para probar: arrancar `mysqld.exe --datadir=... --port=3307`, armar con `armar-publicacion.js` y servir con `php -S 127.0.0.1:8090 -t C:/Users/HP/vaak-herramientas/sitio-local servidor-php/herramientas/enrutador-local.php`.
 
 ### Otros entregables recientes
 - **Guía práctica de uso** (50 páginas) en `Claude outputs/Guia-practica-VAAK.pdf` y **versión Word editable** `Claude outputs/Guia-practica-VAAK.docx` (Datnya ajustará textos ella misma). Las fuentes para regenerarla están en `Claude outputs/guia-fuente/`: capturas automáticas de la demo con datos ficticios (`capturas.js` + `datos.js`), maquetación (`construir.js` + `guia.css`) y Word (`extraer.js` + `construir-word.js`). **La carpeta `Claude outputs/` no se sube al repositorio** (el repositorio es público).
@@ -274,6 +288,9 @@ El reporte Excel se llama **«Reporte de requerimientos de pago»** (hoja «Paym
 
 ## 7. Pendientes reales
 
+### 🟡 La traducción automática cambia palabras dentro de nombres
+`presentation.js` traduce el texto de la pantalla palabra por palabra; por eso un usuario llamado «Rosa Cliente» aparece como «Rosa Client» en la lista de usuarios (en la base de datos el nombre está bien). Pasa igual en Vercel. Pendiente de consultar con Datnya si se corrige.
+
 ### 🔴 Permisos de cliente y asignaciones de trabajador no se comparten
 `shared-sync.js` sincroniza `projects, orders, suppliers, specs, tasks, projectCompanies, supplierProjectLinks`.
 
@@ -348,6 +365,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **17 sep (cierre, 2):** una sola moneda por OC
 - **17 sep (cierre, 3):** eliminar proyecto completo (con clientes) y robusto; confirmación de eliminar OC con su número
 - **18 sep:** guía práctica de uso (PDF y Word); corrección de montos invisibles en los campos; el enlace de Vercel queda como entorno de prueba; **decisión y plan aprobado para trasladar la plataforma al hosting del cliente con PHP + MySQL** (sección 0)
+- **18 sep (tarde):** etapa 2 del traslado: servidor PHP + MySQL construido en `servidor-php/` y probado en local con la plataforma real (45 pruebas de rutas + recorrido en el navegador con administrador, trabajador y cliente)
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:
 

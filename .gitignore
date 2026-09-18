@@ -19,3 +19,7 @@ coverage/
 .DS_Store
 Thumbs.db
 *.log
+
+# Configuracion real del servidor PHP (claves de la base de datos)
+servidor-php/publico/nucleo/config.php
+servidor-php/salida/
