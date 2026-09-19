@@ -6,7 +6,7 @@
   const REPORT_ASSETS = {
     logo: 'assets/reports/hpg-report-logo.png',
     poStyles: 'assets/reports/po-styles.xml?v=2',
-    invoiceStyles: 'assets/reports/invoice-styles.xml?v=2'
+    invoiceStyles: 'assets/reports/invoice-styles.xml?v=3'
   };
 
   const escapeXml = value => String(value ?? '').replace(/[&<>"']/g, char => ({ '&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&apos;' }[char]));
@@ -106,7 +106,7 @@
     rowXml.push(`<row r="4" ht="13.05" customHeight="1">${metrics.map((metric,index)=>cell(4,metricColumns[index],metric.label,metricLabelStyle)).join('')}</row>`);
     rowXml.push(`<row r="5" ht="16.95" customHeight="1">${metrics.map((metric,index)=>cell(5,metricColumns[index],displayNumber(metric.value),metricValueStyle)).join('')}</row>`);
     rowXml.push('<row r="6" ht="6" customHeight="1"/>');
-    rowXml.push(`<row r="7" ht="25.95" customHeight="1">${headers.map((header,index)=>cell(7,index,header,[4,7,8].includes(index)?2:1)).join('')}</row>`);
+    rowXml.push(`<row r="7" ht="25.95" customHeight="1">${headers.map((header,index)=>cell(7,index,header,[4,7,8].includes(index)||(!isPo&&index===9)?2:1)).join('')}</row>`);
     rows.forEach((record,index)=>{
       const row=index+8;
       rowXml.push(`<row r="${row}">${record.map((entry,column)=>cell(row,column,entry.value,entry.style,entry.kind)).join('')}</row>`);
@@ -115,7 +115,7 @@
     const totalCells=Array.from({length:columnCount},(_,index)=>cell(totalRow,index,index===0?totalLabel:'',19));
     rowXml.push(`<row r="${totalRow}" ht="18" customHeight="1">${totalCells.join('')}</row>`);
     rowXml.push(`<row r="${totalRow+1}" ht="7.95" customHeight="1"/>`);
-    const note=isPo?'SUB = Submitted · POC = PO Confirmed · blank cells = no data / pending · dates in dd/mm/yy format':'FF&E = Furniture, Fixtures & Equipment · OS&E = Operating Supplies & Equipment · blank cells = no data / pending · dates in dd/mm/yy format · totals by currency';
+    const note=isPo?'SUB = Submitted · POC = PO Confirmed · blank cells = no data / pending · dates in dd/mm/yy format':'FF&E = Furniture, Fixtures & Equipment · OS&E = Operating Supplies & Equipment · PO BALANCE = PO total minus the payment requests of that PO up to this one · EXCEDIDO (red row) = the requests exceed the PO total · blank cells = no data / pending · dates in dd/mm/yy format · totals by currency';
     rowXml.push(`<row r="${noteRow}">${cell(noteRow,0,note,isPo?27:25)}</row>`);
     const columns=widths.map((width,index)=>`<col min="${index+1}" max="${index+1}" width="${width}" customWidth="1"/>`).join('');
     const filterLast=Math.max(7,dataLast);
@@ -172,8 +172,8 @@
     const selected=(project.invoices||[]).filter(invoice=>!['draft','pending','borrador'].includes(String(invoice.status||'').toLowerCase()));
     const findOrder=invoice=>orders.find(order=>order.projectId===project.id&&(order.number===invoice.poNumber||order.id===invoice.orderId));
     const records=selected.map((invoice,index)=>{
-      const order=findOrder(invoice),alt=(odd,even)=>alternating(index,odd,even),curr=normalizeCurrency(invoice.invoiceCurrency||invoice.currency||order?.currency||order?.amount),team=invoice.type||((order?.ocTeam||'FFE')==='OSE'?'OS&E':'FF&E');
-      return [
+      const order=findOrder(invoice),saldo=window.VAAKSaldoOC?window.VAAKSaldoOC.afterInvoice(project,orders,invoice):null,excedido=Boolean(saldo&&saldo.sameCurrency&&saldo.balance< -0.005),alt=(odd,even)=>alternating(index,odd,even),curr=normalizeCurrency(invoice.invoiceCurrency||invoice.currency||order?.currency||order?.amount),team=invoice.type||((order?.ocTeam||'FFE')==='OSE'?'OS&E':'FF&E');
+      const fila=[
         textEntry(team,String(team).includes('OS&E')?18:17),
         textEntry(invoice.poNumber||order?.number||'',alt(5,6)),
         dateEntry(order?.date,alt(15,16)),
@@ -183,6 +183,8 @@
         dateEntry(invoice.invoiceDate,alt(15,16)),
         numberEntry(moneyValue(invoice.invoiceTotal||invoice.totalRequest),alt(13,14)),
         textEntry(curr,alt(9,10)),
+        numberEntry(saldo&&saldo.sameCurrency?saldo.balance:'',alt(11,12)),
+        textEntry(excedido?'EXCEDIDO':(saldo&&!saldo.sameCurrency?'OTRA MONEDA':''),alt(3,4)),
         dateEntry(invoice.requestDate,alt(15,16)),
         textEntry(invoice.number||'',alt(7,8)),
         textEntry(invoice.transferNumber||invoice.paymentEvidence||'',alt(3,4)),
@@ -196,9 +198,11 @@
         textEntry(invoice.paymentRegisteredByName||'',alt(3,4)),
         dateEntry(invoice.paymentRegisteredAt,alt(15,16))
       ];
+      // Fila en rojo cuando los requerimientos de esta OC ya superan su total.
+      return excedido?fila.map(entry=>({...entry,style:entry.kind==='number'?28:entry.kind==='date'?30:29})):fila;
     });
     const totals=records.reduce((all,row)=>{const curr=row[8].value;all[curr]=(all[curr]||0)+Number(row[7].value||0);return all;},{});
-    const xml=sheet({kind:'invoice',project,metrics:[{label:'INVOICES',value:selected.length},{label:'PAYMENT REQ.',value:selected.filter(invoice=>invoice.number).length},{label:'INVOICED PEN',value:totals.PEN||0},{label:'INVOICED USD',value:totals.USD||0},{label:'INVOICED EUR',value:totals.EUR||0}],headers:['TYPE','PO NUMBER','PO DATE','MANUFACTURER','TOTAL ORDER VALUE','INVOICE #','INV. DATE','INV. AMOUNT','CUR','PR DATE','PR NUMBER','PAYMENT EVIDENCE','AMOUNT PAID','TRANSFER DATE','INVOICE NOTE','HPG COMMENTS','DELIVERY LOCATION','DESTINATION','PENDING BALANCE','PAYMENT REGISTERED BY','REGISTERED ON'],rows:records,widths:[10,17,12,32,19,17,12,17,7,13.88671875,17,24,17,13,52,20,17,15,18,26,16]});
+    const xml=sheet({kind:'invoice',project,metrics:[{label:'INVOICES',value:selected.length},{label:'PAYMENT REQ.',value:selected.filter(invoice=>invoice.number).length},{label:'INVOICED PEN',value:totals.PEN||0},{label:'INVOICED USD',value:totals.USD||0},{label:'INVOICED EUR',value:totals.EUR||0}],headers:['TYPE','PO NUMBER','PO DATE','MANUFACTURER','TOTAL ORDER VALUE','INVOICE #','INV. DATE','INV. AMOUNT','CUR','PO BALANCE','PO ALERT','PR DATE','PR NUMBER','PAYMENT EVIDENCE','AMOUNT PAID','TRANSFER DATE','INVOICE NOTE','HPG COMMENTS','DELIVERY LOCATION','DESTINATION','PENDING BALANCE','PAYMENT REGISTERED BY','REGISTERED ON'],rows:records,widths:[10,17,12,32,19,17,12,17,7,17,14,13.88671875,17,24,17,13,52,20,17,15,18,26,16]});
     const bytes=await packageFile('InvoiceList',xml,REPORT_ASSETS.invoiceStyles);
     download(`VAAK_Reporte Requerimientos de Pago Details_${safeName(project.name)}.xlsx`,bytes);
     return {rows:records.length,invoices:selected.length};

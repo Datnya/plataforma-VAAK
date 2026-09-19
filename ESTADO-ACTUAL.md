@@ -44,7 +44,8 @@ Orden obligatorio, sin excepciones:
 | # | Qué trae | SQL a importar antes | PRUEBA | OFICIAL |
 |---|---|---|---|---|
 | 1 | Servidor con mysqli (sin pdo_mysql ni mbstring) | — | ✅ 18-sep | ✅ (venía en el ZIP de instalación) |
-| 2 | Todo guardado en el hosting: borradores de OC y avisos descartados compartidos; registro de accesos de clientes en el servidor con botón «Vaciar registro»; permisos de proyectos iguales para todos (ver sección 7) | `actualizacion-2-registro-accesos.sql` (crea `vaak_client_access_log`) | ⏳ | ⏳ (solo después del visto bueno en PRUEBA) |
+| 2 | Todo guardado en el hosting: borradores de OC y avisos descartados compartidos; registro de accesos de clientes en el servidor con botón «Vaciar registro»; permisos de proyectos iguales para todos (ver sección 7) | `actualizacion-2-registro-accesos.sql` (crea `vaak_client_access_log`) | ✅ 18-sep (comprobado desde internet: archivos iguales al repositorio, «Todo listo») | ⏳ (Datnya espera terminar los puntos pendientes) |
+| 3 | OC: dirección del proveedor automática y almacenes del hotel (Ship To). Requerimientos de pago: número de OC en grande, saldo de la OC en cada tarjeta, aviso al pasarse del total (también al revisar) y columnas PO BALANCE / PO ALERT en el Excel (ver sección 6, «Saldo de la OC y direcciones») | — | ⏳ ZIP listo: `actualizacion-3/actualizacion-3.zip` (6 archivos: `index.html`, `app.js`, `reports.js`, `oc-saldo.js`, `oc-direcciones.js`, `assets/reports/invoice-styles.xml`) | ⏳ |
 
 Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia → Importar el `.sql` (una sola vez); 2) subir y extraer el ZIP en la carpeta de ESA copia; 3) `verificar.php` debe decir «Todo listo». Los paquetes de instalación completos de `Claude outputs/instalacion-*/` son del 18-sep: para una instalación nueva, regenerarlos con `armar-publicacion.js` y el `esquema.sql` actual.
 
@@ -223,6 +224,8 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 | `reports.js` | Reportes Excel de OC y de requerimientos de pago (estilos en `assets/reports/*.xml`) |
 | `technical-sheet-template.js` | Formato de la ficha técnica del spec |
 | `money-utils.js` | Dinero y **catálogo de 19 monedas** |
+| `oc-saldo.js` | Saldo de cada OC frente a sus requerimientos de pago: tarjeta del RP, aviso al pasarse (RP nuevo y revisión) y cálculo que usa el Excel (`window.VAAKSaldoOC`) |
+| `oc-direcciones.js` | Direcciones del formulario de OC: dirección del proveedor (automática) y almacenes del hotel (Ship To), con botón para agregar más |
 | `presentation.js` | Traductor automático es/en de nodos de texto |
 
 ### ⚠️ Trampas que te van a morder
@@ -331,6 +334,17 @@ Datnya autoriza subir directamente una vez implementado y verificado. **Excepci�
 - **Eliminar OC** (historial de OC y registro del proyecto): la confirmación pregunta por la OC con su número, proveedor y monto, avisa que no se puede deshacer, y si falla lo dice dentro de la ventana
 - Contacto del proyecto configurable en Configuración del sistema, editable por documento
 
+### Saldo de la OC y direcciones (actualización 3, 18-sep)
+Pedido de Datnya: «todo debe estar debidamente vinculado».
+- **Dirección del proveedor en la OC** (`oc-direcciones.js`): el antiguo campo «Dirección de almacén guardada» (que mostraba el almacén del proyecto) pasa a ser **«Dirección del proveedor»**, justo debajo del proveedor, y se llena sola con la dirección registrada del proveedor elegido. Si tiene varias, se elige de la lista; «Agregar nueva dirección» la guarda en el proveedor (`addresses`, en los datos compartidos). Se guarda en la OC como `supplierAddress` y el PDF la imprime en **MANUFACTURER**. El RP toma esa dirección como «Dirección fiscal del proveedor».
+- **Ship To:** «Dirección de entrega / almacén del hotel (Ship To)» es una lista con los almacenes del proyecto (`warehouse` + `warehouses`), con su botón para agregar más.
+- **BILL TO sigue siendo la dirección fiscal del hotel** (campo «Dirección fiscal (Bill To)», visible y editable como antes). El modelo anterior había puesto ahí la dirección del proveedor y el PDF salía con el nombre del hotel junto a la dirección del proveedor; se corrigió.
+- Las OC nuevas llevan `addressMode: "v2"`; las anteriores se imprimen igual que antes. Los selectores de direcciones llevan `translate="no"`.
+- **Saldo de la OC en cada RP** (`oc-saldo.js`): saldo = total de la OC − suma de sus RP (con o sin pago registrado), en orden de creación. Solo se descuentan los RP en la misma moneda que la OC (si no, la tarjeta lo avisa en amarillo). Cada tarjeta muestra el **número de OC en grande** y «Falta para completar la OC: …»; si los RP ya superan la OC, franja roja «EXCEDIDO: los requerimientos superan la OC por …».
+- **Aviso al pasarse:** el formulario de RP se precarga con el saldo (no con el total). Si el monto deja la OC pagada de más, sale el aviso en rojo y, al generar, una ventana al centro con total, ya solicitado, saldo y exceso: «Revisar el monto» o «Sí, generar de todas formas» (**se advierte pero se deja guardar**, porque VAAK admite RP que superan la OC). La **revisión de un RP** hace lo mismo sin contarse a sí misma, y solo si cambia el monto, la OC o la moneda.
+- **Excel de requerimientos de pago:** columnas nuevas **PO BALANCE** (saldo tras ese RP) y **PO ALERT** («EXCEDIDO» u «OTRA MONEDA»); la fila excedida sale en rojo. Estilos nuevos 28-30 en `assets/reports/invoice-styles.xml`.
+- Probado en la demo local: dirección automática y agregada; OC emitida con MANUFACTURER / SHIP TO / BILL TO correctos; RP de 10,000 sobre OC de 18,450 (saldo 8,450); segundo RP de 10,000 con aviso y confirmación (EXCEDIDO 1,550); revisión del primero a 9,000 (aviso, sin contarse) y a 8,000 (guarda, saldos 10,450 y 450); Excel con PO BALANCE -1550 y fila roja.
+
 ### Revisiones (los tres documentos)
 Órdenes de compra, specs y solicitudes de pago comparten la misma dinámica: botón «Realizar revisión», **un motivo obligatorio por cada cambio** (no uno general), se guarda quién cambió qué y cuándo, sube el número de versión y se conserva una instantánea de la anterior.
 
@@ -382,7 +396,7 @@ El reporte Excel se llama **«Reporte de requerimientos de pago»** (hoja «Paym
 ## 7. Pendientes reales
 
 ### 🟡 La traducción automática cambia palabras dentro de nombres
-`presentation.js` traduce el texto de la pantalla palabra por palabra; por eso un usuario llamado «Rosa Cliente» aparece como «Rosa Client» en la lista de usuarios (en la base de datos el nombre está bien). Pasa igual en Vercel. Pendiente de consultar con Datnya si se corrige.
+`presentation.js` traduce el texto de la pantalla palabra por palabra; por eso un usuario llamado «Rosa Cliente» aparece como «Rosa Client» en la lista de usuarios (en la base de datos el nombre está bien). Pasa igual en Vercel. Otros casos vistos el 18-sep con la pantalla en inglés: el desplegable de OC del requerimiento de pago («PO-2026-001 - Supplier Andino») y la ficha del proveedor bajo el campo de proveedor de la OC. Pendiente de consultar con Datnya si se corrige.
 
 ### ✅ Permisos de proyectos iguales para todos (resuelto en la actualización 2, 18-sep)
 **Qué pasaba:** los permisos de proyectos (a qué proyectos entra cada trabajador y cada cliente) se guardan en el servidor, en la membresía de cada usuario (`local_project_ids` y `project_scope` de `vaak_user_company_memberships`), y cada navegador arma con eso `projectMemberships` y `clientProjectLinks` (`syncRemoteUsers` de `access-runtime.js`). Pero **solo el administrador recibía la lista de usuarios**: los trabajadores veían permisos viejos o incompletos, y ningún navegador se enteraba de un cambio hecho por otro administrador hasta recargar.
@@ -459,6 +473,7 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **18 sep (actualización 2):** nada queda solo en la computadora de un usuario (borradores de OC y avisos descartados compartidos; registro de accesos escrito por el servidor, con botón «Vaciar registro» y confirmación en el centro de la pantalla); permisos de proyectos iguales para todos (directorio también para trabajadores y relectura cada 60 s). Probado en local con dos navegadores; pendiente publicar en PRUEBA y, con visto bueno, en OFICIAL
 - **18 sep (cierre):** plataforma OFICIAL instalada en `plataforma.hpgilatam.com` (base `wwwhpgilatam_vaakoficial`, administradora Datnya); no se migran datos (todo lo de Vercel era de prueba); reglas de trabajo PRUEBA → OFICIAL al inicio del documento
 - **18 sep (noche):** en el hosting la carpeta corre PHP 8.2 pero sin pdo_mysql ni mbstring → el servidor pasa a mysqli (`nucleo/bd.php`) y reemplazos de mbstring; ZIP subido y extraído en `staging.hpgilatam.com/public`
+- **18 sep (noche, 2):** actualización 3 — dirección del proveedor automática en la OC (BILL TO sigue siendo la del hotel), saldo de la OC en cada requerimiento de pago con número de OC en grande, aviso al pasarse (también en revisiones) y PO BALANCE / PO ALERT en el Excel. Actualización 2 confirmada en PRUEBA
 - **18 sep (tarde):** subdominio de prueba confirmado (`staging.hpgilatam.com`); etapa 2 del traslado: servidor PHP + MySQL construido en `servidor-php/` y probado en local con la plataforma real (45 pruebas de rutas + recorrido en el navegador con administrador, trabajador y cliente)
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:
