@@ -13,7 +13,7 @@
     destination: "Final destination", terms: "Payment terms", productionTime: "Production time",
     warranty: "Warranty", sideMark: "Side mark", specifiedBy: "Specified by",
     preparedBy: "Prepared by", freight: "Freight", freightCurrency: "Freight currency",
-    taxType: "Tax type", taxRate: "Tax rate", cifValue: "CIF value",
+    taxType: "Tax type", taxRate: "Tax rate", cifLabel: "Value title", cifValue: "CIF value",
     amountCurrency: "Currency", contactName: "Project contact",
     contactPhone: "Contact phone", contactEmail: "Contact email",
     adjustments: "Discounts / surcharges", item: "Item",
@@ -31,6 +31,7 @@
     invoiceTotal: "Invoice total", paymentAmount: "Payment amount",
     invoiceDate: "Invoice date", invoiceCurrency: "Invoice currency",
     paymentPayableTo: "Payment payable to", currency: "Currency",
+    breakdownExtras: "Other breakdown lines", poReferenceArea: "PO reference",
   });
 
   const PARTS = Object.freeze({
@@ -80,8 +81,28 @@
           (entry.reason ? `<p class="hpg-ref-revision-reason">Reason: ${esc(entry.reason)}</p>` : "")
       )
       .join("");
-    return `<div class="hpg-ref-revision"><p class="hpg-ref-stars">${stars}</p>${body}<p class="hpg-ref-stars">${stars}</p></div>`;
+    const legend = `<p class="hpg-ref-revision-legend">Values changed in Revision ${esc(list[list.length - 1].version)} are shown in <span class="rev-mark">blue</span> on this document.</p>`;
+    return `<div class="hpg-ref-revision"><p class="hpg-ref-stars">${stars}</p>${legend}${body}<p class="hpg-ref-stars">${stars}</p></div>`;
   }
 
-  root.VAAKRevisionBlock = Object.freeze({ html, changeLine, labels: LABELS });
+  // Cambios de la ÚLTIMA revisión: los formatos pintan esos valores en azul (pedido de Datnya,
+  // 18-sep-2026: el valor nuevo se ve en otro color, no solo entre los asteriscos).
+  function lastChanges(record) {
+    const list = Array.isArray(record && record.revisions) ? record.revisions : [];
+    return list.length ? (list[list.length - 1].changes || []) : [];
+  }
+  function changed(record, fields) {
+    const last = lastChanges(record);
+    return fields.some((field) => last.some((change) => change.field === field));
+  }
+  const mark = (on, html) => (on ? `<span class="rev-mark">${html}</span>` : html);
+
+  if (root.document && !root.document.getElementById("vaak-rev-mark-style")) {
+    const style = root.document.createElement("style");
+    style.id = "vaak-rev-mark-style";
+    style.textContent = ".rev-mark,.rev-mark *{color:#1d5fbf!important;font-weight:700!important;-webkit-print-color-adjust:exact;print-color-adjust:exact}.hpg-ref-revision-legend{font-style:italic}.hpg-ref-total .rev-mark,.hpg-ref-total .rev-mark *,.pr-total-primary .rev-mark,.pr-request-box aside .rev-mark,.hpg-ref-number .rev-mark{color:#a9d4ff!important}";
+    root.document.head.appendChild(style);
+  }
+
+  root.VAAKRevisionBlock = Object.freeze({ html, changeLine, labels: LABELS, lastChanges, changed, mark });
 })(typeof globalThis !== "undefined" ? globalThis : this);

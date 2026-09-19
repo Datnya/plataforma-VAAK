@@ -23,3 +23,7 @@ Thumbs.db
 # Configuracion real del servidor PHP (claves de la base de datos)
 servidor-php/publico/nucleo/config.php
 servidor-php/salida/
+
+# Paquetes y notas de trabajo: llevan config.php con la contrasena del cliente. Nunca al repositorio.
+Claude outputs/
+tmp/

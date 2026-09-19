@@ -8,6 +8,12 @@ AddHandler application/x-httpd-alt-php82___lsphp .php
 
 <IfModule mod_rewrite.c>
   RewriteEngine On
+  # Siempre por HTTPS (conexión cifrada): quien entra con http:// pasa solo a https://.
+  # Se excluye /.well-known/, que usa AutoSSL para emitir y renovar el certificado.
+  RewriteCond %{HTTPS} !=on
+  RewriteCond %{HTTP:X-Forwarded-Proto} !https
+  RewriteCond %{REQUEST_URI} !^/\.well-known/
+  RewriteRule ^(.*)$ https://%{HTTP_HOST}/$1 [R=301,L]
   # La plataforma antes vivia en /prototype/: se mantienen esas direcciones.
   RewriteRule ^prototype/(.*)$ /$1 [R=301,L]
   # Todas las rutas /api/* las atiende api.php.
