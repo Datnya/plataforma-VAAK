@@ -65,7 +65,7 @@
       <p class="hpg-ref-note">* For all items, shop drawings and finish samples must be approved before production begins.</p>
       <section class="hpg-ref-approvals-section"><h2 class="hpg-ref-section-label">APPROVALS</h2><div class="hpg-ref-approvals"><div><span>APPROVED BY</span><p>${esc(order.approvedBy||'')}</p><i></i><small>Signature (Title)<b>Date</b></small></div><div><span>ACCEPTED BY VENDOR</span><p>${esc(supplierName)} Company Name</p><i></i><small>Signature (Title)<b>Date</b></small></div><div><span>AGENT / ENTITY</span><p>HPG International Latinoamericana SAC</p><i></i><small>Signature<b>Date</b></small></div><div class="hpg-ref-approved-for"><span>APPROVED FOR</span><strong>${mk(moneyCh,money(currency,total))}</strong><small>Shipping Date: ______________ &nbsp; Approved: ______________</small></div></div></section>
       ${conditions.length?`<section class="hpg-ref-conditions"><h2>TERMS AND CONDITIONS</h2><h3>PROJECT PURCHASE CONDITIONS</h3><div>${conditions.map((term,index)=>`<p><strong>${String(index+1).padStart(2,'0')}</strong><span>${esc(term)}</span></p>`).join('')}</div></section>`:''}
-      <style media="print">@page vaak-po{@bottom-right{content:"PO ${cssText(order.number)} · Page " counter(page) " of " counter(pages)}}</style>
+
       <footer class="hpg-ref-footer"><span>HPG International Latinoamericana SAC · RUC 20600893123 · hpgilatam.com</span><span>PO ${esc(order.number)}</span></footer>
     </article>`
   }

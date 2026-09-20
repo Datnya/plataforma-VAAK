@@ -27,7 +27,7 @@
   }
 
   // Bloques que la impresora no parte (en el orden de la hoja), hasta las firmas.
-  function blocksOf(clone) {
+  function blocksOf(clone, hasta) {
     const base = clone.getBoundingClientRect().top;
     const box = (element) => { const r = element.getBoundingClientRect(); return { top: r.top - base, bottom: r.bottom - base }; };
     const list = [];
@@ -40,7 +40,7 @@
     let theadHeight = 0;
     for (const child of clone.children) {
       if (child.matches("style, .hpg-ref-footer")) continue;
-      if (child.matches(".hpg-ref-approvals-section")) break;
+      if (child.matches(hasta)) break;
       if (child.matches("h2.hpg-ref-section-label")) { pendingLabel = box(child); continue; }
       if (child.matches("table.hpg-ref-items")) {
         const head = child.tHead;
@@ -70,14 +70,36 @@
     return shift;
   }
 
-  function fits(clone, shift) {
-    const section = clone.querySelector(".hpg-ref-approvals-section");
+  function fits(clone, shift, selector = ".hpg-ref-approvals-section") {
+    const section = clone.querySelector(selector);
+    if (!section) return true;
     const base = clone.getBoundingClientRect().top;
     const r = section.getBoundingClientRect();
     const top = r.top - base + shift, bottom = r.bottom - base + shift;
     const pageEnd = (Math.floor(top / PAGE_HEIGHT) + 1) * PAGE_HEIGHT;
     return bottom <= pageEnd - SAFETY;
   }
+
+  // Márgenes de la hoja: se ponen al imprimir, desde aquí. Antes estaban en una «página con
+  // nombre» (@page vaak-po) y Chrome no siempre la aplica: entonces mandaba el `@page{margin:0}`
+  // de otro formato y la OC salía pegada al borde (lo vio Datnya el 20-sep). Este <style> se
+  // agrega el último, así gana siempre.
+  const MARGENES = "12mm 11mm 15mm";
+  function ponerMargenes(sheet) {
+    quitarMargenes();
+    const numero = (sheet.querySelector(".hpg-ref-number strong") || {}).textContent || "";
+    const limpio = String(numero).replace(/[\\"<>\r\n]/g, "").trim();
+    const tipo = "font-family:Montserrat,Arial,sans-serif;font-size:7px;letter-spacing:.05em;color:#a9927a;vertical-align:top;padding-top:3mm";
+    const pie = marginBoxes()
+      ? `@bottom-left{content:"HPG International Latinoamericana SAC · RUC 20600893123 · hpgilatam.com";${tipo}}@bottom-right{content:"${limpio ? limpio + " · " : ""}Page " counter(page) " of " counter(pages);${tipo}}`
+      : "";
+    const style = document.createElement("style");
+    style.id = "vaak-oc-margenes";
+    style.media = "print";
+    style.textContent = `@page{size:A4;margin:${MARGENES}}${pie ? "@page{" + pie + "}" : ""}`;
+    document.head.appendChild(style);
+  }
+  const quitarMargenes = () => document.getElementById("vaak-oc-margenes")?.remove();
 
   // El pie en todas las hojas usa los márgenes de página (@bottom-left / @bottom-right), que
   // solo entienden los navegadores que tienen CSSMarginRule (Chrome, Edge, Opera, Brave 131+).
@@ -103,16 +125,18 @@
     if (!document.body.classList.contains("print-order")) return;
     const sheet = document.querySelector("#modal-root .hpg-reference-po");
     if (!sheet) return;
+    ponerMargenes(sheet);
     if (!marginBoxes()) footerFallback(sheet);
-    if (!sheet.querySelector(".hpg-ref-approvals-section")) return;
     const { clone, done } = measureSheet(sheet);
     try {
-      const { list, theadHeight } = blocksOf(clone);
+      // Sin firmas no hay nada que compactar, pero las condiciones se revisan igual.
+      if (!clone.querySelector(".hpg-ref-approvals-section")) { condiciones(clone, sheet); return; }
+      const { list, theadHeight } = blocksOf(clone, ".hpg-ref-approvals-section");
       const shift = shiftBefore(list, theadHeight);
-      if (fits(clone, shift)) return; // cabe normal: nada que hacer
+      if (fits(clone, shift)) { condiciones(clone, sheet); return; } // cabe normal: nada que hacer
       clone.classList.add("po-approvals-compact");
       clone.style.setProperty("--po-approval-min", "0px");
-      if (!fits(clone, shift)) return; // ni compacto cabe: pasa a la hoja siguiente
+      if (!fits(clone, shift)) { clone.classList.remove("po-approvals-compact"); condiciones(clone, sheet); return; } // ni compacto cabe: pasa a la hoja siguiente
       // El alto más grande (hasta el normal) con el que todavía cabe.
       let low = 0, high = BOX_MIN;
       while (high - low > 1) {
@@ -122,13 +146,31 @@
       }
       sheet.classList.add("po-approvals-compact");
       sheet.style.setProperty("--po-approval-min", low + "px");
+      condiciones(clone, sheet);
     } finally {
       done();
     }
   }
 
+  // Si «TERMS AND CONDITIONS» no cabe entera al final de la hoja, pasa completa a la siguiente
+  // (antes el título quedaba en una hoja y las condiciones en la otra; lo vio Datnya el 20-sep).
+  function condiciones(clone, sheet) {
+    const seccion = clone.querySelector(".hpg-ref-conditions");
+    if (!seccion) return;
+    const { list, theadHeight } = blocksOf(clone, ".hpg-ref-conditions");
+    const shift = shiftBefore(list, theadHeight);
+    const base = clone.getBoundingClientRect().top;
+    const caja = seccion.getBoundingClientRect();
+    const alto = caja.height;
+    if (alto > PAGE_HEIGHT) return; // más larga que una hoja: se parte igual, no hay remedio
+    if (fits(clone, shift, ".hpg-ref-conditions")) return;
+    sheet.classList.add("po-conditions-next-page");
+  }
+
   function reset() {
+    quitarMargenes();
     document.querySelectorAll(".hpg-reference-po.po-footer-fallback").forEach((sheet) => sheet.classList.remove("po-footer-fallback"));
+    document.querySelectorAll(".hpg-reference-po.po-conditions-next-page").forEach((sheet) => sheet.classList.remove("po-conditions-next-page"));
     document.querySelectorAll(".hpg-reference-po.po-approvals-compact").forEach((sheet) => {
       sheet.classList.remove("po-approvals-compact");
       sheet.style.removeProperty("--po-approval-min");

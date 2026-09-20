@@ -25,15 +25,29 @@
   const es = (a, b) => (spanish() ? a : b);
   const drafts = () => { try { return JSON.parse(localStorage.getItem(DRAFTS) || "[]"); } catch { return []; } };
 
-  async function until(check, timeout = 8000) {
+  async function until(check, timeout = 8000, paso = 25) {
     const start = Date.now();
     while (Date.now() - start < timeout) {
       const value = check();
       if (value) return value;
-      await wait(60);
+      await wait(paso);
     }
     return null;
   }
+  // Espera corta: lo justo para que el formulario reaccione al valor anterior.
+  const respira = (ms = 40) => wait(ms);
+
+  // Mientras se abre y se llena el borrador, una capa tapa el formulario a medio armar
+  // (antes se veía el texto desordenado unos segundos) y muestra que está cargando.
+  function tapar() {
+    if (document.getElementById("oc-draft-cargando")) return;
+    const capa = document.createElement("div");
+    capa.id = "oc-draft-cargando";
+    capa.setAttribute("role", "status");
+    capa.innerHTML = `<div class="oc-draft-cargando-caja"><span class="login-spinner" aria-hidden="true"></span><span>${es("Abriendo el borrador…", "Opening the draft…")}</span></div>`;
+    document.body.appendChild(capa);
+  }
+  const destapar = () => document.getElementById("oc-draft-cargando")?.remove();
 
   function notice(text) {
     document.getElementById("oc-draft-notice")?.remove();
@@ -61,16 +75,16 @@
 
   // Campos que se calculan solos, que no se restauran o que se restauran aparte.
   const SKIP = new Set(["amountValue", "amountCurrency", "taxAmount", "projectId", "conditionsJson", "warehouse", "addressMode",
-    "supplierAddress", "supplierContact", "supplierPhone", "supplierEmail", "specifiedBy", "draftId", "draftDate", "items", "adjustments"]);
+    "supplierAddress", "supplierContact", "supplierPhone", "supplierEmail", "specifiedBy", "preparedBy", "draftId", "draftDate", "items", "adjustments"]);
   const FIRST = ["ocTeam", "ocRubro", "supplier"];
 
   async function restore(form, draft) {
     const field = (name) => form.elements.namedItem(name);
-    for (const name of FIRST) { put(field(name), draft[name]); await wait(120); }
+    for (const name of FIRST) { put(field(name), draft[name]); await respira(); }
 
     // Dirección del proveedor (lista de oc-direcciones.js).
     const choice = form.querySelector("[data-oc-supplier-address]");
-    if (choice && draft.supplierAddress) { put(choice, draft.supplierAddress); await wait(60); }
+    if (choice && draft.supplierAddress) { put(choice, draft.supplierAddress); await respira(20); }
     for (const name of ["supplierContact", "supplierPhone", "supplierEmail"]) if (draft[name]) put(field(name), draft[name]);
 
     // Resto de campos simples.
@@ -80,7 +94,7 @@
       const element = field(name);
       if (element && element.type !== "hidden" && !(element instanceof RadioNodeList)) put(element, value);
     }
-    await wait(80);
+    await respira(20);
 
     // Ítems: todos, no solo el primero.
     const items = Array.isArray(draft.items) && draft.items.length ? draft.items
@@ -92,18 +106,18 @@
       let rows = [...form.querySelectorAll("#po-items [data-item-index]")];
       if (k >= rows.length) {
         form.querySelector("[data-po-add-item]")?.click();
-        rows = await until(() => { const list = [...form.querySelectorAll("#po-items [data-item-index]")]; return list.length > k ? list : null; }, 3000) || rows;
+        rows = await until(() => { const list = [...form.querySelectorAll("#po-items [data-item-index]")]; return list.length > k ? list : null; }, 3000, 15) || rows;
       }
       const row = rows[k];
       if (!row) break;
       const i = row.dataset.itemIndex;
       const item = items[k] || {};
       put(field(`itemSpec${i}`), item.specId || "");
-      await wait(120);
+      // El costo y la moneda los pone la plataforma al elegir el spec: se espera a que aparezcan.
+      if (item.specId) await until(() => String(field(`itemCost${i}`)?.value || "").trim() !== "", 600, 15);
       if (item.currency) put(field(`itemCurrency${i}`), item.currency);
       if (item.quantity !== undefined && item.quantity !== "") put(field(`itemQuantity${i}`), item.quantity);
       if (item.unitCost !== undefined && item.unitCost !== "") put(field(`itemCost${i}`), item.unitCost);
-      await wait(60);
     }
 
     // Descuentos y recargos.
@@ -111,7 +125,7 @@
       const list = form.querySelector(".po-adjust-list");
       const before = list ? list.children.length : 0;
       form.querySelector("[data-adjust-add]")?.click();
-      const row = await until(() => (list && list.children.length > before ? list.lastElementChild : null), 2000);
+      const row = await until(() => (list && list.children.length > before ? list.lastElementChild : null), 2000, 15);
       if (!row) break;
       const amount = Number(adjustment.amount) || 0;
       put(row.querySelector("[name^='adjConcept']"), adjustment.concept || "");
@@ -130,6 +144,7 @@
     const draft = drafts().find((item) => item.draftId === draftId);
     if (!draft) { notice(es("No se encontró el borrador. Puede que otra persona lo haya eliminado o ya emitido.", "Draft not found. Someone may have deleted or issued it.")); return; }
     busy = true;
+    tapar();
     try {
       const modalRoot = document.getElementById("modal-root");
       if (modalRoot) modalRoot.innerHTML = "";
@@ -152,9 +167,12 @@
       form.classList.add("oc-draft-loading");
       await restore(form, draft);
       form.classList.remove("oc-draft-loading");
+      // Un respiro para que la plataforma termine de acomodar el formato antes de mostrarlo.
+      await respira(60);
     } catch (error) {
       notice(es("No se pudo cargar el borrador completo: ", "The draft could not be fully loaded: ") + (error?.message || error));
     } finally {
+      destapar();
       busy = false;
     }
   }
@@ -177,6 +195,10 @@
   }, true);
 
   const style = document.createElement("style");
-  style.textContent = "form.oc-draft-loading{pointer-events:none;opacity:.6;transition:opacity .2s}";
+  style.textContent = "form.oc-draft-loading{pointer-events:none}"
+    + "#oc-draft-cargando{position:fixed;inset:0;z-index:1450;display:grid;place-items:center;background:#fcfbfa}"
+    + ".oc-draft-cargando-caja{display:flex;align-items:center;gap:.7rem;padding:1rem 1.4rem;border:1px solid #e4d8c8;border-radius:12px;background:#fff;color:#5b4030;font-weight:700;font-size:.95rem;box-shadow:0 18px 40px rgba(39,27,21,.18)}"
+    + ".oc-draft-cargando-caja .login-spinner{display:inline-block;width:1.1em;height:1.1em;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;animation:vaak-login-spin .7s linear infinite}"
+    + "@keyframes vaak-login-spin{to{transform:rotate(360deg)}}";
   document.head.appendChild(style);
 })();

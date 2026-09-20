@@ -90,7 +90,14 @@ La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Sup
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
 
-### 📍 Dónde quedamos exactamente (19-sep)
+### 📍 Dónde quedamos exactamente (20-sep)
+- **PRUEBA y OFICIAL tenían la actualización 3 completa** (subida el 19-sep). Lo del **20-sep** es la **actualización 4**, probada en la demo local y empaquetada en `Claude outputs/actualizaciones/actualizacion-4/` (ver sección 6, «Actualización 4»).
+- La plataforma OFICIAL se ve en internet con candado: `https://plataforma.hpgilatam.com` (DNS en Microsoft 365 + Let's Encrypt hasta el 18-dic-2026). La raíz del oficial es `/plataforma.hpgilatam.com` (**sin** `/public`; la de prueba sí lleva `/public`).
+- **Pendiente principal: copias de seguridad diarias.** JetBackup 5 aparece en el cPanel pero su pantalla se queda cargando; Datnya decidió que el equipo de TI del cliente confirme qué copia hace el hosting. Mientras tanto está listo y probado `servidor-php/herramientas/respaldo-diario.php` (sin instalar: falta crear `/home/USUARIO/vaak-respaldos`, subir el archivo y programar el cron).
+- Pendiente menor: los campos propios del «Pago realizado» (`paymentExtras`) no se restan del monto pendiente; falta que Datnya confirme si deben restarse.
+- El repositorio sigue **público** a pedido de Datnya (trabaja con la IA desde ahí).
+
+### Dónde quedamos el 19-sep
 - **PRUEBA y OFICIAL están las dos al día** con la actualización 3 (tandas 2 a 5) y el HTTPS obligatorio. Comprobado archivo por archivo desde internet.
 - **La plataforma OFICIAL ya se ve en internet y con candado**: `https://plataforma.hpgilatam.com` (DNS en Microsoft 365 + certificado Let's Encrypt hasta el 18-dic-2026).
 - **Primer administrador oficial:** `datnya.monzon` / `datnyamonzon1@gmail.com`. La contraseña la cambia ella al entrar; las contraseñas nunca se guardan en texto (bcrypt), ni siquiera en los archivos de instalación.
@@ -412,6 +419,17 @@ Pedido de Datnya: «todo debe estar debidamente vinculado».
 ### HTTPS obligatorio (actualización 3, 18-sep noche, sin commit)
 `servidor-php/publico/.htaccess` redirige `http://` → `https://` (301), salvo `/.well-known/` (lo usa AutoSSL para el certificado). Antes, en PRUEBA, `http://staging.hpgilatam.com` abría sin cifrado. El ZIP de la actualización 3 incluye este `.htaccess` (20 archivos en total). **Seguridad que depende del hosting** (firewall, DDoS, antivirus del servidor): no se pudo confirmar con Perú Hosting (Datnya no tiene contacto directo); lo que sí se sabe es que la cuenta usa CloudLinux con LiteSpeed y AutoSSL. **Pendiente:** copias de seguridad de la base oficial.
 
+### Actualización 4 (20-sep)
+Todo probado en la demo local; el paquete está en `Claude outputs/actualizaciones/actualizacion-4/`.
+- **«Preparado por» (OC)**: es siempre quien llena el formulario y no se edita (`app.js`, `oc-formulario.js`); el motor lo fija al emitir (`new-order` en `access-runtime.js`), igual que «Especificado por». Al continuar un borrador de otra persona se pone el nombre de quien lo abre.
+- **Bug al abrir un borrador de OC**: se veía el formulario a medio armar unos segundos. Ahora `oc-borradores.js` tapa la pantalla con «Abriendo el borrador…» (con su animación) hasta que está listo, y las esperas fijas bajaron de más de 1 s a **225 ms** en total (se espera por condición, no por tiempo).
+- **Márgenes del PDF de la OC**: estaban puestos con una «página con nombre» (`@page vaak-po`) y el Chrome de Datnya no la aplicaba, así que mandaba el `@page{margin:0}` de otro formato y la hoja salía pegada al borde. Ahora `oc-impresion.js` inyecta al imprimir un `<style>` con `@page{size:A4;margin:12mm 11mm 15mm}` (va último, gana siempre) y, si el navegador admite cajas de margen, también el pie (`@bottom-left` / `@bottom-right` con «PO · Page X of Y»). Comprobado imprimiendo a PDF con Chrome sin ventana, con y sin soporte de cajas de margen.
+- **«TERMS AND CONDITIONS» entera en una hoja**: si no cabe al final de la hoja, la sección completa pasa a la siguiente (`condiciones()` en `oc-impresion.js` + `break-after:avoid` en sus títulos). Antes el título quedaba en una hoja y las condiciones en la otra.
+- **Campos de varias líneas** (`campos-multilinea.js`, nuevo): Enter baja de renglón y el campo crece solo en Incoterm, Flete, Términos y condiciones de pago, Tiempo de producción, Garantía, Marca lateral, Destino final y Dirección fiscal (OC); Términos de pago, Proveedor/fabricante y Pagar a (RP); Descripción, Tamaño, Material y Acabado (spec). En los campos de una línea, Enter ya no envía el formulario. Los saltos de línea se respetan al imprimir (`white-space:pre-wrap` en los dos formatos). Como la plataforma hace `campo.type="text"` en varios sitios, los textarea fingen ser de texto (`Object.defineProperty`) para no romper nada.
+- **Lupa en la previsualización A4** (`a4-preview.js`): barra con 🔍− / porcentaje / 🔍+ / «Ajustar», del 50 % al 250 % de 25 en 25, con desplazamiento lateral. No afecta al PDF y no sale impresa.
+- **«Partes» del requerimiento de pago**: los cuatro campos (proveedor/fabricante, pagar a, dirección fiscal y contacto) se llenan con la OC elegida y **no se editan** (`rp-formulario.js`). Si la OC no trae un dato, el campo queda vacío, deja de ser obligatorio y muestra un aviso en rojo debajo.
+- **Nombres**: «Generar nueva factura» → **«Generar nuevo requerimiento»**, su botón → «Generar requerimiento», la vista previa → «Previsualización del requerimiento» y el mensaje → «Requerimiento de pago generado». «Total de la solicitud» no cambió: sale con el monto por defecto, es editable y conserva su aviso en rojo.
+
 ### Tanda 5 de la actualización 3 (18-sep noche, sin commit)
 - **Botones renombrados** (solo el texto; la función es la misma): «Realizar revisión» → **«Cambio de spec»**, **«Cambio de orden»**, **«Cambio de requerimiento»**. Los títulos de las ventanas siguen diciendo «Revisión…».
 - **Spec cerrado = solo «Cambio de spec»** (antes era al revés): un spec abierto se **edita** (Editar/Duplicar, sin «Cambio»); cuando las OC usan toda su cantidad queda cerrado y solo se puede hacer «Cambio de spec». El motor lo exige: `revise-spec` rechaza specs no cerrados y `edit-spec` rechaza los cerrados. Un spec sin «Cantidad» nunca se cierra, así que siempre se edita.
@@ -557,6 +575,8 @@ Cosmético. `/api/health` devuelve `releaseId: "local"` porque la variable se pe
 - **18 sep (noche, 4):** tanda 3 (sin commit): rubro del spec filtrado, unidad de medida en desplegable, borradores de OC restaurados completos, formularios que ya no vencen, PDF de la OC con márgenes y pie en todas las hojas, firmas compactas y texto justificado
 - **18 sep (noche, 5):** tanda 4 (sin commit): pie de página con aviso en otros navegadores, requerimiento de pago con partes desde la OC, referencia solo con número, desglose con conceptos propios y monto a pagar sumado, «pagar a» bloqueado, formato A4 sin conceptos vacíos y PAYMENT TERMS en una línea, OC junto a la fecha en la tarjeta
 - **18 sep (noche, 6):** tanda 5 (sin commit): botones «Cambio de…», spec cerrado solo con «Cambio de spec», OC con los datos del spec congelados, cambio de orden con más cantidad permitido, motivos y valores en azul en los tres formatos, reportes siempre al día, INVOICE NOTE, pendiente automático y campos propios en el registro del pago
+- **20 sep:** actualización 4 — «Preparado por» fijo, borradores sin pantallazo desordenado, márgenes y pie del PDF corregidos de raíz, condiciones enteras en una hoja, campos de varias líneas con Enter, lupa en la previsualización, «Partes» del RP bloqueadas y renombrado del formulario de requerimiento
+- **19 sep:** oficial en internet con candado; actualizaciones 2 y 3 publicadas en PRUEBA y en OFICIAL; GitHub al día; copia de seguridad diaria preparada y probada (sin instalar)
 - **18 sep (tarde):** subdominio de prueba confirmado (`staging.hpgilatam.com`); etapa 2 del traslado: servidor PHP + MySQL construido en `servidor-php/` y probado en local con la plataforma real (45 pruebas de rutas + recorrido en el navegador con administrador, trabajador y cliente)
 
 Para el detalle de cualquier cambio, los mensajes de commit son extensos y explican el porqué:

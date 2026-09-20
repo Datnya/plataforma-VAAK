@@ -1117,3 +1117,12 @@ textarea.auto-grow{resize:vertical;min-height:2.6rem;overflow:hidden;line-height
 .delete-project-error[hidden]{display:none}
 .btn-spinner{display:inline-block;width:.9em;height:.9em;margin-right:.35rem;border:2px solid currentColor;border-right-color:transparent;border-radius:50%;vertical-align:-.12em;animation:vaak-giro .7s linear infinite}
 @keyframes vaak-giro{to{transform:rotate(360deg)}}
+
+/* Lupa de la previsualización A4 (20-sep-2026). Al imprimir no sale. */
+.a4-zoom{position:sticky;top:0;z-index:5;display:flex;align-items:center;justify-content:flex-end;gap:.4rem;margin:0 0 .6rem;padding:.35rem 0}
+.a4-zoom button{padding:.35rem .7rem;border:1px solid #dccbba;border-radius:8px;background:#fff;color:#5b4030;font-size:.82rem;font-weight:700;cursor:pointer}
+.a4-zoom button:hover{background:#f6efe6}
+.a4-zoom span{min-width:3.4rem;text-align:center;color:#7a6a5f;font-size:.82rem;font-weight:700}
+.a4-stage{margin:0 auto}
+.po-preview-modal .modal-body,.invoice-preview-modal .modal-body,.spec-preview-modal .modal-body{overflow-x:auto}
+@media print{.a4-zoom{display:none!important}}

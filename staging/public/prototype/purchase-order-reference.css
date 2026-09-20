@@ -43,7 +43,7 @@
 
 
 
-@media print{@page{size:A4;margin:0}.hpg-reference-po,.hpg-reference-po *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}.hpg-reference-po{page:vaak-po;width:auto!important;max-width:none!important;min-height:0;padding:0!important}.hpg-ref-section-label{break-after:avoid}.hpg-ref-footer{display:none!important}.hpg-ref-items thead{display:table-header-group}.hpg-ref-items tr,.hpg-ref-summary,.hpg-ref-parties,.hpg-ref-commercial,.hpg-ref-marks,.hpg-ref-payment,.hpg-ref-approvals{break-inside:avoid}.hpg-ref-approvals-section{break-inside:avoid}.hpg-ref-footer{break-inside:avoid}}
+@media print{@page{size:A4;margin:0}.hpg-reference-po,.hpg-reference-po *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important;color-adjust:exact!important}.hpg-reference-po{width:auto!important;max-width:none!important;min-height:0;padding:0!important}.hpg-ref-section-label{break-after:avoid}.hpg-ref-footer{display:none!important}.hpg-ref-items thead{display:table-header-group}.hpg-ref-items tr,.hpg-ref-summary,.hpg-ref-parties,.hpg-ref-commercial,.hpg-ref-marks,.hpg-ref-payment,.hpg-ref-approvals{break-inside:avoid}.hpg-ref-approvals-section{break-inside:avoid}.hpg-ref-footer{break-inside:avoid}}
 
 /* TERMS: texto largo con saltos de linea; la celda crece hacia abajo. */
 .hpg-ref-commercial .hpg-ref-terms-cell strong{white-space:pre-wrap;overflow-wrap:anywhere;word-break:break-word;font-weight:600}
@@ -52,7 +52,7 @@
    margen era el relleno de la hoja) y pie de página en todas. Página con nombre propio para no
    tocar los otros formatos (solicitud de pago y ficha técnica siguen con su @page). El número de
    OC del pie lo agrega el formato en un <style> propio. */
-@media print{@page vaak-po{size:A4;margin:12mm 11mm 15mm;@bottom-left{content:"HPG International Latinoamericana SAC · RUC 20600893123 · hpgilatam.com";font-family:Montserrat,Arial,sans-serif;font-size:7px;letter-spacing:.05em;color:#a9927a;vertical-align:top;padding-top:3mm}@bottom-right{content:"Page " counter(page) " of " counter(pages);font-family:Montserrat,Arial,sans-serif;font-size:7px;letter-spacing:.05em;color:#a9927a;vertical-align:top;padding-top:3mm}}}
+}
 /* Firmas compactas: las activa oc-impresion.js solo cuando así caben en la hoja anterior. */
 .hpg-reference-po.po-approvals-compact .hpg-ref-approvals-section{margin-top:14px}.hpg-reference-po.po-approvals-compact .hpg-ref-approvals>div{min-height:var(--po-approval-min,0px);padding-top:10px;padding-bottom:10px}.hpg-reference-po.po-approvals-compact .hpg-ref-approvals p{min-height:14px;margin:5px 0}.hpg-reference-po.po-approvals-compact .hpg-ref-approvals i{margin-top:12px}.hpg-reference-po.po-approvals-compact .hpg-ref-approved-for>strong{margin:4px 0 10px}
 /* Texto que escriben los usuarios en ITEM y DESCRIPTION: justificado, como un párrafo de Word. */
@@ -60,3 +60,8 @@
 /* Sin columna IMAGE los anchos se corrían una columna: DESCRIPTION quedaba angosta y QTY enorme. */
 .hpg-ref-items.hpg-ref-no-image th:nth-child(1){width:17%}.hpg-ref-items.hpg-ref-no-image th:nth-child(2){width:45%}.hpg-ref-items.hpg-ref-no-image th:nth-child(3){width:10%;text-align:right!important}.hpg-ref-items.hpg-ref-no-image th:nth-child(4){width:13%;text-align:right!important}.hpg-ref-items.hpg-ref-no-image th:nth-child(5){width:15%;text-align:right!important}
 @media print{html,body.print-order,body.print-order #modal-root,body.print-order .modal,body.print-order .modal-body{background:#fff!important}}
+/* Los textos que el usuario escribe en varias líneas se imprimen con sus saltos. */
+.hpg-ref-commercial strong,.hpg-ref-marks strong,.hpg-ref-payment p,.hpg-ref-party p,.hpg-ref-desc-cell,.hpg-ref-item-cell{white-space:pre-wrap}
+/* El título de las condiciones nunca se queda solo al final de una hoja. */
+.hpg-ref-conditions h2,.hpg-ref-conditions h3{break-after:avoid}
+.hpg-reference-po.po-conditions-next-page .hpg-ref-conditions{break-before:page}

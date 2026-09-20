@@ -13,6 +13,17 @@
   const HOJAS = ".hpg-reference-po,.hpg-payment-request,.hpg-technical-sheet";
   const ANCHO_A4 = 794;
   let pendiente = false;
+  // Zoom con lupa (pedido de Datnya, 20-sep-2026): 1 = como entra en la ventana.
+  let zoom = 1;
+  const ZOOM_MIN = 0.5;
+  const ZOOM_MAX = 3;
+  const esp = () => {
+    try {
+      const id = sessionStorage.getItem("vaak-session-tab-v1");
+      const guardado = localStorage.getItem("vaak-language-" + (id || "guest"));
+      return guardado ? guardado === "es" : document.documentElement.lang === "es";
+    } catch { return false; }
+  };
 
   const contenedor = () => document.getElementById("modal-root");
 
@@ -39,15 +50,41 @@
 
   function ajustar(hoja) {
     const escenario = envolver(hoja);
+    barra(escenario);
     const disponible = anchoDisponible(escenario);
     if (disponible <= 0) return;
-    const escala = Math.min(1, disponible / ANCHO_A4);
+    const escala = Math.min(1, disponible / ANCHO_A4) * zoom;
     // offsetHeight es la altura sin escalar, que es la que hay que convertir.
     const alto = hoja.offsetHeight;
     hoja.style.transformOrigin = "top left";
-    hoja.style.transform = escala < 1 ? `scale(${escala})` : "";
+    // Con la lupa la escala puede pasar de 1: entonces también hay que aplicarla.
+    hoja.style.transform = escala !== 1 ? `scale(${escala})` : "";
     escenario.style.width = Math.round(ANCHO_A4 * escala) + "px";
     escenario.style.height = alto ? Math.ceil(alto * escala) + "px" : "";
+  }
+
+  // Barra con la lupa, encima de la hoja.
+  function barra(escenario) {
+    const caja = escenario.parentElement;
+    if (!caja || caja.querySelector(".a4-zoom")) return;
+    const barraZoom = document.createElement("div");
+    barraZoom.className = "a4-zoom";
+    barraZoom.innerHTML =
+      `<button type="button" data-zoom="-" title="${esp() ? "Alejar" : "Zoom out"}" aria-label="${esp() ? "Alejar" : "Zoom out"}">🔍−</button>` +
+      `<span data-zoom-valor>100%</span>` +
+      `<button type="button" data-zoom="+" title="${esp() ? "Acercar" : "Zoom in"}" aria-label="${esp() ? "Acercar" : "Zoom in"}">🔍+</button>` +
+      `<button type="button" data-zoom="1" title="${esp() ? "Ajustar a la ventana" : "Fit to window"}">${esp() ? "Ajustar" : "Fit"}</button>`;
+    caja.insertBefore(barraZoom, escenario);
+    barraZoom.addEventListener("click", (evento) => {
+      const boton = evento.target.closest("[data-zoom]");
+      if (!boton) return;
+      evento.preventDefault();
+      const paso = boton.dataset.zoom;
+      if (paso === "1") zoom = 1;
+      else if (paso === "+") zoom = Math.min(ZOOM_MAX, Math.round((zoom + 0.25) * 100) / 100);
+      else zoom = Math.max(ZOOM_MIN, Math.round((zoom - 0.25) * 100) / 100);
+      ajustarTodo();
+    });
   }
 
   function ajustarTodo() {
@@ -58,6 +95,10 @@
       ajustar(hoja);
       observarAlto(hoja);
     });
+    host.querySelectorAll("[data-zoom-valor]").forEach((etiqueta) => {
+      etiqueta.textContent = Math.round(zoom * 100) + "%";
+    });
+    if (!host.querySelector(HOJAS)) zoom = 1; // al cerrar la ventana, vuelve al tamaño normal
   }
 
   function programar() {

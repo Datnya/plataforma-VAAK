@@ -12,6 +12,8 @@
 (() => {
   "use strict";
   const BASE = ["goods", "freight", "packing", "additionalCharges", "overage", "customs", "salesTax"];
+  // «Partes»: se llenan con la OC elegida y no se editan (pedido de Datnya, 20-sep-2026).
+  const PARTES = ["sourceManufacturer", "payableTo", "payableAddress", "payableContact"];
   const Money = () => window.VAAKMoney;
   const spanish = () => {
     try {
@@ -100,6 +102,9 @@
     lock(field("invoiceTotal"), es("Es el mismo «Total de la solicitud».", "Same as «Total for this request»."));
     lock(field("paymentAmount"), es("Suma de todo el desglose de montos.", "Sum of the whole amount breakdown."));
     lock(field("paymentPayableTo"), es("Siempre es el proveedor de la OC elegida.", "Always the supplier of the selected PO."));
+    for (const nombre of PARTES) {
+      lock(field(nombre), es("Se completa con los datos de la OC elegida; no se escribe a mano.", "Filled from the selected PO; it is not typed in."));
+    }
 
     // Campo oculto con los conceptos propios.
     let hidden = field("breakdownExtras");
@@ -122,6 +127,19 @@
     if (kind === "new") recalc(form);
   }
 
+  function aviso(field, texto) {
+    const caja = field.closest("label, .field");
+    if (!caja) return;
+    let nota = caja.querySelector(".rp-falta");
+    if (!texto) { nota?.remove(); return; }
+    if (!nota) {
+      nota = document.createElement("small");
+      nota.className = "rp-falta";
+      caja.appendChild(nota);
+    }
+    nota.textContent = texto;
+  }
+
   // Al elegir la OC (después de que la plataforma llena el formulario).
   function fromOrder(form) {
     const state = readState();
@@ -129,7 +147,17 @@
     if (!order) return;
     const name = order.supplier || order.manufacturer || "";
     const supplier = (state.suppliers || []).find((item) => (order.supplierId && item.id === order.supplierId) || String(item.name || "").trim().toLowerCase() === name.trim().toLowerCase()) || {};
-    const put = (fieldName, value) => { const field = form.elements.namedItem(fieldName); if (field && value) field.value = value; };
+    const put = (fieldName, value) => {
+      const field = form.elements.namedItem(fieldName);
+      if (!field) return;
+      field.value = value || "";
+      field.dispatchEvent(new Event("input", { bubbles: true }));
+      // Si la OC no trae el dato, no se puede exigir aquí: se avisa debajo del campo.
+      if (PARTES.includes(fieldName)) {
+        if (field.required && !value) field.required = false;
+        aviso(field, value ? "" : es("La OC elegida no tiene este dato. Complétalo en la OC o en el proveedor.", "The selected PO does not have this detail. Add it on the PO or on the supplier."));
+      }
+    };
     put("sourceManufacturer", [name, order.source || order.manufacturer || name].filter(Boolean).join(" / "));
     put("payableTo", name);
     put("payableAddress", order.supplierAddress || supplier.address || "");
@@ -230,6 +258,7 @@
   style.textContent = ".rp-locked{background:#f3eee7!important;color:#5b4030!important;cursor:not-allowed}"
     + ".rp-extras{grid-column:1/-1;margin-top:.6rem}.rp-extra-list{display:grid;gap:.5rem}.rp-extra-row{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(0,1fr) auto;gap:.6rem;align-items:end}.rp-extra-row .field{margin:0}.rp-extra-row button{height:42px;padding:0 .8rem}"
     + ".rp-extra-add{margin-top:.6rem}.rp-extra-hint{display:block;margin-top:.4rem;color:#7a6a5f;font-size:.75rem}"
+    + ".rp-falta{display:block;margin-top:.3rem;color:#c0392b;font-size:.75rem;font-weight:600}"
     + ".rp-oc-inline{white-space:nowrap}.rp-oc-inline b{color:#5b4030;font-size:1.08em;font-weight:800;letter-spacing:.01em}";
   document.head.appendChild(style);
 })();

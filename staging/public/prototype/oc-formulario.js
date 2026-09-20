@@ -22,6 +22,15 @@
 
   function setupOrderForm(form) {
     const name = bridge()?.getView()?.user?.name || "";
+    // «Preparado por» es siempre quien llena la OC, igual que «Especificado por».
+    const prepared = form.elements.namedItem("preparedBy");
+    if (prepared) {
+      prepared.readOnly = true;
+      prepared.tabIndex = -1;
+      prepared.classList.add("oc-locked");
+      if (name && prepared.value !== name) prepared.value = name;
+      prepared.title = es("Se completa con tu nombre y no se puede editar.", "Filled with your name; it cannot be edited.");
+    }
     const specified = form.elements.namedItem("specifiedBy");
     if (specified) {
       specified.readOnly = true;
