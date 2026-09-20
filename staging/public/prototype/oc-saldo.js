@@ -107,8 +107,12 @@
   }
   function confirmExcess(info) {
     return new Promise((resolve) => {
+      // Si ya había un aviso abierto, se quita: antes se apilaban uno encima de otro
+      // cada vez que se intentaba guardar (lo vio Datnya el 20-sep).
+      document.querySelectorAll(".vaak-confirm-backdrop[data-rp-exceso]").forEach((viejo) => viejo.remove());
       const backdrop = document.createElement("div");
       backdrop.className = "vaak-confirm-backdrop";
+      backdrop.dataset.rpExceso = "1";
       backdrop.setAttribute("translate", "no");
       const c = info.currency;
       const text = es(

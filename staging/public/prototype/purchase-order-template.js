@@ -52,6 +52,7 @@
     }).join(''),shipAddress=order.shipTo||order.warehouse||project.warehouse||'',billAddress=order.billTo||project.fiscal||'',freight=order.freight||'Included';
 
     return `<article class="hpg-po hpg-reference-po notranslate" translate="no" lang="en">
+      <table class="hpg-print-frame"><thead><tr><td><div class="hpg-frame-space"></div></td></tr></thead><tbody><tr><td>
       <header class="hpg-ref-header"><img src="assets/hpg-international-reference.png" alt="HPG International Latinoamericana"><div><span>AS AGENT</span><h1>PURCHASE ORDER</h1><strong>${esc(projectLine)}</strong></div></header>
       <section class="hpg-ref-summary"><div class="hpg-ref-number"><span>PO NUMBER</span><strong>${esc(order.number)}${Number(order.revision||0)>0?' \u00b7 Rev. '+Number(order.revision):''}</strong></div><div><span>PROJECT</span><strong>${esc(projectLine)}</strong><p>Area: ${esc(area)}</p></div><div><span>PROJECT CONTACT</span><strong>${mk(ch('contactName'),esc(order.contactName||DEFAULT_CONTACT.name))}</strong><p>${mk(ch('contactPhone','contactEmail'),esc([order.contactPhone||DEFAULT_CONTACT.phone,order.contactEmail||DEFAULT_CONTACT.email].filter(Boolean).join(' · ')))}</p></div></section>
       <h2 class="hpg-ref-section-label">PARTIES</h2>
@@ -66,7 +67,7 @@
       <section class="hpg-ref-approvals-section"><h2 class="hpg-ref-section-label">APPROVALS</h2><div class="hpg-ref-approvals"><div><span>APPROVED BY</span><p>${esc(order.approvedBy||'')}</p><i></i><small>Signature (Title)<b>Date</b></small></div><div><span>ACCEPTED BY VENDOR</span><p>${esc(supplierName)} Company Name</p><i></i><small>Signature (Title)<b>Date</b></small></div><div><span>AGENT / ENTITY</span><p>HPG International Latinoamericana SAC</p><i></i><small>Signature<b>Date</b></small></div><div class="hpg-ref-approved-for"><span>APPROVED FOR</span><strong>${mk(moneyCh,money(currency,total))}</strong><small>Shipping Date: ______________ &nbsp; Approved: ______________</small></div></div></section>
       ${conditions.length?`<section class="hpg-ref-conditions"><h2>TERMS AND CONDITIONS</h2><h3>PROJECT PURCHASE CONDITIONS</h3><div>${conditions.map((term,index)=>`<p><strong>${String(index+1).padStart(2,'0')}</strong><span>${esc(term)}</span></p>`).join('')}</div></section>`:''}
 
-      <footer class="hpg-ref-footer"><span>HPG International Latinoamericana SAC · RUC 20600893123 · hpgilatam.com</span><span>PO ${esc(order.number)}</span></footer>
+      </td></tr></tbody><tfoot><tr><td><footer class="hpg-ref-footer"><span>HPG International Latinoamericana SAC · RUC 20600893123 · hpgilatam.com</span><span>PO ${esc(order.number)}</span></footer></td></tr></tfoot></table>
     </article>`
   }
 

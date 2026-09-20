@@ -10,7 +10,9 @@
     // Orden de compra
     supplier: "Supplier", source: "Source", date: "Date", deliveryDate: "Delivery date",
     incoterm: "Incoterm", shippingInstructions: "Shipping instructions",
-    destination: "Final destination", terms: "Payment terms", productionTime: "Production time",
+    destination: "Final destination", terms: "Terms", paymentTerms: "Payment terms",
+    shipTo: "Ship to", billTo: "Bill to", supplierAddress: "Supplier address",
+    projectContact: "Project contact (client)", ocRubro: "Area", productionTime: "Production time",
     warranty: "Warranty", sideMark: "Side mark", specifiedBy: "Specified by",
     preparedBy: "Prepared by", freight: "Freight", freightCurrency: "Freight currency",
     taxType: "Tax type", taxRate: "Tax rate", cifLabel: "Value title", cifValue: "CIF value",

@@ -8,6 +8,7 @@
 //   `breakdownExtras` como texto legible «Título: monto | Título: monto».
 // - «Monto a pagar» = suma de todo el desglose (no se edita).
 // - «Realizar el pago a» = proveedor de la OC (no se edita).
+// - «Términos de pago» se copia de la OC elegida (20-sep-2026) y sí se puede editar.
 // Aplica al formulario nuevo y a la revisión del RP.
 (() => {
   "use strict";
@@ -163,6 +164,14 @@
     put("payableAddress", order.supplierAddress || supplier.address || "");
     put("payableContact", order.supplierContact || supplier.contactName || supplier.contact || "");
     put("paymentPayableTo", name);
+    // «Términos de pago» sale de la OC elegida (primero el del bloque de pago, si no el comercial).
+    // Queda editable: solo «Partes» está bloqueada.
+    const terminos = order.paymentTerms || order.terms || "";
+    const campoTerminos = form.elements.namedItem("paymentTerms");
+    if (campoTerminos && terminos) {
+      campoTerminos.value = terminos;
+      campoTerminos.dispatchEvent(new Event("input", { bubbles: true }));
+    }
     const ref = form.elements.namedItem("poReferenceArea");
     if (ref) ref.value = order.number || "";
     recalc(form);

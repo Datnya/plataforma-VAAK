@@ -7,7 +7,7 @@
   function normalizeInvoiceMoney(payload){let next={...payload};for(const key of INVOICE_MONEY_FIELDS)if(next[key]!==undefined&&next[key]!==null&&next[key]!=='')next[key]=Money.fixed(next[key]);return next}
   function normalizeTeamObjectives(state){if(!Array.isArray(state?.tasks))return false;let changed=false,legacyGroups=new Map(),normalized=[];for(let task of state.tasks){let wasShared=Array.isArray(task.assignees)&&task.assignees.length>0,assignees=[...new Set((wasShared?task.assignees:[task.assignee]).filter(Boolean))];if(!wasShared||task.assignees.length!==assignees.length){task.assignees=assignees;changed=true}if('reference'in task){delete task.reference;changed=true}let key=[task.title||'',task.description||'',task.period||'Weekly',task.due||'',task.status||'Pending',task.progress??0].map(value=>String(value).trim().toLowerCase()).join('|');if(!wasShared&&legacyGroups.has(key)){let target=legacyGroups.get(key),merged=[...new Set([...target.assignees,...assignees])];if(merged.length!==target.assignees.length){target.assignees=merged;target.assignee=merged[0];changed=true}changed=true;continue}normalized.push(task);if(!wasShared)legacyGroups.set(key,task)}if(normalized.length!==state.tasks.length){state.tasks=normalized;changed=true}return changed}
   function scrubPasswords(state){let changed=false;(state?.users||[]).forEach(user=>{if(Object.prototype.hasOwnProperty.call(user,'password')){delete user.password;changed=true}});return changed}
-  const REVISABLE_FIELDS=Object.freeze(['supplier','source','date','deliveryDate','incoterm','shippingInstructions','destination','terms','productionTime','warranty','sideMark','specifiedBy','preparedBy','freight','freightCurrency','taxType','taxRate','taxAmount','cifLabel','cifValue','amountValue','amountCurrency','amount','contactName','contactPhone','contactEmail']);
+  const REVISABLE_FIELDS=Object.freeze(['supplier','source','date','deliveryDate','incoterm','shippingInstructions','destination','terms','productionTime','warranty','sideMark','paymentTerms','shipTo','billTo','supplierAddress','projectContact','ocRubro','specifiedBy','preparedBy','freight','freightCurrency','taxType','taxRate','taxAmount','cifLabel','cifValue','amountValue','amountCurrency','amount','contactName','contactPhone','contactEmail']);
   function stripHistory(order){let copyOrder={...order};delete copyOrder.revisions;return copyOrder}
   const sameText=(a,b)=>String(a??'').trim()===String(b??'').trim();
   function diffOrder(current,next){
@@ -33,6 +33,11 @@
   // Campos que se registran al revisar cada tipo de documento.
   const SPEC_FIELDS=Object.freeze(['name','code','productCode','category','area','vendorSource','size','color','material','quantity','unit','cost','description','reference','specStatus','procurementTeam']);
   const INVOICE_FIELDS=Object.freeze(['requestDetail','poNumber','poReferenceArea','invoiceNumber','sourceManufacturer','payableTo','payableAddress','payableContact','paymentTerms','requestDate','dueDate','invoiceDate','currency','invoiceCurrency','totalRequest','goods','freight','packing','additionalCharges','overage','customs','salesTax','breakdownExtras','invoiceTotal','paymentAmount','paymentPayableTo']);
+  // «Monto total de factura» y «Monto a pagar» los calcula la plataforma (uno copia el total de la
+  // solicitud y el otro suma el desglose). No se comparan como cambios propios: si no, un solo
+  // cambio pedía dos motivos (lo vio Datnya el 20-sep). Se guardan igual, pero sin motivo aparte.
+  const INVOICE_AUTO_FIELDS=Object.freeze(['invoiceTotal','paymentAmount']);
+  const INVOICE_DIFF_FIELDS=Object.freeze(INVOICE_FIELDS.filter(campo=>!INVOICE_AUTO_FIELDS.includes(campo)));
   // Un monto escrito con otro formato ($ 1,450.00 / $ 1450.00) no es un cambio.
   const MONEY_DIFF_FIELDS=new Set(['cost',...INVOICE_MONEY_FIELDS]);
   const sameMoney=(a,b)=>Money.currencyFrom(a,'')===Money.currencyFrom(b,'')&&Money.parse(a)===Money.parse(b);
@@ -54,7 +59,7 @@
     if(!current||!next)return [];
     if(type==='order')return diffOrder(current,normalizeOrderMoney({...next}));
     if(type==='spec'){let n={...next};if(n.cost!==undefined)n.cost=normalizeSpecCost(n.cost);return diffRecord(current,n,SPEC_FIELDS)}
-    if(type==='invoice')return diffRecord(current,normalizeInvoiceMoney({...next}),INVOICE_FIELDS);
+    if(type==='invoice')return diffRecord(current,normalizeInvoiceMoney({...next}),INVOICE_DIFF_FIELDS);
     return []}
   // Datos del spec que imprime la OC. Se guardan en cada ítem (specSnapshot) para que editar o
   // cambiar el spec después NO modifique las OC ya emitidas (pedido de Datnya, 18-sep-2026).
@@ -196,7 +201,7 @@
         let project=state.projects.find(x=>x.id===op.targetId);if(!project)return false;
         let invoice=(project.invoices||[]).find(i=>i.id===op.draft?.invoiceId);if(!invoice)return false;
         let next=normalizeInvoiceMoney({...p});
-        let changes=diffRecord(invoice,next,INVOICE_FIELDS);if(!changes.length)return false;
+        let changes=diffRecord(invoice,next,INVOICE_DIFF_FIELDS);if(!changes.length)return false;
         if(!attachReasons(changes,p.reasons))return false;
         let version=pushRevision(invoice,changes,'',state,op.actorId);
         INVOICE_FIELDS.forEach(field=>{if(next[field]!==undefined)invoice[field]=next[field]});

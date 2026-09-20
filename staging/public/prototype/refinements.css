@@ -1126,3 +1126,9 @@ textarea.auto-grow{resize:vertical;min-height:2.6rem;overflow:hidden;line-height
 .a4-stage{margin:0 auto}
 .po-preview-modal .modal-body,.invoice-preview-modal .modal-body,.spec-preview-modal .modal-body{overflow-x:auto}
 @media print{.a4-zoom{display:none!important}}
+
+/* Montos que se veían dobles (20-sep-2026): la capa con el monto formateado se colaba por reglas
+   como «.field span{display:block}» de los formularios de revisión y del registro del pago, y
+   quedaba encima del número que se escribe. Solo debe verse cuando el campo no está en edición. */
+.money-mask{display:none!important}
+.money-mask-wrap.is-masked>.money-mask{display:flex!important}

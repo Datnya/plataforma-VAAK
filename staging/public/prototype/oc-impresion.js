@@ -4,8 +4,8 @@
 // lo justo para que quepa. Si ni reduciéndolo cabe, pasa a la hoja siguiente como antes.
 //
 // Antes de imprimir se simula la paginación sobre una copia invisible de la hoja con las
-// mismas medidas que tendrá en el papel (A4 con márgenes 12 mm arriba, 15 mm abajo y 11 mm a
-// los lados, igual que @page vaak-po en purchase-order-reference.css).
+// mismas medidas que tendrá en el papel: A4 menos el marco de la hoja (12 mm arriba y 15 mm
+// abajo, que ponen el thead y el tfoot de .hpg-print-frame) y 11 mm de relleno a los lados.
 (() => {
   "use strict";
   const MM = 96 / 25.4;
@@ -38,7 +38,8 @@
       list.push(b);
     };
     let theadHeight = 0;
-    for (const child of clone.children) {
+    const cuerpo = clone.querySelector(".hpg-print-frame > tbody > tr > td") || clone;
+    for (const child of cuerpo.children) {
       if (child.matches("style, .hpg-ref-footer")) continue;
       if (child.matches(hasta)) break;
       if (child.matches("h2.hpg-ref-section-label")) { pendingLabel = box(child); continue; }
@@ -80,53 +81,28 @@
     return bottom <= pageEnd - SAFETY;
   }
 
-  // Márgenes de la hoja: se ponen al imprimir, desde aquí. Antes estaban en una «página con
-  // nombre» (@page vaak-po) y Chrome no siempre la aplica: entonces mandaba el `@page{margin:0}`
-  // de otro formato y la OC salía pegada al borde (lo vio Datnya el 20-sep). Este <style> se
-  // agrega el último, así gana siempre.
-  const MARGENES = "12mm 11mm 15mm";
-  function ponerMargenes(sheet) {
+  // La página NO lleva margen propio: los márgenes de arriba y abajo los pone el marco de la
+  // propia hoja (la fila de cabecera y el pie del <table class="hpg-print-frame">, que el
+  // navegador repite en cada página) y los laterales, el relleno de la hoja.
+  // Si la página tuviera margen, Chrome imprimiría ahí su encabezado con la fecha, la hora y el
+  // título de la pestaña (lo vio Datnya el 20-sep). Este <style> se agrega el último para ganarle
+  // al `@page` de los otros formatos.
+  function ponerMargenes() {
     quitarMargenes();
-    const numero = (sheet.querySelector(".hpg-ref-number strong") || {}).textContent || "";
-    const limpio = String(numero).replace(/[\\"<>\r\n]/g, "").trim();
-    const tipo = "font-family:Montserrat,Arial,sans-serif;font-size:7px;letter-spacing:.05em;color:#a9927a;vertical-align:top;padding-top:3mm";
-    const pie = marginBoxes()
-      ? `@bottom-left{content:"HPG International Latinoamericana SAC · RUC 20600893123 · hpgilatam.com";${tipo}}@bottom-right{content:"${limpio ? limpio + " · " : ""}Page " counter(page) " of " counter(pages);${tipo}}`
-      : "";
     const style = document.createElement("style");
     style.id = "vaak-oc-margenes";
     style.media = "print";
-    style.textContent = `@page{size:A4;margin:${MARGENES}}${pie ? "@page{" + pie + "}" : ""}`;
+    style.textContent = "@page{size:A4;margin:0}";
     document.head.appendChild(style);
   }
   const quitarMargenes = () => document.getElementById("vaak-oc-margenes")?.remove();
-
-  // El pie en todas las hojas usa los márgenes de página (@bottom-left / @bottom-right), que
-  // solo entienden los navegadores que tienen CSSMarginRule (Chrome, Edge, Opera, Brave 131+).
-  // En los demás el pie sale una vez, al final (como antes), y se avisa en pantalla.
-  const marginBoxes = () => typeof window.CSSMarginRule === "function";
-  function footerFallback(sheet) {
-    sheet.classList.add("po-footer-fallback");
-    document.getElementById("po-footer-notice")?.remove();
-    const note = document.createElement("div");
-    note.id = "po-footer-notice";
-    note.setAttribute("role", "status");
-    let spanish = false;
-    try { const id = sessionStorage.getItem("vaak-session-tab-v1"); spanish = (localStorage.getItem("vaak-language-" + (id || "guest")) || document.documentElement.lang) === "es"; } catch {}
-    note.textContent = spanish
-      ? "Este navegador no permite repetir el pie de página en cada hoja: saldrá una vez, al final. Para tenerlo en todas las hojas, descarga el PDF desde Chrome o Edge."
-      : "This browser cannot repeat the footer on every page: it will appear once, at the end. To have it on every page, download the PDF from Chrome or Edge.";
-    document.body.appendChild(note);
-    setTimeout(() => note.remove(), 12000);
-  }
 
   function prepare() {
     reset();
     if (!document.body.classList.contains("print-order")) return;
     const sheet = document.querySelector("#modal-root .hpg-reference-po");
     if (!sheet) return;
-    ponerMargenes(sheet);
-    if (!marginBoxes()) footerFallback(sheet);
+    ponerMargenes();
     const { clone, done } = measureSheet(sheet);
     try {
       // Sin firmas no hay nada que compactar, pero las condiciones se revisan igual.
@@ -169,7 +145,6 @@
 
   function reset() {
     quitarMargenes();
-    document.querySelectorAll(".hpg-reference-po.po-footer-fallback").forEach((sheet) => sheet.classList.remove("po-footer-fallback"));
     document.querySelectorAll(".hpg-reference-po.po-conditions-next-page").forEach((sheet) => sheet.classList.remove("po-conditions-next-page"));
     document.querySelectorAll(".hpg-reference-po.po-approvals-compact").forEach((sheet) => {
       sheet.classList.remove("po-approvals-compact");
@@ -178,8 +153,7 @@
   }
 
   const style = document.createElement("style");
-  style.textContent = "@media print{.hpg-reference-po.po-footer-fallback .hpg-ref-footer{display:flex!important}#po-footer-notice{display:none!important}}"
-    + "#po-footer-notice{position:fixed;left:50%;bottom:1.2rem;z-index:1500;transform:translateX(-50%);max-width:min(560px,92vw);padding:.8rem 1.1rem;border:1px solid #d9b25c;border-radius:10px;background:#fff8e6;color:#6e5312;font-weight:600;font-size:.86rem;box-shadow:0 12px 30px rgba(39,27,21,.2)}";
+  style.textContent = "";
   document.head.appendChild(style);
 
   window.addEventListener("beforeprint", prepare);

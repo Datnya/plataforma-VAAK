@@ -65,3 +65,15 @@
 /* El título de las condiciones nunca se queda solo al final de una hoja. */
 .hpg-ref-conditions h2,.hpg-ref-conditions h3{break-after:avoid}
 .hpg-reference-po.po-conditions-next-page .hpg-ref-conditions{break-before:page}
+/* Marco de impresión (20-sep-2026): los márgenes de arriba y abajo van DENTRO de la hoja, en una
+   fila de cabecera y otra de pie que el navegador repite en cada página. Así la página no necesita
+   margen propio y Chrome no imprime su encabezado con la fecha y el título. */
+.hpg-print-frame{width:100%;border-collapse:collapse}
+.hpg-print-frame>thead>tr>td,.hpg-print-frame>tbody>tr>td,.hpg-print-frame>tfoot>tr>td{padding:0;border:0}
+.hpg-frame-space{height:0}
+@media print{
+  .hpg-frame-space{height:12mm}
+  .hpg-print-frame>tfoot>tr>td{height:15mm;vertical-align:top}
+  .hpg-print-frame>tfoot .hpg-ref-footer{display:flex!important;margin-top:6mm}
+  .hpg-reference-po{padding:0 11mm!important}
+}
