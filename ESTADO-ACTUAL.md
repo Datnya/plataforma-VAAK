@@ -3,7 +3,7 @@
 > **Si eres un modelo de IA que acaba de llegar a este proyecto: lee este documento completo antes de tocar nada.**
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
-**Última actualización:** 18 de septiembre de 2026
+**Última actualización:** 21 de septiembre de 2026 (auditoría de seguridad, fases 1 a 3)
 **Último commit documentado:** el más reciente de `main` (ver `git log -1`); este documento se actualiza en el mismo commit que cada cambio
 
 ---
@@ -52,6 +52,7 @@ El 18-sep (noche) Datnya pidió pausar los commits mientras mandaba cambios; el 
 | 1 | Servidor con mysqli (sin pdo_mysql ni mbstring) | — | ✅ 18-sep | ✅ (venía en el ZIP de instalación) |
 | 2 | Todo guardado en el hosting: borradores de OC y avisos descartados compartidos; registro de accesos de clientes en el servidor con botón «Vaciar registro»; permisos de proyectos iguales para todos (ver sección 7) | `actualizacion-2-registro-accesos.sql` (crea `vaak_client_access_log`) | ✅ 18-sep (comprobado desde internet: archivos iguales al repositorio, «Todo listo») | ⏳ (Datnya espera terminar los puntos pendientes) |
 | 3 | OC: dirección del proveedor automática y almacenes del hotel (Ship To). Requerimientos de pago: número de OC en grande, saldo de la OC en cada tarjeta, aviso al pasarse del total (también al revisar) y columnas PO BALANCE / PO ALERT en el Excel (ver sección 6, «Saldo de la OC y direcciones») | — | ⏳ ZIP listo (aún sin subir): `actualizacion-3/actualizacion-3.zip`, 19 archivos: `index.html`, `app.js`, `access-runtime.js`, `purchase-order-template.js`, `purchase-order-reference.css`, `payment-request-template.js`, `payment-request-reference.css`, `technical-sheet-template.js`, `revision-block.js`, `reports.js`, `oc-saldo.js`, `oc-direcciones.js`, `oc-formulario.js`, `oc-borradores.js`, `oc-impresion.js`, `proyecto-areas.js`, `spec-formulario.js`, `rp-formulario.js`, `assets/reports/invoice-styles.xml`. **Incluye las tandas 2, 3, 4 y 5** (ver sección 6). Se arma comparando el sitio armado con lo publicado en PRUEBA (solo van los archivos distintos) | ⏳ |
+| 6 | Auditoría de seguridad, fases 1 a 3 (ver «Dónde quedamos exactamente (21-sep)»). **Paquete completo** (59 archivos, todo el código va comprimido): `actualizacion-6/actualizacion-6.zip`. Tras extraerlo, **borrar `verificar.php`** de la carpeta. Luego, en la oficial, un administrador entra y usa el aviso «Revisar y quitar» para eliminar los datos de demostración | — | ⏳ | ⏳ |
 
 Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia → Importar el `.sql` (una sola vez); 2) subir y extraer el ZIP en la carpeta de ESA copia; 3) `verificar.php` debe decir «Todo listo». Los paquetes de instalación completos de `Claude outputs/instalacion-*/` son del 18-sep: para una instalación nueva, regenerarlos con `armar-publicacion.js` y el `esquema.sql` actual.
 
@@ -90,7 +91,29 @@ La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Sup
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
 
-### 📍 Dónde quedamos exactamente (20-sep, tarde)
+### 📍 Dónde quedamos exactamente (21-sep) — auditoría y arreglos de seguridad
+Datnya pidió una **auditoría completa de la plataforma oficial** (un experto le mostró que con «Inspeccionar» del navegador se veían el código y los usuarios). Se encontraron 12 problemas y se resolvieron en 3 fases, **todas probadas en local con `servidor-php/pruebas/probar.sh`** (ver sección 5). **Aún no están publicados** en PRUEBA ni en OFICIAL: el siguiente paso es armar la actualización 6, que Datnya suba a PRUEBA, la revise y luego a OFICIAL. Después se rehace el **diagnóstico profesional para el cliente** (Datnya quiere entregarlo con todas las fases terminadas).
+
+| # | Problema de la auditoría | Arreglo | Dónde |
+|---|---|---|---|
+| 1 | El primer ingreso de un administrador **publicaba los datos de demostración** (Hotel Costa Azul, Logistics Center, PO-2026-001, proveedores y specs de ejemplo) en la base oficial | El paquete publicado lleva una semilla **vacía** (`servidor-php/publico/access-test-fixtures.js`, con un único administrador de relleno «sistema» que la validación exige y que desaparece al llegar el directorio real); `armar-publicacion.js` **se niega a armar** si la semilla trae nombres de demo | Fase 1 |
+| 2 | Los datos de demo que **ya están** en la oficial | Aviso para administradores «La plataforma todavía tiene datos de demostración» → ventana con la lista exacta (avisa si hay registros reales dentro de un proyecto demo) → «Quitar datos de demostración». Lo hace el servidor (`POST /api/admin/demo-cleanup`), reconociendo los ids fijos de la demo (`p1`, `p2`, `o1`, `o2`, `s-own`, `s-foreign`, `s-mixed`, `sp-*`, `t-own`, `t-foreign`); guarda antes la versión anterior en `vaak_company_data_history` | Fase 3 (`limpiar-demo.js`, `rutas.php`) |
+| 3 | Al cerrar sesión **quedaban en el navegador** todos los datos de la empresa (proyectos, precios, directorio) | `shared-sync.js` borra `vaak-local-v8`, su META y los EXTRAS al quedar sin sesión | Fase 1 |
+| 4 | El código se leía tal cual con «Inspeccionar» (comentarios, nombres internos) | `armar-publicacion.js` **comprime** todo el JS (terser) y CSS (csso) del paquete y saca el script que estaba dentro de `index.html` a `inicio.js`. Nota honesta: el código de una web **siempre** llega al navegador; comprimirlo lo hace ilegible, pero la seguridad real está en el servidor (puntos 5-7) | Fase 1 (`herramientas/package.json`: `npm install` en `servidor-php/herramientas` antes de armar) |
+| 5 | El trabajador recibía el **directorio completo** (correos, usuarios, teléfonos y permisos de todos) | Recibe solo administradores y compañeros de sus proyectos, **sin** correo, usuario, teléfono ni permisos (`vaak_directorio_para_trabajador` en `sesion.php`) | Fase 2 |
+| 6 | El trabajador recibía **todos los proyectos**, órdenes y precios aunque tuviera uno asignado | `GET /api/data` le entrega solo sus proyectos con sus órdenes, specs y vínculos, sus tareas, los borradores de sus proyectos y sus avisos descartados; los proveedores sí todos (catálogo de la empresa, igual que en la app) (`vaak_estado_para_trabajador`) | Fase 2 |
+| 7 | Un trabajador podía **reemplazar o borrar todo** desde la consola del navegador (PUT /api/data con el documento que quisiera) | El servidor combina lo enviado con lo guardado y **solo acepta lo que su rol permite** (mismas reglas que `access-control.js`): no crea ni borra proyectos; no toca proyectos ajenos; en los suyos no cambia la ficha (`VAAK_CAMPOS_PROYECTO_ADMIN`: nombre, código, RUC, dirección, contacto, portada, galería, equipo, términos); órdenes y specs libres dentro de sus proyectos; proveedores: crea, y edita/borra solo los vinculados únicamente a sus proyectos; tareas: solo actualiza las suyas; la empresa de cada proyecto y el contacto de la empresa los define el administrador. Si algo se rechazó, responde `corrected: true` con su vista corregida y `shared-sync.js` la adopta (así no reenvía el cambio rechazado en bucle) (`vaak_combinar_trabajador`) | Fase 2 |
+| 8 | El registro de accesos de clientes mostraba a un trabajador los de **todos** los proyectos | Solo los de sus proyectos | Fase 2 |
+| 9 | `verificar.php` quedaba publicado (dice qué PHP y extensiones tiene el servidor) | `armar-publicacion.js` ya no lo incluye (solo con `--instalacion`). **En la oficial y en prueba hay que borrarlo a mano** al subir la actualización 6 | Fase 1 |
+| 10 | Faltaban cabeceras de seguridad, compresión y caché | `.htaccess`: CSP estricta (`script-src 'self'`), HSTS, Permissions-Policy, COOP; gzip; caché (html sin caché, js/css 1 día, imágenes 7 días) | Fase 1 |
+| 11 | La sesión duraba 30 días | 12 horas, renovadas cada 15 min de uso (`VAAK_SESSION_HOURS` en `arranque.php`) | Fase 1 |
+| 12 | Las pruebas automáticas apuntaban a la copia vieja `prototype/` (y estaban desactualizadas) | Nueva batería en `servidor-php/pruebas/` contra la copia viva (sección 5). Las de `prototype/*.test.js` quedan como históricas: **no** reflejan el comportamiento actual (p. ej. los montos ya no se redondean) | Fase 3 |
+
+Arreglos que salieron durante la auditoría: un administrador no podía crear proveedores si no existía el proyecto demo `p1` (la regla `new-supplier` de `access-control.js` exigía un proyecto seleccionado; ahora no), y `campos-multilinea.js` convertía en varias líneas el nombre de proyectos y proveedores (ahora nombre, medida, material y color solo en el formulario de spec).
+
+**Sigue pendiente (decisión de Datnya: después):** copias de seguridad diarias (`respaldo-diario.php` listo, sin instalar; lo ve el equipo de TI del cliente).
+
+### Dónde quedamos el 20-sep (tarde)
 - **PRUEBA y OFICIAL tienen la actualización 4** (subida por Datnya el 20-sep). Lo nuevo es la **actualización 5**, probada en la demo local y empaquetada en `Claude outputs/actualizaciones/actualizacion-5/actualizacion-5.zip` (11 archivos, sin cambios en la base de datos). Ver sección 6, «Actualización 5».
 - La oficial es `https://plataforma.hpgilatam.com` (raíz `/plataforma.hpgilatam.com`, **sin** `/public`); la de prueba es `/staging.hpgilatam.com/public`.
 - **Pendiente principal: copias de seguridad diarias.** El equipo de TI del cliente debe confirmar qué copia hace el hosting; mientras tanto está listo y probado `servidor-php/herramientas/respaldo-diario.php` (sin instalar).
@@ -330,6 +353,12 @@ Abre http://localhost:4174/prototype/ y entra con `admin.vaak`, `worker.vaak` o 
 Sirve los archivos reales de `staging/public/prototype/` y solo desactiva en memoria las piezas que necesitan backend. No modifica ningún archivo del repositorio.
 
 **Limitación conocida:** el formulario de OC recalcula totales con `requestAnimationFrame`, que no se ejecuta si la pestaña está en segundo plano. Si automatizas pruebas, inyecta `window.requestAnimationFrame = cb => setTimeout(cb, 0)`.
+
+### Batería completa contra el servidor PHP real (desde el 21-sep) — úsala antes de cada actualización
+```bash
+bash servidor-php/pruebas/probar.sh
+```
+Arma el paquete igual que para el hosting (`armar-publicacion.js`), lo sirve con PHP 8.2 en `http://127.0.0.1:8095` sobre una base MySQL local **vacía** (`vaak_pruebas`, puerto 3307) y, con Chrome sin ventana, prueba: (4) 30 controles de seguridad del servidor por rol, incluidos los ataques desde la consola de un trabajador; (5) crear proyectos con portada, proveedores y specs desde la pantalla; (6) OC → requerimiento → pago → cambio de orden → reportes, que el trabajador ve solo su proyecto y que lo que él guarda llega al servidor, y el ancho de celular; (7) todas las pantallas con los tres roles sin errores de programa; (8) cerrar sesión borra los datos del navegador; (9) quitar los datos de demostración. Necesita PHP y MySQL portátiles en `C:/Users/HP/vaak-herramientas` (o `VAAK_HERRAMIENTAS=...`) y Chrome. Las claves de prueba se generan solas en `servidor-php/pruebas/.local/` (no va a GitHub). Nunca toca el hosting. El puerto 8095 debe estar libre.
 
 ### Flujo de trabajo que Datnya exige
 

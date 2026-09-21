@@ -312,6 +312,14 @@
       const result = await request("/api/data", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ baseRevision: revision, state: outgoing }) });
       revision = Number(result.revision);
       remote = outgoing;
+      // The server keeps only what this user's role may change (workers): it answers with the
+      // corrected copy, which replaces the local one so the refused change is not sent again.
+      if (result.corrected && result.state && result.state.store) {
+        remote = result.state; base = result.state;
+        if (writeDoc(remote)) saveMeta(readLocal()?.localRev || 0);
+        failures = 0;
+        return;
+      }
       if (revision === 1 && !base) { base = outgoing; saveMeta(local.localRev); }
       failures = 0;
       applyRemote();
@@ -335,12 +343,24 @@
     pushTimer = setTimeout(() => run(() => push()), delay);
   }
 
+  // Without a session the browser must not keep the company's data: before this, projects, orders,
+  // prices and the user directory stayed in localStorage after signing out, and anyone using the same
+  // computer could read them with the browser's developer tools (audit, 21-sep-2026). Everything
+  // removed here is downloaded again from the server at the next sign-in.
+  function forgetLocalCopy() {
+    suppress++;
+    try {
+      for (const key of [STORE, META, ...EXTRAS]) nativeRemove.call(localStorage, key);
+    } catch {} finally { suppress--; }
+    base = null; baseLocalRev = -1; pendingApply = false;
+  }
+
   window.addEventListener("vaak:session", (event) => {
     const data = event.detail || null;
     const wasSignedIn = signedIn();
     const previousUser = session?.user?.id;
     session = data && data.authenticated ? data : null;
-    if (!signedIn()) { clearTimeout(pushTimer); pulled = false; remote = null; revision = 0; return; }
+    if (!signedIn()) { clearTimeout(pushTimer); pulled = false; remote = null; revision = 0; forgetLocalCopy(); return; }
     if (!wasSignedIn || previousUser !== session.user.id) run(() => pull(true));
   });
   setInterval(() => {

@@ -119,7 +119,13 @@ function ruta_sesion(): void {
       $cuerpo['user'] = $u;
       // Administradores y trabajadores reciben el directorio de la empresa: de ahi
       // salen los proyectos asignados a cada trabajador y cliente, iguales para todos.
-      if ($m['role'] !== 'client') $cuerpo['users'] = vaak_listar_usuarios($m['company_id']);
+      // Los trabajadores reciben una version reducida (sin datos de contacto ni permisos).
+      if ($m['role'] === 'admin') $cuerpo['users'] = vaak_listar_usuarios($m['company_id']);
+      elseif ($m['role'] !== 'client') {
+        $cuerpo['users'] = vaak_directorio_para_trabajador(vaak_listar_usuarios($m['company_id']), [
+          'userId' => $userId, 'role' => $m['role'], 'projectScope' => $m['project_scope'] ?: null, 'projectIds' => vaak_json_lista($m['local_project_ids']),
+        ]);
+      }
     }
   }
   $cuerpo['csrfToken'] = vaak_emitir_csrf();
@@ -354,6 +360,184 @@ function vaak_estado_para_miembro($estado, array $miembro) {
   ];
 }
 
+// ---- Trabajadores (auditoría, 21-sep-2026) ----
+// Antes recibían el documento completo de la empresa (todos los proyectos, órdenes y precios) y
+// podían reemplazarlo entero desde la consola del navegador. Ahora reciben solo sus proyectos y, al
+// guardar, el servidor toma de lo enviado únicamente lo que su rol puede cambiar; el resto queda
+// como estaba. Las reglas son las mismas que aplica la aplicación (access-control.js).
+
+// Id del usuario dentro de la aplicación (el mismo que usa el directorio).
+function vaak_id_app(string $userId): string {
+  $q = vaak_db()->prepare('SELECT legacy_id FROM vaak_profiles WHERE id = ?');
+  $q->execute([$userId]);
+  $legacy = $q->fetchColumn();
+  return $legacy ? (string)$legacy : 'remote-' . $userId;
+}
+
+function vaak_id_de($x): ?string {
+  return is_object($x) && isset($x->id) && (is_string($x->id) || is_int($x->id)) ? (string)$x->id : null;
+}
+function vaak_lista($v): array { return is_array($v) ? $v : []; }
+function vaak_en_alcance(?array $permitidos, $projectId): bool {
+  if (!is_string($projectId) && !is_int($projectId)) return false;
+  return $permitidos === null || isset($permitidos[(string)$projectId]);
+}
+function vaak_asignada(object $tarea, string $miId): bool {
+  $lista = is_array($tarea->assignees ?? null) && $tarea->assignees ? $tarea->assignees : [$tarea->assignee ?? null];
+  return in_array($miId, $lista, true);
+}
+// Los extras son textos JSON; se leen sin convertir {} en [].
+function vaak_extra($extras, string $clave) {
+  $texto = is_object($extras) ? ($extras->{$clave} ?? null) : null;
+  return is_string($texto) ? json_decode($texto) : null;
+}
+function vaak_texto_extra($valor): string { return json_encode($valor, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES); }
+
+// Lo que ve un trabajador: sus proyectos con sus órdenes, specs y vínculos; todos los proveedores
+// (el catálogo de la empresa, igual que en la aplicación); solo sus tareas; los borradores de sus
+// proyectos y sus propias notificaciones descartadas.
+function vaak_estado_para_trabajador($estado, array $miembro, string $miId) {
+  if (!is_object($estado)) return $estado;
+  $permitidos = vaak_proyectos_permitidos($miembro);
+  $s = is_object($estado->store ?? null) ? $estado->store : new stdClass();
+  $delProyecto = fn($x) => is_object($x) && vaak_en_alcance($permitidos, $x->projectId ?? null);
+  $store = (object)[
+    'projects' => array_values(array_filter(vaak_lista($s->projects ?? null), fn($p) => vaak_en_alcance($permitidos, vaak_id_de($p)))),
+    'orders' => array_values(array_filter(vaak_lista($s->orders ?? null), $delProyecto)),
+    'suppliers' => vaak_lista($s->suppliers ?? null),
+    'specs' => array_values(array_filter(vaak_lista($s->specs ?? null), $delProyecto)),
+    'tasks' => array_values(array_filter(vaak_lista($s->tasks ?? null), fn($t) => is_object($t) && vaak_asignada($t, $miId))),
+    'projectCompanies' => array_values(array_filter(vaak_lista($s->projectCompanies ?? null), $delProyecto)),
+    'supplierProjectLinks' => array_values(array_filter(vaak_lista($s->supplierProjectLinks ?? null), $delProyecto)),
+  ];
+  $extras = is_object($estado->extras ?? null) ? clone $estado->extras : new stdClass();
+  $borradores = vaak_extra($extras, 'vaak-oc-drafts');
+  if (is_array($borradores)) {
+    $extras->{'vaak-oc-drafts'} = vaak_texto_extra(array_values(array_filter($borradores, fn($d) => is_object($d) && (empty($d->projectId) || vaak_en_alcance($permitidos, $d->projectId)))));
+  }
+  $descartadas = vaak_extra($extras, 'vaak-dismissed-notifs');
+  if (is_object($descartadas)) {
+    $propias = new stdClass();
+    if (isset($descartadas->{$miId})) $propias->{$miId} = $descartadas->{$miId};
+    $extras->{'vaak-dismissed-notifs'} = vaak_texto_extra($propias);
+  }
+  return (object)['version' => $estado->version ?? 1, 'store' => $store, 'extras' => $extras];
+}
+
+// Datos de la ficha del proyecto que solo cambia un administrador (editar proyecto, términos,
+// portada, galería y equipo). El trabajador sí cambia requerimientos de pago, áreas, etc.
+const VAAK_CAMPOS_PROYECTO_ADMIN = ['id', 'name', 'code', 'ruc', 'city', 'legal', 'phone', 'fiscal', 'contact', 'country', 'cover', 'gallery', 'team', 'terms'];
+
+// Recorre la lista actual reemplazando lo que el trabajador puede cambiar y agrega lo nuevo al final.
+// $puede(actual|null, enviado|null) devuelve el elemento que queda (o null para quitarlo).
+function vaak_combinar_lista(array $actual, array $enviado, callable $puede): array {
+  $enviados = [];
+  foreach ($enviado as $x) { $id = vaak_id_de($x); if ($id !== null && !isset($enviados[$id])) $enviados[$id] = $x; }
+  $salida = []; $vistos = [];
+  foreach ($actual as $x) {
+    $id = vaak_id_de($x);
+    if ($id === null) { $salida[] = $x; continue; }
+    $vistos[$id] = true;
+    $queda = $puede($x, $enviados[$id] ?? null);
+    if ($queda !== null) $salida[] = $queda;
+  }
+  foreach ($enviados as $id => $x) {
+    if (isset($vistos[$id])) continue;
+    $queda = $puede(null, $x);
+    if ($queda !== null) $salida[] = $queda;
+  }
+  return $salida;
+}
+
+// Vínculos sin id propio (proyecto-empresa, proveedor-proyecto): se conservan los que están fuera
+// de sus proyectos y se toman de lo enviado los de sus proyectos.
+function vaak_combinar_vinculos(array $actual, array $enviado, ?array $permitidos): array {
+  $fuera = array_filter($actual, fn($x) => !is_object($x) || !vaak_en_alcance($permitidos, $x->projectId ?? null));
+  $dentro = array_filter($enviado, fn($x) => is_object($x) && vaak_en_alcance($permitidos, $x->projectId ?? null));
+  return array_values(array_merge($fuera, $dentro));
+}
+
+function vaak_combinar_trabajador($actual, object $enviado, array $miembro, string $miId): object {
+  $permitidos = vaak_proyectos_permitidos($miembro);
+  $a = is_object($actual->store ?? null) ? $actual->store : new stdClass();
+  $e = $enviado->store;
+  $store = clone $a;
+
+  // Proyectos: no crea ni borra; en los suyos cambia todo menos la ficha del proyecto.
+  $store->projects = vaak_combinar_lista(vaak_lista($a->projects ?? null), vaak_lista($e->projects ?? null), function ($viejo, $nuevo) use ($permitidos) {
+    if ($viejo === null) return null;
+    if ($nuevo === null || !vaak_en_alcance($permitidos, vaak_id_de($viejo)) || !is_object($nuevo)) return $viejo;
+    $queda = clone $nuevo;
+    foreach (VAAK_CAMPOS_PROYECTO_ADMIN as $campo) {
+      if (property_exists($viejo, $campo)) $queda->{$campo} = $viejo->{$campo}; else unset($queda->{$campo});
+    }
+    return $queda;
+  });
+
+  // Órdenes y specs: libres dentro de sus proyectos; no puede tocar ni traer a los suyos los de otros.
+  foreach (['orders', 'specs'] as $coleccion) {
+    $store->{$coleccion} = vaak_combinar_lista(vaak_lista($a->{$coleccion} ?? null), vaak_lista($e->{$coleccion} ?? null), function ($viejo, $nuevo) use ($permitidos) {
+      if ($viejo !== null && !vaak_en_alcance($permitidos, $viejo->projectId ?? null)) return $viejo;
+      if ($nuevo !== null && !vaak_en_alcance($permitidos, $nuevo->projectId ?? null)) return $viejo;
+      return $nuevo;
+    });
+  }
+
+  // Proveedores: crea libremente; edita o borra solo los que están vinculados únicamente a sus proyectos.
+  $vinculos = vaak_lista($a->supplierProjectLinks ?? null);
+  $esPropio = function (string $id) use ($vinculos, $permitidos): bool {
+    if ($permitidos === null) return true;
+    $suyos = array_filter($vinculos, fn($l) => is_object($l) && (string)($l->supplierId ?? '') === $id);
+    if (!$suyos) return false;
+    foreach ($suyos as $l) if (!vaak_en_alcance($permitidos, $l->projectId ?? null)) return false;
+    return true;
+  };
+  $store->suppliers = vaak_combinar_lista(vaak_lista($a->suppliers ?? null), vaak_lista($e->suppliers ?? null), function ($viejo, $nuevo) use ($esPropio) {
+    if ($viejo === null) return $nuevo;
+    return $esPropio(vaak_id_de($viejo)) ? $nuevo : $viejo;
+  });
+  $store->supplierProjectLinks = vaak_combinar_vinculos($vinculos, vaak_lista($e->supplierProjectLinks ?? null), $permitidos);
+  // La empresa de cada proyecto la define el administrador.
+  $store->projectCompanies = vaak_lista($a->projectCompanies ?? null);
+
+  // Tareas: solo actualiza las suyas (no crea, no borra ni cambia a quién están asignadas).
+  $store->tasks = vaak_combinar_lista(vaak_lista($a->tasks ?? null), vaak_lista($e->tasks ?? null), function ($viejo, $nuevo) use ($miId) {
+    if ($viejo === null) return null;
+    if ($nuevo === null || !is_object($nuevo) || !vaak_asignada($viejo, $miId)) return $viejo;
+    $queda = clone $nuevo;
+    foreach (['assignees', 'assignee', 'projectId'] as $campo) {
+      if (property_exists($viejo, $campo)) $queda->{$campo} = $viejo->{$campo}; else unset($queda->{$campo});
+    }
+    return $queda;
+  });
+
+  // Extras: catálogos compartidos; borradores solo de sus proyectos; sus notificaciones; el
+  // contacto de la empresa lo define el administrador.
+  $ea = is_object($actual->extras ?? null) ? $actual->extras : new stdClass();
+  $ee = is_object($enviado->extras ?? null) ? $enviado->extras : new stdClass();
+  $extras = clone $ea;
+  foreach (['vaak-custom-oc-rubros', 'vaak-custom-rubros', 'vaak-removed-spec-rubros'] as $clave) {
+    if (property_exists($ee, $clave) && ($ee->{$clave} === null || is_string($ee->{$clave}))) $extras->{$clave} = $ee->{$clave};
+  }
+  $bActual = vaak_lista(vaak_extra($ea, 'vaak-oc-drafts'));
+  $bEnviado = vaak_lista(vaak_extra($ee, 'vaak-oc-drafts'));
+  $suyo = fn($d) => is_object($d) && (empty($d->projectId) || vaak_en_alcance($permitidos, $d->projectId));
+  $idsAjenos = [];
+  foreach ($bActual as $d) if (!$suyo($d) && isset($d->draftId)) $idsAjenos[(string)$d->draftId] = true;
+  $borradores = array_merge(
+    array_filter($bActual, fn($d) => !$suyo($d)),
+    array_filter($bEnviado, fn($d) => $suyo($d) && !isset($idsAjenos[(string)($d->draftId ?? '')]))
+  );
+  if ($borradores || property_exists($ea, 'vaak-oc-drafts')) $extras->{'vaak-oc-drafts'} = vaak_texto_extra(array_values($borradores));
+  $dActual = vaak_extra($ea, 'vaak-dismissed-notifs');
+  $dEnviado = vaak_extra($ee, 'vaak-dismissed-notifs');
+  $descartadas = is_object($dActual) ? $dActual : new stdClass();
+  if (is_object($dEnviado) && isset($dEnviado->{$miId}) && is_array($dEnviado->{$miId})) $descartadas->{$miId} = $dEnviado->{$miId};
+  if (is_object($dEnviado) || is_object($dActual)) $extras->{'vaak-dismissed-notifs'} = vaak_texto_extra($descartadas);
+
+  return (object)['version' => $actual->version ?? 1, 'store' => $store, 'extras' => $extras];
+}
+
 // Arma la respuesta insertando el documento guardado tal cual (sin decodificarlo).
 function vaak_json_con_estado(array $cuerpo, ?string $estadoTexto, int $estado = 200): void {
   $base = json_encode($cuerpo, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
@@ -378,6 +562,11 @@ function ruta_datos_leer(): void {
   if (!$fila) { vaak_json_con_estado($cuerpo, null); return; }
   if ($rol === 'client') {
     $filtrado = vaak_estado_para_miembro(json_decode($fila['state']), $miembro);
+    vaak_json_con_estado($cuerpo, json_encode($filtrado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
+    return;
+  }
+  if ($rol !== 'admin') {
+    $filtrado = vaak_estado_para_trabajador(json_decode($fila['state']), $miembro, vaak_id_app($miembro['userId']));
     vaak_json_con_estado($cuerpo, json_encode($filtrado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     return;
   }
@@ -428,6 +617,16 @@ function ruta_datos_guardar(): void {
   $q->execute([$empresa]);
   $actual = $q->fetch();
   if (!$actual || (int)$actual['revision'] !== $base) { $db->rollBack(); $conflicto(); }
+  // Un trabajador solo cambia lo que su rol permite; si algo de lo enviado no se aceptó, se le
+  // devuelve su vista corregida para que su navegador la adopte y no lo vuelva a enviar.
+  $vistaCorregida = null;
+  if ($miembro['role'] !== 'admin') {
+    $miId = vaak_id_app($miembro['userId']);
+    $combinado = vaak_combinar_trabajador(json_decode($actual['state']), $estado, $miembro, $miId);
+    $texto = json_encode($combinado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    $vista = json_encode(vaak_estado_para_trabajador($combinado, $miembro, $miId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    if ($vista !== json_encode(vaak_estado_para_trabajador($estado, $miembro, $miId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) $vistaCorregida = $vista;
+  }
   // Copia de la version anterior; se conservan las ultimas 150.
   $db->prepare('INSERT INTO vaak_company_data_history (company_id, revision, state, updated_by) VALUES (?, ?, ?, ?)')->execute([$empresa, $actual['revision'], $actual['state'], $actual['updated_by']]);
   $q = $db->prepare('SELECT id FROM vaak_company_data_history WHERE company_id = ? ORDER BY id DESC LIMIT 1 OFFSET 149');
@@ -436,6 +635,7 @@ function ruta_datos_guardar(): void {
   if ($corte) $db->prepare('DELETE FROM vaak_company_data_history WHERE company_id = ? AND id < ?')->execute([$empresa, $corte]);
   $db->prepare('UPDATE vaak_company_data SET state = ?, revision = ?, updated_at = UTC_TIMESTAMP(3), updated_by = ? WHERE company_id = ?')->execute([$texto, $base + 1, $miembro['userId'], $empresa]);
   $db->commit();
+  if ($vistaCorregida !== null) { vaak_json_con_estado(['ok' => true, 'revision' => $base + 1, 'corrected' => true], $vistaCorregida); return; }
   vaak_json(['ok' => true, 'revision' => $base + 1]);
 }
 
@@ -505,6 +705,21 @@ function ruta_accesos_listar(): void {
   $q = vaak_db()->prepare('SELECT name, position, project, created_at FROM vaak_client_access_log WHERE company_id = ? ORDER BY id DESC LIMIT 5000');
   $q->execute([$miembro['companyId']]);
   $filas = array_reverse($q->fetchAll());
+  // Un trabajador solo ve los ingresos de clientes de sus proyectos.
+  $permitidos = vaak_proyectos_permitidos($miembro);
+  if ($permitidos !== null) {
+    $q = vaak_db()->prepare('SELECT state FROM vaak_company_data WHERE company_id = ?');
+    $q->execute([$miembro['companyId']]);
+    $estado = json_decode((string)($q->fetchColumn() ?: 'null'));
+    $nombres = [];
+    foreach (vaak_lista(is_object($estado) ? ($estado->store->projects ?? null) : null) as $p) {
+      if (vaak_en_alcance($permitidos, vaak_id_de($p)) && is_string($p->name ?? null) && $p->name !== '') $nombres[] = $p->name;
+    }
+    $filas = array_values(array_filter($filas, function ($f) use ($nombres) {
+      $suyos = array_map('trim', explode(',', (string)$f['project']));
+      return (bool)array_intersect($suyos, $nombres);
+    }));
+  }
   vaak_json(['ok' => true, 'entries' => array_map(fn($f) => [
     'name' => $f['name'], 'position' => $f['position'], 'project' => $f['project'], 'date' => vaak_iso($f['created_at']),
   ], $filas)]);
@@ -519,6 +734,81 @@ function ruta_accesos_vaciar(): void {
   $q->execute([$admin['companyId']]);
   vaak_db()->prepare("INSERT INTO vaak_audit_events (company_id, actor_user_id, action, resource_type, resource_id) VALUES (?, ?, 'access_log.cleared', 'access_log', NULL)")->execute([$admin['companyId'], $admin['userId']]);
   vaak_json(['ok' => true]);
+}
+
+// ======================= DATOS DE DEMOSTRACION =======================
+// Hasta el 21-sep-2026 el primer ingreso de un administrador publicaba los datos de ejemplo del
+// prototipo (Hotel Costa Azul, Logistics Center, PO-2026-001...). Se reconocen por sus ids fijos:
+// los registros reales llevan ids generados (p-1790..., o-...).
+const VAAK_DEMO = [
+  'projects' => ['p1', 'p2'],
+  'orders' => ['o1', 'o2'],
+  'suppliers' => ['s-own', 's-foreign', 's-mixed'],
+  'specs' => ['sp-own', 'sp-foreign', 'sp-bath', 'sp-kitchen', 'sp-land', 'sp-furn'],
+  'tasks' => ['t-own', 't-foreign'],
+];
+
+// Devuelve el documento sin los datos de demostración y el resumen de lo que se quita.
+function vaak_sin_demo(object $estado): array {
+  $s = is_object($estado->store ?? null) ? clone $estado->store : new stdClass();
+  $demoP = array_flip(VAAK_DEMO['projects']);
+  $resumen = ['projects' => [], 'orders' => [], 'suppliers' => [], 'specs' => [], 'tasks' => [], 'invoices' => 0, 'realesDentro' => []];
+  $quitar = function (string $coleccion, callable $esDemo) use ($s, &$resumen) {
+    $queda = [];
+    foreach (vaak_lista($s->{$coleccion} ?? null) as $x) {
+      if ($esDemo($x)) { $resumen[$coleccion][] = is_object($x) ? (string)($x->number ?? $x->name ?? $x->title ?? $x->id ?? '') : ''; continue; }
+      $queda[] = $x;
+    }
+    $s->{$coleccion} = $queda;
+  };
+  $enDemo = fn($x) => is_object($x) && isset($x->projectId) && is_string($x->projectId) && isset($demoP[$x->projectId]);
+  foreach (vaak_lista($s->projects ?? null) as $p) {
+    if (vaak_id_de($p) !== null && isset($demoP[vaak_id_de($p)])) $resumen['invoices'] += count(vaak_lista($p->invoices ?? null));
+  }
+  // Registros creados a mano dentro de un proyecto de demostración: se avisan antes de quitarlos.
+  foreach (['orders', 'specs'] as $c) {
+    foreach (vaak_lista($s->{$c} ?? null) as $x) {
+      if ($enDemo($x) && !in_array(vaak_id_de($x), VAAK_DEMO[$c], true)) $resumen['realesDentro'][] = (string)($x->number ?? $x->name ?? $x->id ?? '');
+    }
+  }
+  $quitar('projects', fn($p) => vaak_id_de($p) !== null && isset($demoP[vaak_id_de($p)]));
+  foreach (['orders', 'specs', 'suppliers', 'tasks'] as $c) {
+    $ids = array_flip(VAAK_DEMO[$c]);
+    $quitar($c, fn($x) => (vaak_id_de($x) !== null && isset($ids[vaak_id_de($x)])) || ($c !== 'suppliers' && $enDemo($x)));
+  }
+  $demoS = array_flip(VAAK_DEMO['suppliers']);
+  $s->projectCompanies = array_values(array_filter(vaak_lista($s->projectCompanies ?? null), fn($l) => !$enDemo($l)));
+  $s->supplierProjectLinks = array_values(array_filter(vaak_lista($s->supplierProjectLinks ?? null), fn($l) => !$enDemo($l) && !(is_object($l) && isset($demoS[(string)($l->supplierId ?? '')]))));
+  $extras = is_object($estado->extras ?? null) ? clone $estado->extras : new stdClass();
+  $borradores = vaak_extra($extras, 'vaak-oc-drafts');
+  if (is_array($borradores)) $extras->{'vaak-oc-drafts'} = vaak_texto_extra(array_values(array_filter($borradores, fn($d) => !$enDemo($d))));
+  $total = count($resumen['projects']) + count($resumen['orders']) + count($resumen['suppliers']) + count($resumen['specs']) + count($resumen['tasks']);
+  return [(object)['version' => $estado->version ?? 1, 'store' => $s, 'extras' => $extras], $resumen, $total];
+}
+
+// POST /api/admin/demo-cleanup  {confirm:false} = solo muestra lo que se quitaría; {confirm:true} lo quita.
+// La versión anterior queda en el historial (vaak_company_data_history), así que se puede recuperar.
+function ruta_demo_limpiar(): void {
+  vaak_exigir_escritura();
+  $admin = vaak_admin();
+  if (!$admin) vaak_fallar(['ok' => false, 'error' => 'forbidden'], 403);
+  $b = vaak_cuerpo_json() ?? [];
+  $db = vaak_db();
+  $db->beginTransaction();
+  $q = $db->prepare('SELECT state, revision, updated_by FROM vaak_company_data WHERE company_id = ? FOR UPDATE');
+  $q->execute([$admin['companyId']]);
+  $fila = $q->fetch();
+  $estado = $fila ? json_decode($fila['state']) : null;
+  if (!is_object($estado)) { $db->rollBack(); vaak_json(['ok' => true, 'total' => 0, 'summary' => null]); return; }
+  [$limpio, $resumen, $total] = vaak_sin_demo($estado);
+  if (($b['confirm'] ?? false) !== true || $total === 0) { $db->rollBack(); vaak_json(['ok' => true, 'total' => $total, 'summary' => $resumen]); return; }
+  $db->prepare('INSERT INTO vaak_company_data_history (company_id, revision, state, updated_by) VALUES (?, ?, ?, ?)')->execute([$admin['companyId'], $fila['revision'], $fila['state'], $fila['updated_by']]);
+  $nueva = (int)$fila['revision'] + 1;
+  $db->prepare('UPDATE vaak_company_data SET state = ?, revision = ?, updated_at = UTC_TIMESTAMP(3), updated_by = ? WHERE company_id = ?')
+    ->execute([json_encode($limpio, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $nueva, $admin['userId'], $admin['companyId']]);
+  $db->prepare("INSERT INTO vaak_audit_events (company_id, actor_user_id, action, resource_type, resource_id) VALUES (?, ?, 'demo.removed', 'company_data', NULL)")->execute([$admin['companyId'], $admin['userId']]);
+  $db->commit();
+  vaak_json(['ok' => true, 'removed' => true, 'total' => $total, 'summary' => $resumen, 'revision' => $nueva]);
 }
 
 // GET /api/health

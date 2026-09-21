@@ -13,9 +13,11 @@
     "incoterm", "destination", "freight", "paymentTerms", "productionTime", "warranty", "sideMark", "billTo", "shippingInstructions",
     // Requerimiento de pago
     "sourceManufacturer", "payableTo",
-    // Spec
-    "name", "size", "material", "color",
   ]);
+  // Solo en el formulario del spec (nuevo, editar o revisión): en el proyecto o el proveedor
+  // «name» es un nombre corto y no debe aceptar varias líneas.
+  const SOLO_SPEC = new Set(["name", "size", "material", "color"]);
+  const esSpec = (form) => window.VAAKAppBridge?.getActiveOperation()?.kind === "spec-editor" || form.dataset.recordType === "spec";
 
   function alto(area) {
     area.style.height = "auto";
@@ -50,7 +52,8 @@
     // Sin candado: el formulario agrega campos (incoterm, garantía…) después de abrirse.
     form.querySelectorAll("input[name]").forEach((input) => {
       const tipo = (input.type || "text").toLowerCase();
-      if (tipo !== "text" || input.list || !LARGOS.has(input.name)) return;
+      if (tipo !== "text" || input.list) return;
+      if (!LARGOS.has(input.name) && !(SOLO_SPEC.has(input.name) && esSpec(form))) return;
       convertir(input);
     });
   }

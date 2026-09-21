@@ -31,6 +31,7 @@ $tabla = [
   'GET health' => 'ruta_salud',
   'GET admin/access-log' => 'ruta_accesos_listar',
   'DELETE admin/access-log' => 'ruta_accesos_vaciar',
+  'POST admin/demo-cleanup' => 'ruta_demo_limpiar',
 ];
 
 try {

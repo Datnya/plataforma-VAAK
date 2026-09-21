@@ -9,10 +9,10 @@ function vaak_hash_token(string $token): string {
 
 function vaak_crear_sesion(string $userId): void {
   $token = vaak_base64url(random_bytes(32));
-  $vence = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->modify('+' . VAAK_SESSION_DAYS . ' days')->format('Y-m-d H:i:s.v');
+  $vence = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->modify('+' . VAAK_SESSION_HOURS . ' hours')->format('Y-m-d H:i:s.v');
   vaak_db()->prepare('INSERT INTO vaak_sessions (token_hash, user_id, expires_at) VALUES (?, ?, ?)')
     ->execute([vaak_hash_token($token), $userId, $vence]);
-  vaak_cookie(VAAK_SESSION_COOKIE, $token, VAAK_SESSION_DAYS * 86400, 'Lax');
+  vaak_cookie(VAAK_SESSION_COOKIE, $token, VAAK_SESSION_HOURS * 3600, 'Lax');
 }
 
 function vaak_cerrar_sesion(): void {
@@ -32,11 +32,11 @@ function vaak_usuario_actual(): ?string {
   $fila->execute([vaak_hash_token($token)]);
   $dato = $fila->fetch();
   if (!$dato) return null;
-  // Renueva la vigencia como maximo una vez al dia.
-  if (strtotime($dato['last_used_at'] . ' UTC') < time() - 86400) {
-    $vence = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->modify('+' . VAAK_SESSION_DAYS . ' days')->format('Y-m-d H:i:s.v');
+  // Renueva la vigencia como maximo cada 15 minutos de uso.
+  if (strtotime($dato['last_used_at'] . ' UTC') < time() - 900) {
+    $vence = (new DateTimeImmutable('now', new DateTimeZone('UTC')))->modify('+' . VAAK_SESSION_HOURS . ' hours')->format('Y-m-d H:i:s.v');
     vaak_db()->prepare('UPDATE vaak_sessions SET last_used_at = UTC_TIMESTAMP(3), expires_at = ? WHERE token_hash = ?')->execute([$vence, vaak_hash_token($token)]);
-    vaak_cookie(VAAK_SESSION_COOKIE, $token, VAAK_SESSION_DAYS * 86400, 'Lax');
+    vaak_cookie(VAAK_SESSION_COOKIE, $token, VAAK_SESSION_HOURS * 3600, 'Lax');
   }
   $id = $dato['user_id'];
   return $id;
@@ -109,6 +109,31 @@ function vaak_listar_usuarios(string $companyId): array {
     }
     $u['lastSeenAt'] = vaak_iso($r['last_seen_at']);
     $u['signedOutAt'] = vaak_iso($r['signed_out_at']);
+    $salida[] = $u;
+  }
+  return $salida;
+}
+
+// Proyectos que puede ver un trabajador o cliente, como conjunto de ids (null = todos).
+function vaak_proyectos_permitidos(array $miembro): ?array {
+  if ($miembro['role'] === 'admin' || $miembro['projectScope'] === 'all') return null;
+  $ids = array_filter($miembro['projectIds'], fn($x) => is_string($x) || is_int($x));
+  return array_flip(array_map('strval', $ids));
+}
+
+// Lo que un trabajador ve del directorio: sus compañeros de proyecto y los administradores, solo con
+// nombre, cargo, foto y proyectos en común. Antes recibía correo, usuario, teléfono y permisos de
+// todos, y cualquiera podía leerlos con las herramientas del navegador (auditoría, 21-sep-2026).
+function vaak_directorio_para_trabajador(array $usuarios, array $miembro): array {
+  $permitidos = vaak_proyectos_permitidos($miembro);
+  $salida = [];
+  foreach ($usuarios as $u) {
+    if ($u['authId'] === $miembro['userId']) { $salida[] = $u; continue; }
+    $comunes = $permitidos === null ? $u['projectIds'] : array_values(array_filter($u['projectIds'], fn($id) => isset($permitidos[(string)$id])));
+    $todos = $u['projectScope'] === 'all';
+    if ($u['role'] !== 'Admin' && !$todos && !$comunes) continue;
+    unset($u['email'], $u['username'], $u['phone'], $u['access']);
+    $u['projectIds'] = $comunes;
     $salida[] = $u;
   }
   return $salida;

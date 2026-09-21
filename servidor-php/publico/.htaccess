@@ -27,9 +27,38 @@ AddHandler application/x-httpd-alt-php82___lsphp .php
   Header always set X-Content-Type-Options "nosniff"
   Header always set Referrer-Policy "same-origin"
   Header always set X-Frame-Options "SAMEORIGIN"
+  # Auditoría del 21-sep-2026:
+  # - HSTS: el navegador recuerda por un año que este sitio va SIEMPRE cifrado (https).
+  Header always set Strict-Transport-Security "max-age=31536000"
+  # - La plataforma no usa cámara, micrófono, ubicación, pagos ni USB: se bloquean.
+  Header always set Permissions-Policy "camera=(), microphone=(), geolocation=(), payment=(), usb=()"
+  # - Solo se ejecuta código que venga de este mismo sitio: si alguien lograra meter código en un
+  #   texto (un nombre de proveedor, por ejemplo), el navegador no lo ejecutaría. Por eso index.html
+  #   no lleva scripts escritos dentro (el armado los pasa a inicio.js).
+  Header always set Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self' data: blob:; font-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'self'"
+  Header always set Cross-Origin-Opener-Policy "same-origin"
 </IfModule>
 
 # Archivos que nunca deben descargarse.
 <FilesMatch "\.(sql|md|log|ini|bak)$">
   Require all denied
 </FilesMatch>
+
+# Compresión (auditoría del 21-sep-2026): la plataforma pasa de ~1 MB a ~250 KB por visita.
+<IfModule mod_deflate.c>
+  AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript text/javascript application/json application/xml image/svg+xml
+</IfModule>
+
+# Caché: la página se revisa siempre (así llegan las actualizaciones al momento); el código y los
+# estilos llevan ?v=N en index.html, así que pueden guardarse un día; las imágenes, una semana.
+<IfModule mod_headers.c>
+  <FilesMatch "\.html$">
+    Header set Cache-Control "no-cache"
+  </FilesMatch>
+  <FilesMatch "\.(js|css)$">
+    Header set Cache-Control "public, max-age=86400"
+  </FilesMatch>
+  <FilesMatch "\.(png|jpe?g|webp|gif|svg|ico)$">
+    Header set Cache-Control "public, max-age=604800"
+  </FilesMatch>
+</IfModule>

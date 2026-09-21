@@ -26,7 +26,9 @@ if (!function_exists('mb_strlen')) {
 
 const VAAK_CSRF_COOKIE = 'vaak-csrf';
 const VAAK_SESSION_COOKIE = 'vaak-sesion';
-const VAAK_SESSION_DAYS = 30;
+// La sesión se cierra sola tras 12 horas sin usar la plataforma (antes duraba 30 días: auditoría
+// del 21-sep-2026). Mientras se usa se va renovando, así que nadie pierde la sesión trabajando.
+const VAAK_SESSION_HOURS = 12;
 
 function vaak_config(): array {
   static $config = null;
