@@ -22,7 +22,7 @@
 
   function setupOrderForm(form) {
     const name = bridge()?.getView()?.user?.name || "";
-    // «Preparado por» es siempre quien llena la OC, igual que «Especificado por».
+    // «Preparado por» es siempre quien llena la OC.
     const prepared = form.elements.namedItem("preparedBy");
     if (prepared) {
       prepared.readOnly = true;
@@ -31,13 +31,13 @@
       if (name && prepared.value !== name) prepared.value = name;
       prepared.title = es("Se completa con tu nombre y no se puede editar.", "Filled with your name; it cannot be edited.");
     }
+    // «Especificado por» es de escritura libre: el especificador no es HPG (pedido de Datnya, 22-sep-2026).
     const specified = form.elements.namedItem("specifiedBy");
     if (specified) {
-      specified.readOnly = true;
-      specified.tabIndex = -1;
-      specified.classList.add("oc-locked");
-      if (name && specified.value !== name) specified.value = name;
-      specified.title = es("Se completa con tu nombre y no se puede editar.", "Filled with your name; it cannot be edited.");
+      specified.readOnly = false;
+      specified.removeAttribute("tabindex");
+      specified.classList.remove("oc-locked");
+      specified.title = "";
     }
     const cif = form.elements.namedItem("cifValue");
     if (!cif || form.elements.namedItem("cifLabel")) return;
@@ -67,8 +67,9 @@
   }
 
   function setupRevisionForm(form) {
+    // En el cambio de orden «Especificado por» también se puede escribir libremente.
     const specified = form.elements.namedItem("specifiedBy");
-    if (specified && !specified.readOnly) { specified.readOnly = true; specified.tabIndex = -1; specified.classList.add("oc-locked"); }
+    if (specified && specified.readOnly) { specified.readOnly = false; specified.removeAttribute("tabindex"); specified.classList.remove("oc-locked"); }
   }
 
   function scan() {
