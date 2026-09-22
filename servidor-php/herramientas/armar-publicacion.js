@@ -136,8 +136,26 @@ function copiar(origen, dest) {
   pagina = pagina.replace(/[ \t]*<script[^>]*><\/script>\r?\n?/g, "");
   if (!pagina.includes('<main id="app"></main>')) { console.error("AVISO: index.html ya no tiene <main id=\"app\"></main>."); process.exit(1); }
   pagina = pagina.replace('<main id="app"></main>', `<main id="app">${pantalla}</main>`);
-  pagina = pagina.replace(/href="([^"?]+\.css)(?:\?v=[^"]*)?"/g, (_, n) => `href="${n}?v=${huella(fs.readFileSync(path.join(destino, n)))}"`);
-  pagina = pagina.replace("</body>", `  <script src="acceso.js?v=${huella(acceso)}" data-app="/api/app?v=${huella(interfaz)}"></script>\n  </body>`);
+  // Estilos: en público solo los de la pantalla de inicio (acceso.css, sacados de styles.css y
+  // refinements.css con las clases que usa esa pantalla). Los de las pantallas internas y los de
+  // las fichas (OC, requerimiento de pago, ficha técnica) van en nucleo/estilos.css y los entrega
+  // /api/estilos solo con sesión. Sus rutas a fuentes e imágenes pasan a ser absolutas (/assets/…)
+  // porque se sirven desde /api/.
+  const hojas = [...pagina.matchAll(/<link rel="stylesheet" href="([^"?]+\.css)(?:\?[^"]*)?" \/>/g)].map((m) => m[1]);
+  if (!hojas.includes("styles.css") || !hojas.includes("refinements.css")) { console.error("AVISO: faltan hojas de estilo en index.html."); process.exit(1); }
+  const absolutas = (css) => css.replace(/url\((["']?)assets\//g, "url($1/assets/");
+  const estilos = absolutas(hojas.map((n) => fs.readFileSync(path.join(destino, n), "utf8")).join("\n"));
+  fs.writeFileSync(path.join(destino, "nucleo", "estilos.css"), estilos);
+  const clases = [...new Set([...pantalla.matchAll(/class="([^"]+)"/g)].flatMap((m) => m[1].split(/\s+/)))].concat(["login-error", "login-spinner", "is-loading"]);
+  const ids = [...new Set([...pantalla.matchAll(/id="([^"]+)"/g)].map((m) => m[1]))].concat(["app", "modal-root", "toast"]);
+  const etiquetas = ["html", "body", "main", "section", "div", "h1", "h2", "p", "form", "label", "input", "button", "svg", "path", "img", "a", "span", "b"];
+  const cssAcceso = absolutas(require("csso").minify(["styles.css", "refinements.css"].map((n) => fs.readFileSync(path.join(INTERFAZ, n), "utf8")).join("\n"),
+    { restructure: false, usage: { tags: etiquetas, ids, classes: clases } }).css);
+  fs.writeFileSync(path.join(destino, "acceso.css"), cssAcceso);
+  for (const n of fs.readdirSync(destino)) if (n.endsWith(".css") && n !== "acceso.css") fs.rmSync(path.join(destino, n));
+  pagina = pagina.replace(/[ \t]*<link rel="stylesheet"[^>]*\/>\r?\n?/g, "");
+  pagina = pagina.replace("</head>", `  <link rel="stylesheet" href="acceso.css?v=${huella(cssAcceso)}" />\n  </head>`);
+  pagina = pagina.replace("</body>", `  <script src="acceso.js?v=${huella(acceso)}" data-app="/api/app?v=${huella(interfaz)}" data-estilos="/api/estilos?v=${huella(estilos)}"></script>\n  </body>`);
   if (/<script>/.test(pagina) || /\son[a-z]+=/i.test(pagina)) { console.error("AVISO: index.html quedó con código escrito dentro."); process.exit(1); }
   fs.writeFileSync(ruta, pagina);
 
@@ -146,6 +164,6 @@ function copiar(origen, dest) {
 
   console.log(`Listo: ${destino}`);
   console.log(`index.html: ${antes - html.length} caracteres de Supabase quitados${config ? "; config.php incluido" : "; falta config.php"}`);
-  console.log(`Pantallas internas: ${scripts.length} archivos en nucleo/interfaz.js (${Math.round(interfaz.length / 1024)} KB), solo con sesión`);
+  console.log(`Pantallas internas: ${scripts.length} archivos en nucleo/interfaz.js (${Math.round(interfaz.length / 1024)} KB) y ${hojas.length} hojas de estilo en nucleo/estilos.css, solo con sesión`);
   console.log(`${instalacion ? "Con" : "Sin"} verificar.php · código ${comprimir ? `comprimido (${Math.round(ahorro / 1024)} KB menos)` : "SIN comprimir (no subir así)"}`);
 })();

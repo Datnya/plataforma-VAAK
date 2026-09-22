@@ -17,7 +17,10 @@ module.exports = async (run) => {
   informe.ventana = await run.eval(`const wait=ms=>new Promise(r=>setTimeout(r,ms)); document.querySelector('.vaak-demo-aviso button').click(); await wait(500); return document.querySelector('.vaak-confirm-backdrop .vaak-confirm')?.innerText;`);
   informe.resultado = await run.eval(`const wait=ms=>new Promise(r=>setTimeout(r,ms)); const b=document.querySelector('.vaak-confirm-backdrop [data-choice="yes"]'); b.click(); await wait(150); const girando=!!b.querySelector('.vaak-demo-spin'); await wait(4000);
     const st=JSON.parse(localStorage.getItem('vaak-local-v8')); const d=await (await fetch('/api/data',{credentials:'same-origin'})).json(); const t=JSON.stringify(d.state);
-    return {girando, aviso:document.querySelector('.vaak-demo-aviso')?.innerText, localProyectos:st.projects.map(p=>p.name), servidorTieneDemo:/Hotel Costa Azul|Logistics Center|PO-2026-001|Proveedor P1|Morgan/.test(t), servidorProyectos:d.state.store.projects.map(p=>p.name), proveedores:d.state.store.suppliers.map(s=>s.name), specs:d.state.store.specs.length};`);
+    return {girando, aviso:document.querySelector('.vaak-demo-aviso')?.innerText, localProyectos:st.projects.map(p=>p.name), servidorTieneDemo:/Hotel Costa Azul|Logistics Center|PO-2026-001|Proveedor P1|Morgan|Completar cotizaciones pendientes|Validar presupuesto|"t-own"/.test(t), servidorProyectos:d.state.store.projects.map(p=>p.name), proveedores:d.state.store.suppliers.map(s=>s.name), specs:d.state.store.specs.length};`);
+  // Unos segundos después (el navegador ya sincronizó y guardó): ¿volvió algo de la demostración?
+  informe.despuesDeSincronizar = await run.eval(`const wait=ms=>new Promise(r=>setTimeout(r,ms)); await wait(3000); document.dispatchEvent(new Event('visibilitychange')); await wait(25000);
+    const d=await (await fetch('/api/data',{credentials:'same-origin'})).json(); return {volvioDemo:/Hotel Costa Azul|Logistics Center|PO-2026-001|Proveedor P1|Completar cotizaciones pendientes|Validar presupuesto|"t-own"/.test(JSON.stringify(d.state)), revision:d.revision};`);
   informe.errores = run.errores;
   console.log(JSON.stringify(informe, null, 1));
 };

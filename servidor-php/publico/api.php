@@ -33,6 +33,7 @@ $tabla = [
   'DELETE admin/access-log' => 'ruta_accesos_vaciar',
   'POST admin/demo-cleanup' => 'ruta_demo_limpiar',
   'GET app' => 'ruta_interfaz',
+  'GET estilos' => 'ruta_estilos',
 ];
 
 try {

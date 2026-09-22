@@ -5,6 +5,7 @@
 (() => {
   "use strict";
   const APP = document.currentScript.dataset.app;
+  const ESTILOS = document.currentScript.dataset.estilos;
   let csrf = "";
   let cargada = false;
   let conSesion = false;
@@ -22,14 +23,25 @@
     else if (conSesion) location.replace("/");
   });
 
-  const cargarPlataforma = () => new Promise((ok, mal) => {
+  // Primero los estilos internos (para que las pantallas no aparezcan sin diseño) y luego el código.
+  const cargarEstilos = () => new Promise((ok, mal) => {
+    if (document.querySelector("link[data-vaak-estilos]")) return ok();
+    const l = document.createElement("link");
+    l.rel = "stylesheet";
+    l.href = ESTILOS;
+    l.dataset.vaakEstilos = "1";
+    l.onload = ok;
+    l.onerror = () => mal(new Error("app_unavailable"));
+    document.head.appendChild(l);
+  });
+  const cargarPlataforma = () => cargarEstilos().then(() => new Promise((ok, mal) => {
     if (cargada) return ok();
     const s = document.createElement("script");
     s.src = APP;
     s.onload = () => { cargada = true; ok(); };
     s.onerror = () => mal(new Error("app_unavailable"));
     document.body.appendChild(s);
-  });
+  }));
 
   const mensajes = {
     invalid_credentials: "Incorrect username or password.",

@@ -587,6 +587,11 @@ function ruta_datos_guardar(): void {
   if (!is_int($base) || $base < 0 || !is_object($estado) || !is_object($estado->store ?? null) || !is_array($estado->store->projects ?? null)) {
     vaak_fallar(['ok' => false, 'error' => 'invalid_state'], 400);
   }
+  // Los datos de demostración (ids fijos p1, o1, t-own…) nunca se guardan: un navegador con una copia
+  // vieja podía volver a subirlos después de quitarlos (22-sep-2026). Se le devuelve la versión limpia.
+  $demoQuitada = null;
+  [$sinDemo, , $demoTotal] = vaak_sin_demo($estado);
+  if ($demoTotal > 0) { $estado = $sinDemo; $demoQuitada = true; }
   $texto = json_encode($estado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
   $db = vaak_db();
   $empresa = $miembro['companyId'];
@@ -607,6 +612,7 @@ function ruta_datos_guardar(): void {
       if (vaak_bd_errno($e) === 1062) $conflicto();
       vaak_fallar(['ok' => false, 'error' => 'service_unavailable'], 503);
     }
+    if ($demoQuitada) { vaak_json_con_estado(['ok' => true, 'revision' => 1, 'corrected' => true], $texto); return; }
     vaak_json(['ok' => true, 'revision' => 1]);
     return;
   }
@@ -618,13 +624,14 @@ function ruta_datos_guardar(): void {
   if (!$actual || (int)$actual['revision'] !== $base) { $db->rollBack(); $conflicto(); }
   // Un trabajador solo cambia lo que su rol permite; si algo de lo enviado no se aceptó, se le
   // devuelve su vista corregida para que su navegador la adopte y no lo vuelva a enviar.
-  $vistaCorregida = null;
+  $vistaCorregida = $demoQuitada ? $texto : null;
   if ($miembro['role'] !== 'admin') {
     $miId = vaak_id_app($miembro['userId']);
     $combinado = vaak_combinar_trabajador(json_decode($actual['state']), $estado, $miembro, $miId);
+    $combinado = vaak_sin_demo($combinado)[0];
     $texto = json_encode($combinado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $vista = json_encode(vaak_estado_para_trabajador($combinado, $miembro, $miId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
-    if ($vista !== json_encode(vaak_estado_para_trabajador($estado, $miembro, $miId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) $vistaCorregida = $vista;
+    $vistaCorregida = ($demoQuitada || $vista !== json_encode(vaak_estado_para_trabajador($estado, $miembro, $miId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) ? $vista : null;
   }
   // Copia de la version anterior; se conservan las ultimas 150.
   $db->prepare('INSERT INTO vaak_company_data_history (company_id, revision, state, updated_by) VALUES (?, ?, ?, ?)')->execute([$empresa, $actual['revision'], $actual['state'], $actual['updated_by']]);
@@ -820,6 +827,18 @@ function ruta_interfaz(): void {
   header('Content-Type: application/javascript; charset=utf-8');
   if (!vaak_miembro()) { http_response_code(401); echo "/* Sign in to use the platform. */\n"; return; }
   $archivo = __DIR__ . '/interfaz.js';
+  if (!is_file($archivo)) { http_response_code(404); echo "/* not found */\n"; return; }
+  header('Content-Length: ' . filesize($archivo));
+  readfile($archivo);
+}
+
+// GET /api/estilos — los estilos de las pantallas internas y de las fichas (OC, requerimiento de
+// pago, ficha técnica), también solo con sesión. En público solo queda acceso.css (inicio de sesión).
+function ruta_estilos(): void {
+  vaak_no_store();
+  header('Content-Type: text/css; charset=utf-8');
+  if (!vaak_miembro()) { http_response_code(401); echo "/* Sign in to use the platform. */\n"; return; }
+  $archivo = __DIR__ . '/estilos.css';
   if (!is_file($archivo)) { http_response_code(404); echo "/* not found */\n"; return; }
   header('Content-Length: ' . filesize($archivo));
   readfile($archivo);

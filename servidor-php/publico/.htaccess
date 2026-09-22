@@ -46,13 +46,13 @@ AddHandler application/x-httpd-alt-php82___lsphp .php
 
 # Desde el 22-sep-2026 el código de las pantallas internas lo entrega solo el servidor, a quien
 # inició sesión (GET /api/app, desde nucleo/interfaz.js). Sin sesión solo se descarga la pantalla
-# de inicio (acceso.js). Los .js sueltos de versiones anteriores que sigan en la carpeta no se sirven.
-<FilesMatch "\.js$">
+# de inicio (acceso.js y acceso.css; los estilos internos y de las fichas los da /api/estilos). Los .js y .css sueltos de versiones anteriores que sigan en la carpeta no se sirven.
+<FilesMatch "\.(js|css)$">
   Require all denied
 </FilesMatch>
-<Files "acceso.js">
+<FilesMatch "^acceso\.(js|css)$">
   Require all granted
-</Files>
+</FilesMatch>
 
 # Compresión (auditoría del 21-sep-2026): la plataforma pasa de ~1 MB a ~250 KB por visita.
 <IfModule mod_deflate.c>
