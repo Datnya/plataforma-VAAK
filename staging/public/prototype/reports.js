@@ -31,12 +31,17 @@
   const rootRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
   const workbookRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?><Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/><Relationship Id="rId2" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
 
-  const packageFile = async (name,xml,stylesPath) => {
+  // Reportes del cliente (22-sep-2026): hojas y libro bloqueados para que no se modifiquen. Es la huella
+  // SHA-512 (100 000 vueltas, como la calcula Excel) de una contraseña al azar que no se guardó en ningún
+  // lado: nadie necesita desbloquearlos. Se pueden abrir, leer, filtrar e imprimir.
+  const BLOQUEO = { hash: 'zch3fidYP0boMimnD7KVtUbtbswXb/C6507rfEA7meUwckZxdcOA8xooRREn/8TPJwTclX49XZ07y89mGahK3A==', sal: '2169/vHG/ila+cSYIaZ6gg==' };
+  const AVISO_LEGAL = 'This document is issued exclusively by HPG International Latinoamericana S.A.C. for information purposes only. It is a protected, read-only document: its content may not be modified, reproduced or distributed without the prior written authorization of HPG International.';
+  const packageFile = async (name,xml,stylesPath,protegido=false) => {
     const [styles,logo]=await Promise.all([loadAsset(stylesPath,'text'),loadAsset(REPORT_ASSETS.logo,'bytes')]);
     return zip([
       ['[Content_Types].xml',contentTypes],
       ['_rels/.rels',rootRels],
-      ['xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets><sheet name="${escapeXml(name)}" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="0"/></workbook>`],
+      ['xl/workbook.xml',`<?xml version="1.0" encoding="UTF-8" standalone="yes"?><workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">${protegido?`<workbookProtection workbookAlgorithmName="SHA-512" workbookHashValue="${BLOQUEO.hash}" workbookSaltValue="${BLOQUEO.sal}" workbookSpinCount="100000" lockStructure="1"/>`:''}<bookViews><workbookView/></bookViews><sheets><sheet name="${escapeXml(name)}" sheetId="1" r:id="rId1"/></sheets><calcPr calcId="0"/></workbook>`],
       ['xl/_rels/workbook.xml.rels',workbookRels],
       ['xl/styles.xml',styles],
       ['xl/worksheets/sheet1.xml',xml],
@@ -94,7 +99,7 @@
     return `<c r="${reference}" s="${style}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`;
   };
 
-  const sheet = ({kind,project,metrics,headers,rows,widths}) => {
+  const sheet = ({kind,project,metrics,headers,rows,widths,protegido=false}) => {
     const isPo=kind==='po',columnCount=headers.length,lastColumn=col(columnCount-1),title=isPo?'PO Item Listing':'Payment Request Details';
     const titleStyle=isPo?23:21,projectStyle=isPo?25:23,subtitleStyle=isPo?26:24,metricLabelStyle=isPo?21:26,metricValueStyle=isPo?22:27;
     const metricColumns=isPo?[7,9,11,13,15,17]:[5,7,9,11,13];
@@ -117,9 +122,11 @@
     rowXml.push(`<row r="${totalRow+1}" ht="7.95" customHeight="1"/>`);
     const note=isPo?'SUB = Submitted · POC = PO Confirmed · blank cells = no data / pending · dates in dd/mm/yy format':'FF&E = Furniture, Fixtures & Equipment · OS&E = Operating Supplies & Equipment · PO BALANCE = PO total minus the payment requests of that PO up to this one · EXCEDIDO (red row) = the requests exceed the PO total · blank cells = no data / pending · dates in dd/mm/yy format · totals by currency';
     rowXml.push(`<row r="${noteRow}">${cell(noteRow,0,note,isPo?27:25)}</row>`);
+    const avisoRow=noteRow+1,ultimaFila=protegido?avisoRow:noteRow;
+    if(protegido)rowXml.push(`<row r="${avisoRow}" ht="28" customHeight="1">${cell(avisoRow,0,AVISO_LEGAL,isPo?27:25)}</row>`);
     const columns=widths.map((width,index)=>`<col min="${index+1}" max="${index+1}" width="${width}" customWidth="1"/>`).join('');
     const filterLast=Math.max(7,dataLast);
-    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:${lastColumn}${noteRow}"/><sheetViews><sheetView showGridLines="0" tabSelected="1" workbookViewId="0"><pane ySplit="7" topLeftCell="A8" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A7" sqref="A7"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="13.8"/><cols>${columns}</cols><sheetData>${rowXml.join('')}</sheetData><autoFilter ref="A7:${lastColumn}${filterLast}"/><mergeCells count="4"><mergeCell ref="D1:${mergedTitleEnd}1"/><mergeCell ref="D2:${mergedTitleEnd}2"/><mergeCell ref="D3:${mergedSubtitleEnd}3"/><mergeCell ref="A${noteRow}:${lastColumn}${noteRow}"/></mergeCells><pageMargins left="0.25" right="0.25" top="0.35" bottom="0.35" header="0.3" footer="0.3"/><pageSetup paperSize="9" scale="40" fitToHeight="0" orientation="landscape"/><drawing r:id="rId1"/></worksheet>`;
+    return `<?xml version="1.0" encoding="UTF-8" standalone="yes"?><worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><dimension ref="A1:${lastColumn}${ultimaFila}"/><sheetViews><sheetView showGridLines="0" tabSelected="1" workbookViewId="0"><pane ySplit="7" topLeftCell="A8" activePane="bottomLeft" state="frozen"/><selection pane="bottomLeft" activeCell="A7" sqref="A7"/></sheetView></sheetViews><sheetFormatPr defaultRowHeight="13.8"/><cols>${columns}</cols><sheetData>${rowXml.join('')}</sheetData>${protegido?`<sheetProtection algorithmName="SHA-512" hashValue="${BLOQUEO.hash}" saltValue="${BLOQUEO.sal}" spinCount="100000" sheet="1" objects="1" scenarios="1" autoFilter="0"/>`:''}<autoFilter ref="A7:${lastColumn}${filterLast}"/><mergeCells count="${protegido?5:4}"><mergeCell ref="D1:${mergedTitleEnd}1"/><mergeCell ref="D2:${mergedTitleEnd}2"/><mergeCell ref="D3:${mergedSubtitleEnd}3"/><mergeCell ref="A${noteRow}:${lastColumn}${noteRow}"/>${protegido?`<mergeCell ref="A${avisoRow}:${lastColumn}${avisoRow}"/>`:''}</mergeCells><pageMargins left="0.25" right="0.25" top="0.35" bottom="0.35" header="0.3" footer="0.3"/><pageSetup paperSize="9" scale="40" fitToHeight="0" orientation="landscape"/><drawing r:id="rId1"/></worksheet>`;
   };
 
   const textEntry = (value,style) => ({value,style,kind:'text'});
@@ -129,7 +136,8 @@
   const download = (name,bytes) => { const url=URL.createObjectURL(new Blob([bytes],{type:'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'})),link=document.createElement('a');link.href=url;link.download=name;document.body.append(link);link.click();link.remove();setTimeout(()=>URL.revokeObjectURL(url),1500); };
   const exportableOrder = order => ['approved','cancelled'].includes(String(order.status||'approved').toLowerCase())&&!order.isDraft;
 
-  const purchaseOrders = async (project,orders,specs) => {
+  // opciones.cliente: versión de solo lectura para el portal del cliente (bloqueada y con aviso legal).
+  const purchaseOrders = async (project,orders,specs,opciones={}) => {
     const selected=orders.filter(order=>order.projectId===project.id&&exportableOrder(order));
     const records=[];
     selected.forEach(order=>{
@@ -162,14 +170,15 @@
       });
     });
     const totals=records.reduce((all,row)=>{const curr=row[6].value;all[curr]=(all[curr]||0)+Number(row[8].value||0);return all;},{});
-    const xml=sheet({kind:'po',project,metrics:[{label:'LINE ITEMS',value:records.length},{label:'SUBMITTED',value:selected.length},{label:'PO CONFIRMED',value:selected.filter(order=>String(order.status||'approved').toLowerCase()==='approved').length},{label:'EXT. COST PEN',value:totals.PEN||0},{label:'EXT. COST USD',value:totals.USD||0},{label:'EXT. COST EUR',value:totals.EUR||0}],headers:['PO NUM','ITEM #','ITEM DESCRIPTION','MANUFACTURER | SOURCE','QTY','UM','CUR','UN COST','EXT COST','EST DELIVERY','ACTUAL SHIP DT','RECEIVED','DELIVERED FINAL','INSTALLED','STATUS','STATUS DT','CURR LOC','LEAD TIME','AREAS','PO AREA'],rows:records,widths:[16,15,44,34,7,6,6,15,17.88671875,13,13,13,13,13,9,13,11,10,10,10]});
-    const bytes=await packageFile('PO Item Listing',xml,REPORT_ASSETS.poStyles);
-    download(`VAAK_Reporte PO Item Listing_${safeName(project.name)}.xlsx`,bytes);
+    const xml=sheet({protegido:Boolean(opciones.cliente),kind:'po',project,metrics:[{label:'LINE ITEMS',value:records.length},{label:'SUBMITTED',value:selected.length},{label:'PO CONFIRMED',value:selected.filter(order=>String(order.status||'approved').toLowerCase()==='approved').length},{label:'EXT. COST PEN',value:totals.PEN||0},{label:'EXT. COST USD',value:totals.USD||0},{label:'EXT. COST EUR',value:totals.EUR||0}],headers:['PO NUM','ITEM #','ITEM DESCRIPTION','MANUFACTURER | SOURCE','QTY','UM','CUR','UN COST','EXT COST','EST DELIVERY','ACTUAL SHIP DT','RECEIVED','DELIVERED FINAL','INSTALLED','STATUS','STATUS DT','CURR LOC','LEAD TIME','AREAS','PO AREA'],rows:records,widths:[16,15,44,34,7,6,6,15,17.88671875,13,13,13,13,13,9,13,11,10,10,10]});
+    const bytes=await packageFile('PO Item Listing',xml,REPORT_ASSETS.poStyles,Boolean(opciones.cliente));
+    download(opciones.cliente?`HPG_Purchase Order Report_${safeName(project.name)}.xlsx`:`VAAK_Reporte PO Item Listing_${safeName(project.name)}.xlsx`,bytes);
     return {rows:records.length,orders:selected.length};
   };
 
-  const invoices = async (project,orders) => {
-    const selected=(project.invoices||[]).filter(invoice=>!['draft','pending','borrador'].includes(String(invoice.status||'').toLowerCase()));
+  const invoices = async (project,orders,opciones={}) => {
+    const selected=(project.invoices||[]).filter(invoice=>!['draft','pending','borrador'].includes(String(invoice.status||'').toLowerCase()))
+      .filter(invoice=>!opciones.cliente||orders.some(order=>order.projectId===project.id&&(order.number===invoice.poNumber||order.id===invoice.orderId)));
     const findOrder=invoice=>orders.find(order=>order.projectId===project.id&&(order.number===invoice.poNumber||order.id===invoice.orderId));
     const records=selected.map((invoice,index)=>{
       const order=findOrder(invoice),saldo=window.VAAKSaldoOC?window.VAAKSaldoOC.afterInvoice(project,orders,invoice):null,excedido=Boolean(saldo&&saldo.sameCurrency&&saldo.balance< -0.005),alt=(odd,even)=>alternating(index,odd,even),curr=normalizeCurrency(invoice.invoiceCurrency||invoice.currency||order?.currency||order?.amount),team=invoice.type||((order?.ocTeam||'FFE')==='OSE'?'OS&E':'FF&E');
@@ -203,9 +212,9 @@
       return excedido?fila.map(entry=>({...entry,style:entry.kind==='number'?28:entry.kind==='date'?30:29})):fila;
     });
     const totals=records.reduce((all,row)=>{const curr=row[8].value;all[curr]=(all[curr]||0)+Number(row[7].value||0);return all;},{});
-    const xml=sheet({kind:'invoice',project,metrics:[{label:'INVOICES',value:selected.length},{label:'PAYMENT REQ.',value:selected.filter(invoice=>invoice.number).length},{label:'INVOICED PEN',value:totals.PEN||0},{label:'INVOICED USD',value:totals.USD||0},{label:'INVOICED EUR',value:totals.EUR||0}],headers:['TYPE','PO NUMBER','PO DATE','MANUFACTURER','TOTAL ORDER VALUE','INVOICE #','INV. DATE','INV. AMOUNT','CUR','PO BALANCE','PO ALERT','PR DATE','PR NUMBER','PAYMENT EVIDENCE','AMOUNT PAID','TRANSFER DATE','INVOICE NOTE','HPG COMMENTS','DELIVERY LOCATION','DESTINATION','PENDING BALANCE','PAYMENT REGISTERED BY','REGISTERED ON'],rows:records,widths:[10,17,12,32,19,17,12,17,7,17,14,13.88671875,17,24,17,13,52,20,17,15,18,26,16]});
-    const bytes=await packageFile('InvoiceList',xml,REPORT_ASSETS.invoiceStyles);
-    download(`VAAK_Reporte Requerimientos de Pago Details_${safeName(project.name)}.xlsx`,bytes);
+    const xml=sheet({protegido:Boolean(opciones.cliente),kind:'invoice',project,metrics:[{label:'INVOICES',value:selected.length},{label:'PAYMENT REQ.',value:selected.filter(invoice=>invoice.number).length},{label:'INVOICED PEN',value:totals.PEN||0},{label:'INVOICED USD',value:totals.USD||0},{label:'INVOICED EUR',value:totals.EUR||0}],headers:['TYPE','PO NUMBER','PO DATE','MANUFACTURER','TOTAL ORDER VALUE','INVOICE #','INV. DATE','INV. AMOUNT','CUR','PO BALANCE','PO ALERT','PR DATE','PR NUMBER','PAYMENT EVIDENCE','AMOUNT PAID','TRANSFER DATE','INVOICE NOTE','HPG COMMENTS','DELIVERY LOCATION','DESTINATION','PENDING BALANCE','PAYMENT REGISTERED BY','REGISTERED ON'],rows:records,widths:[10,17,12,32,19,17,12,17,7,17,14,13.88671875,17,24,17,13,52,20,17,15,18,26,16]});
+    const bytes=await packageFile('InvoiceList',xml,REPORT_ASSETS.invoiceStyles,Boolean(opciones.cliente));
+    download(opciones.cliente?`HPG_Payment Request Report_${safeName(project.name)}.xlsx`:`VAAK_Reporte Requerimientos de Pago Details_${safeName(project.name)}.xlsx`,bytes);
     return {rows:records.length,invoices:selected.length};
   };
 

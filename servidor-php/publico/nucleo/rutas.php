@@ -343,11 +343,23 @@ function vaak_estado_para_miembro($estado, array $miembro) {
     : $miembro['projectIds'];
   $permitidos = array_flip(array_filter($permitidos, fn($x) => is_string($x) || is_int($x)));
   $delProyecto = fn($x) => is_object($x) && isset($x->projectId) && (is_string($x->projectId) || is_int($x->projectId)) && isset($permitidos[$x->projectId]);
+  // Solo órdenes aprobadas (no borradores, pendientes ni anuladas) y solo los requerimientos de pago
+  // de esas órdenes (decisión de Datnya, 22-sep-2026).
+  $ordenes = array_values(array_filter($lista($store->orders ?? []), fn($o) => $delProyecto($o) && empty($o->isDraft) && strtolower((string)($o->status ?? 'approved')) === 'approved'));
+  $visibles = [];
+  foreach ($ordenes as $o) { if (isset($o->number)) $visibles['n:' . $o->number] = true; if (isset($o->id)) $visibles['i:' . $o->id] = true; }
+  $proyectos = [];
+  foreach ($lista($store->projects ?? []) as $p) {
+    if (!is_object($p) || !isset($p->id) || !(is_string($p->id) || is_int($p->id)) || !isset($permitidos[$p->id])) continue;
+    $p = clone $p;
+    $p->invoices = array_values(array_filter($lista($p->invoices ?? null), fn($r) => is_object($r) && (isset($visibles['n:' . ($r->poNumber ?? '')]) || isset($visibles['i:' . ($r->orderId ?? '')]))));
+    $proyectos[] = $p;
+  }
   return (object)[
     'version' => $estado->version ?? null,
     'store' => (object)[
-      'projects' => array_values(array_filter($lista($store->projects ?? []), fn($p) => is_object($p) && isset($p->id) && (is_string($p->id) || is_int($p->id)) && isset($permitidos[$p->id]))),
-      'orders' => array_values(array_filter($lista($store->orders ?? []), $delProyecto)),
+      'projects' => $proyectos,
+      'orders' => $ordenes,
       'specs' => array_values(array_filter($lista($store->specs ?? []), $delProyecto)),
       'projectCompanies' => array_values(array_filter($lista($store->projectCompanies ?? []), $delProyecto)),
       'suppliers' => [],

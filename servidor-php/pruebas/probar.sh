@@ -76,4 +76,8 @@ ayudante sin-bloqueos
 paso "9. Quitar datos de demostración"
 ayudante poner-demo
 node "$P/navegador.js" "$P/paso5-quitar-demo.js"
+ayudante sin-bloqueos
+
+paso "10. Portal del cliente: su proyecto, OC aprobadas, requerimientos, reportes de solo lectura y tracking"
+node "$P/navegador.js" "$P/paso6-portal-cliente.js"
 echo; echo "Listo. Resultados completos en $L"
