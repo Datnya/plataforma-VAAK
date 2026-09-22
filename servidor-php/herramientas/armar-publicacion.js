@@ -114,10 +114,38 @@ function copiar(origen, dest) {
     }
   }
 
+  // Pantallas internas solo con sesión (22-sep-2026), como en la banca en línea: todo el código de
+  // la plataforma se junta en nucleo/interfaz.js (carpeta que no se sirve) y lo entrega /api/app solo
+  // a quien inició sesión. index.html queda con la pantalla de inicio ya dibujada y acceso.js.
+  // Cada archivo lleva en ?v= una huella de su contenido: cambia en cada publicación y el
+  // navegador nunca usa una copia vieja.
+  const huella = (t) => require("crypto").createHash("sha256").update(t).digest("hex").slice(0, 12);
+  let pagina = fs.readFileSync(ruta, "utf8");
+  const scripts = [...pagina.matchAll(/<script src="([^"?]+)(?:\?[^"]*)?"><\/script>/g)].map((m) => m[1]);
+  if (!scripts.includes("app.js") || scripts.includes("acceso.js")) { console.error("AVISO: la lista de scripts de index.html no es la esperada."); process.exit(1); }
+  // «;» al inicio de cada archivo: ninguno cambia el modo de los que siguen al juntarlos.
+  const interfaz = scripts.map((n) => {
+    const f = path.join(destino, n);
+    if (!fs.existsSync(f)) { console.error("AVISO: index.html usa " + n + " pero no existe."); process.exit(1); }
+    return ";" + fs.readFileSync(f, "utf8");
+  }).join("\n");
+  fs.writeFileSync(path.join(destino, "nucleo", "interfaz.js"), interfaz);
+  for (const n of fs.readdirSync(destino)) if (n.endsWith(".js") && n !== "acceso.js") fs.rmSync(path.join(destino, n));
+  const acceso = fs.readFileSync(path.join(destino, "acceso.js"), "utf8");
+  const pantalla = fs.readFileSync(path.join(__dirname, "pantalla-acceso.html"), "utf8").replace(/^<!--[\s\S]*?-->\s*/, "").trim();
+  pagina = pagina.replace(/[ \t]*<script[^>]*><\/script>\r?\n?/g, "");
+  if (!pagina.includes('<main id="app"></main>')) { console.error("AVISO: index.html ya no tiene <main id=\"app\"></main>."); process.exit(1); }
+  pagina = pagina.replace('<main id="app"></main>', `<main id="app">${pantalla}</main>`);
+  pagina = pagina.replace(/href="([^"?]+\.css)(?:\?v=[^"]*)?"/g, (_, n) => `href="${n}?v=${huella(fs.readFileSync(path.join(destino, n)))}"`);
+  pagina = pagina.replace("</body>", `  <script src="acceso.js?v=${huella(acceso)}" data-app="/api/app?v=${huella(interfaz)}"></script>\n  </body>`);
+  if (/<script>/.test(pagina) || /\son[a-z]+=/i.test(pagina)) { console.error("AVISO: index.html quedó con código escrito dentro."); process.exit(1); }
+  fs.writeFileSync(ruta, pagina);
+
   if (config) fs.copyFileSync(path.resolve(config), path.join(destino, "nucleo", "config.php"));
   fs.rmSync(path.join(destino, "nucleo", "config.ejemplo.php"), { force: true });
 
   console.log(`Listo: ${destino}`);
   console.log(`index.html: ${antes - html.length} caracteres de Supabase quitados${config ? "; config.php incluido" : "; falta config.php"}`);
+  console.log(`Pantallas internas: ${scripts.length} archivos en nucleo/interfaz.js (${Math.round(interfaz.length / 1024)} KB), solo con sesión`);
   console.log(`${instalacion ? "Con" : "Sin"} verificar.php · código ${comprimir ? `comprimido (${Math.round(ahorro / 1024)} KB menos)` : "SIN comprimir (no subir así)"}`);
 })();

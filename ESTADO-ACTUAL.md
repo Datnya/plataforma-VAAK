@@ -3,7 +3,7 @@
 > **Si eres un modelo de IA que acaba de llegar a este proyecto: lee este documento completo antes de tocar nada.**
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
-**Última actualización:** 21 de septiembre de 2026 (auditoría de seguridad, fases 1 a 3)
+**Última actualización:** 22 de septiembre de 2026 (actualización 7: pantallas internas solo con sesión)
 **Último commit documentado:** el más reciente de `main` (ver `git log -1`); este documento se actualiza en el mismo commit que cada cambio
 
 ---
@@ -52,7 +52,8 @@ El 18-sep (noche) Datnya pidió pausar los commits mientras mandaba cambios; el 
 | 1 | Servidor con mysqli (sin pdo_mysql ni mbstring) | — | ✅ 18-sep | ✅ (venía en el ZIP de instalación) |
 | 2 | Todo guardado en el hosting: borradores de OC y avisos descartados compartidos; registro de accesos de clientes en el servidor con botón «Vaciar registro»; permisos de proyectos iguales para todos (ver sección 7) | `actualizacion-2-registro-accesos.sql` (crea `vaak_client_access_log`) | ✅ 18-sep (comprobado desde internet: archivos iguales al repositorio, «Todo listo») | ⏳ (Datnya espera terminar los puntos pendientes) |
 | 3 | OC: dirección del proveedor automática y almacenes del hotel (Ship To). Requerimientos de pago: número de OC en grande, saldo de la OC en cada tarjeta, aviso al pasarse del total (también al revisar) y columnas PO BALANCE / PO ALERT en el Excel (ver sección 6, «Saldo de la OC y direcciones») | — | ⏳ ZIP listo (aún sin subir): `actualizacion-3/actualizacion-3.zip`, 19 archivos: `index.html`, `app.js`, `access-runtime.js`, `purchase-order-template.js`, `purchase-order-reference.css`, `payment-request-template.js`, `payment-request-reference.css`, `technical-sheet-template.js`, `revision-block.js`, `reports.js`, `oc-saldo.js`, `oc-direcciones.js`, `oc-formulario.js`, `oc-borradores.js`, `oc-impresion.js`, `proyecto-areas.js`, `spec-formulario.js`, `rp-formulario.js`, `assets/reports/invoice-styles.xml`. **Incluye las tandas 2, 3, 4 y 5** (ver sección 6). Se arma comparando el sitio armado con lo publicado en PRUEBA (solo van los archivos distintos) | ⏳ |
-| 6 | Auditoría de seguridad, fases 1 a 3 (ver «Dónde quedamos exactamente (21-sep)»). **Paquete completo** (59 archivos, todo el código va comprimido): `actualizacion-6/actualizacion-6.zip`. Tras extraerlo, **borrar `verificar.php`** de la carpeta. Luego, en la oficial, un administrador entra y usa el aviso «Revisar y quitar» para eliminar los datos de demostración | — | ⏳ | ⏳ |
+| 6 | Auditoría de seguridad, fases 1 a 3 (ver «Dónde quedamos exactamente (21-sep)»). **Paquete completo** (59 archivos, todo el código va comprimido): `actualizacion-6/actualizacion-6.zip`. Tras extraerlo, **borrar `verificar.php`** de la carpeta. Luego, en la oficial, un administrador entra y usa el aviso «Revisar y quitar» para eliminar los datos de demostración | — | ⏳ (no prioritario) | ✅ 21-sep |
+| 7 | Pantallas internas solo con sesión (`/api/app`), versiones por huella, mensaje único de acceso fallido, margen del pie de «Áreas del proyecto». Paquete completo: `actualizacion-7/actualizacion-7.zip` (32 archivos) | — | ⏳ | ⏳ |
 
 Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia → Importar el `.sql` (una sola vez); 2) subir y extraer el ZIP en la carpeta de ESA copia; 3) `verificar.php` debe decir «Todo listo». Los paquetes de instalación completos de `Claude outputs/instalacion-*/` son del 18-sep: para una instalación nueva, regenerarlos con `armar-publicacion.js` y el `esquema.sql` actual.
 
@@ -91,7 +92,14 @@ La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Sup
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
 
-### 📍 Dónde quedamos exactamente (21-sep) — auditoría y arreglos de seguridad
+### 📍 Dónde quedamos exactamente (22-sep) — actualización 7: pantallas internas solo con sesión
+La actualización 6 está en la **OFICIAL** (21-sep; los datos de demo ya se quitaron; PRUEBA sigue atrasada, no es prioridad). El **Informe de Seguridad** para TI de HPG está en `Claude outputs/informe-seguridad/` (PDF firmado por Datnya; **no modificarlo** salvo pedido expreso). Actualización 7 (`Claude outputs/actualizaciones/actualizacion-7/actualizacion-7.zip`, paquete completo, probado con `probar.sh`):
+- **Como en la banca en línea:** sin sesión el navegador solo recibe la pantalla de inicio (dibujada en `index.html` desde `servidor-php/herramientas/pantalla-acceso.html`, **siempre en inglés** por decisión de Datnya) y `servidor-php/publico/acceso.js`. Todo el código de las pantallas internas lo junta `armar-publicacion.js` en `nucleo/interfaz.js` (carpeta que no se sirve) y lo entrega `GET /api/app` solo con sesión, sin caché. Copiar la página ya no reproduce el interior. Al cerrar sesión (o si vence) la página se recarga y vuelve a ser solo el inicio. El `.htaccess` bloquea todo `.js` suelto excepto `acceso.js` (así los archivos de versiones anteriores que quedan en el hosting no se descargan). En la carpeta de desarrollo (`staging/public/prototype`) todo sigue igual: la separación la hace solo el armado.
+- **Caché:** cada `?v=` es ahora la huella del contenido (antes se reutilizaban números y un navegador podía seguir con archivos viejos).
+- **Inicio de sesión:** usuario inexistente y contraseña errada responden igual (`invalid_credentials`, «Incorrect username or password.»), para no revelar qué usuarios existen; «usuario desactivado» solo se dice con la contraseña correcta.
+- **Tarjeta «Áreas del proyecto»:** el pie («N áreas registradas» y «Ver áreas») tiene el mismo margen lateral que las filas (`proyecto-areas.js`).
+
+### Dónde quedamos el 21-sep — auditoría y arreglos de seguridad
 Datnya pidió una **auditoría completa de la plataforma oficial** (un experto le mostró que con «Inspeccionar» del navegador se veían el código y los usuarios). Se encontraron 12 problemas y se resolvieron en 3 fases, **todas probadas en local con `servidor-php/pruebas/probar.sh`** (ver sección 5). **Aún no están publicados** en PRUEBA ni en OFICIAL: el siguiente paso es armar la actualización 6, que Datnya suba a PRUEBA, la revise y luego a OFICIAL. Después se rehace el **diagnóstico profesional para el cliente** (Datnya quiere entregarlo con todas las fases terminadas).
 
 | # | Problema de la auditoría | Arreglo | Dónde |

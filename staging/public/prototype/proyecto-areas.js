@@ -195,7 +195,7 @@
   if (modalRoot) new MutationObserver(filterSpecArea).observe(modalRoot, { childList: true, subtree: true });
 
   const style = document.createElement("style");
-  style.textContent = ".pa-card-foot{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-top:.9rem;padding-top:.8rem;border-top:1px solid #eee4da;font-size:.82rem;color:#7a6a5f}.pa-card-foot button{padding:.5rem .95rem}"
+  style.textContent = ".pa-card-foot{display:flex;align-items:center;justify-content:space-between;gap:.75rem;margin-top:.9rem;padding:.8rem 1.1rem 0;border-top:1px solid #eee4da;font-size:.82rem;color:#7a6a5f}.pa-card-foot button{padding:.5rem .95rem}"
     + ".pa-modal{width:min(820px,100%);max-width:820px}.pa-modal .modal-head small{display:block;margin-top:.15rem;color:#9b7a5f;font-size:.8rem}.pa-toolbar{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.8rem}.pa-toolbar .user-search{flex:1 1 260px}.pa-toolbar input{width:100%}"
     + ".pa-table-wrap{max-height:52vh;overflow:auto;border:1px solid #eee4da;border-radius:10px}.pa-table-wrap table{margin:0}.pa-table-wrap td button{padding:.3rem .55rem}.pa-empty{padding:1.2rem;border:1px dashed #dccbba;border-radius:10px;text-align:center;color:#7a6a5f}"
     + ".pa-confirm{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:.6rem;margin-bottom:.8rem;padding:.7rem .9rem;border:1px solid #e74c3c;border-radius:8px;background:#fdf0ef;color:#c0392b;font-size:.85rem;font-weight:600}.pa-confirm div{display:flex;gap:.5rem}"

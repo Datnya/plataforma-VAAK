@@ -52,8 +52,7 @@
     const es = spanish();
     const wait = minutes(retryAfterSeconds);
     const messages = {
-      user_not_found: es ? "El usuario no existe. Revisa que el nombre de usuario esté bien escrito." : "That user does not exist. Check the username spelling.",
-      invalid_password: es ? "La contraseña es incorrecta." : "The password is incorrect.",
+      invalid_credentials: es ? "Usuario o contraseña incorrectos." : "Incorrect username or password.",
       user_inactive: es ? "Este usuario está desactivado. Pide a un administrador que lo active." : "This user is deactivated. Ask an administrator to activate it.",
       no_membership: es ? "Este usuario no tiene acceso a ninguna empresa en VAAK." : "This user does not have access to any VAAK company.",
       too_many_attempts: es ? "Demasiados intentos fallidos. Por seguridad, espera " + wait + " min antes de volver a intentarlo." : "Too many failed attempts. For security, wait " + wait + " min before trying again.",

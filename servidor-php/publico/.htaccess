@@ -44,6 +44,16 @@ AddHandler application/x-httpd-alt-php82___lsphp .php
   Require all denied
 </FilesMatch>
 
+# Desde el 22-sep-2026 el código de las pantallas internas lo entrega solo el servidor, a quien
+# inició sesión (GET /api/app, desde nucleo/interfaz.js). Sin sesión solo se descarga la pantalla
+# de inicio (acceso.js). Los .js sueltos de versiones anteriores que sigan en la carpeta no se sirven.
+<FilesMatch "\.js$">
+  Require all denied
+</FilesMatch>
+<Files "acceso.js">
+  Require all granted
+</Files>
+
 # Compresión (auditoría del 21-sep-2026): la plataforma pasa de ~1 MB a ~250 KB por visita.
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript text/javascript application/json application/xml image/svg+xml

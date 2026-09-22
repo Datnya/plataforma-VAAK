@@ -57,17 +57,16 @@ function ruta_login(): void {
   $q = $db->prepare("SELECT id, login_email, active, password_hash FROM vaak_profiles WHERE $campo = ? LIMIT 1");
   $q->execute([$identificador]);
   $perfil = $q->fetch();
-  if (!$perfil || !$perfil['login_email']) {
+  // Usuario inexistente y contraseña incorrecta dan la misma respuesta (y tardan lo mismo): así nadie
+  // puede averiguar qué nombres de usuario existen. Si está desactivado solo se dice con la clave correcta.
+  $existe = $perfil && $perfil['login_email'];
+  $claveOk = password_verify($clave, $existe ? $perfil['password_hash'] : '$2y$10$lJoGzsZI2ilhkJW.UqtjRuEW4xxyV4GLc6wMeIWQyiRFjSHKnhSIS');
+  if (!$existe || !$claveOk) {
     $espera = $registrarFallo();
     if ($espera) $falla('too_many_attempts', 429, ['retryAfterSeconds' => $espera]);
-    $falla('user_not_found', 401);
+    $falla('invalid_credentials', 401);
   }
   if ((int)$perfil['active'] === 0) $falla('user_inactive', 403);
-  if (!password_verify($clave, $perfil['password_hash'])) {
-    $espera = $registrarFallo();
-    if ($espera) $falla('too_many_attempts', 429, ['retryAfterSeconds' => $espera]);
-    $falla('invalid_password', 401);
-  }
   $q = $db->prepare("SELECT company_id, role, project_scope, local_project_ids FROM vaak_user_company_memberships WHERE user_id = ? AND status = 'active' ORDER BY created_at LIMIT 1");
   $q->execute([$perfil['id']]);
   $membresia = $q->fetch();
@@ -809,6 +808,21 @@ function ruta_demo_limpiar(): void {
   $db->prepare("INSERT INTO vaak_audit_events (company_id, actor_user_id, action, resource_type, resource_id) VALUES (?, ?, 'demo.removed', 'company_data', NULL)")->execute([$admin['companyId'], $admin['userId']]);
   $db->commit();
   vaak_json(['ok' => true, 'removed' => true, 'total' => $total, 'summary' => $resumen, 'revision' => $nueva]);
+}
+
+// ======================= PANTALLAS INTERNAS =======================
+// GET /api/app — el código de todas las pantallas internas (lo arma armar-publicacion.js en
+// nucleo/interfaz.js, carpeta que no se sirve). Como en la banca en línea: sin sesión solo se ve el
+// inicio de sesión, y copiar la página no permite reproducir el interior de la plataforma.
+// No se guarda en la caché del navegador, para que no quede en el equipo al cerrar sesión.
+function ruta_interfaz(): void {
+  vaak_no_store();
+  header('Content-Type: application/javascript; charset=utf-8');
+  if (!vaak_miembro()) { http_response_code(401); echo "/* Sign in to use the platform. */\n"; return; }
+  $archivo = __DIR__ . '/interfaz.js';
+  if (!is_file($archivo)) { http_response_code(404); echo "/* not found */\n"; return; }
+  header('Content-Length: ' . filesize($archivo));
+  readfile($archivo);
 }
 
 // GET /api/health
