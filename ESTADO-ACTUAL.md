@@ -3,7 +3,7 @@
 > **Si eres un modelo de IA que acaba de llegar a este proyecto: lee este documento completo antes de tocar nada.**
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
-**Última actualización:** 22 de septiembre de 2026 (actualización 8: estilos protegidos, celular y tablet)
+**Última actualización:** 23 de septiembre de 2026 (actualización 10: monedas y áreas)
 **Último commit documentado:** el más reciente de `main` (ver `git log -1`); este documento se actualiza en el mismo commit que cada cambio
 
 ---
@@ -55,7 +55,8 @@ El 18-sep (noche) Datnya pidió pausar los commits mientras mandaba cambios; el 
 | 6 | Auditoría de seguridad, fases 1 a 3 (ver «Dónde quedamos exactamente (21-sep)»). **Paquete completo** (59 archivos, todo el código va comprimido): `actualizacion-6/actualizacion-6.zip`. Tras extraerlo, **borrar `verificar.php`** de la carpeta. Luego, en la oficial, un administrador entra y usa el aviso «Revisar y quitar» para eliminar los datos de demostración | — | ⏳ (no prioritario) | ✅ 21-sep |
 | 7 | Pantallas internas solo con sesión (`/api/app`), versiones por huella, mensaje único de acceso fallido, margen del pie de «Áreas del proyecto». Paquete completo: `actualizacion-7/actualizacion-7.zip` (32 archivos) | — | ⏳ | ✅ 22-sep |
 | 8 | Estilos internos y de las fichas solo con sesión (`/api/estilos`), diseño para celular y tablet, los datos de demostración ya no pueden volver a guardarse, portal del cliente completo (proyecto, banner, OC aprobadas, RP, reportes Excel de solo lectura) | — | ⏳ | ✅ 22-sep (comprobado: la oficial sirve acceso.css y /api/estilos pide sesión) |
-| 9 | Sin mayúscula automática en ningún campo, «Warehouse address» en el alta de proyecto, ficha del proyecto con todos los campos (contacto y teléfono incluidos) y «Specified by» libre en la OC. Paquete completo: `actualizacion-9/actualizacion-9.zip` | — | ⏳ | ⏳ |
+| 9 | Sin mayúscula automática en ningún campo, «Warehouse address» en el alta de proyecto, ficha del proyecto con todos los campos (contacto y teléfono incluidos) y «Specified by» libre en la OC | — | ⏳ | ✅ 23-sep |
+| 10 | Monedas: la del spec manda en la OC y en el RP, sin conversiones; se permite mezclar monedas con aviso en rojo. Áreas del proyecto: solo el nombre del área (sin repetir) y quitar. Paquete completo: `actualizacion-10/actualizacion-10.zip` | — | ⏳ | ⏳ |
 
 Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia → Importar el `.sql` (una sola vez); 2) subir y extraer el ZIP en la carpeta de ESA copia; 3) `verificar.php` debe decir «Todo listo». Los paquetes de instalación completos de `Claude outputs/instalacion-*/` son del 18-sep: para una instalación nueva, regenerarlos con `armar-publicacion.js` y el `esquema.sql` actual.
 
@@ -79,11 +80,33 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 
 ## 0. EN QUÉ ESTAMOS AHORA — léelo primero
 
-**Proyecto en curso: trasladar la plataforma al hosting oficial del cliente.** Aprobado por Datnya el 18-sep-2026.
+> **Resumen para una IA que llega hoy (23-sep-2026).** La plataforma **ya vive en el hosting del cliente** y está en uso real. El traslado desde Vercel/Supabase terminó el 19-sep. Lo que sigue son mejoras, y cada una se entrega como un ZIP numerado que Datnya sube por el cPanel.
 
-La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Supabase). Ahora hay que llevarla al hosting del cliente, que **no puede ejecutar Node.js** y solo ofrece **PHP + MySQL**. Por eso la parte de servidor se reescribe en PHP. Detalles técnicos y el inventario de lo que hay que reproducir: sección 7, «Traslado al hosting oficial».
+**Qué es:** plataforma web de gestión de compras (proyectos, specs, órdenes de compra, requerimientos de pago, proveedores, reportes Excel y PDF) para **HPG INTERNATIONAL LATINOAMERICANA S.A.C.**. La desarrolla Datnya Monzón; el molde es suyo y se puede revender a otros clientes.
 
-### Etapas y avance
+**Dónde vive cada cosa:**
+
+| | Detalle |
+|---|---|
+| Plataforma OFICIAL | `https://plataforma.hpgilatam.com` → carpeta `/plataforma.hpgilatam.com` (sin `/public`), base MySQL `wwwhpgilatam_vaakoficial`. **Datos reales, en uso.** |
+| Plataforma de PRUEBA | `https://staging.hpgilatam.com` → `/staging.hpgilatam.com/public`, base `wwwhpgilatam_vaakprueba`. **Desactualizada desde el 22-sep** (Datnya decidió publicar directo en la oficial; ponerla al día cuando se pueda). |
+| Código de la interfaz | `staging/public/prototype/` (JS y CSS sueltos, sin framework). **Es la única copia viva.** La carpeta `prototype/` de la raíz es la copia vieja: solo histórico. |
+| Código del servidor | `servidor-php/publico/` (PHP 8.2 + mysqli): `api.php` reparte las rutas y `nucleo/` tiene `arranque.php`, `sesion.php`, `rutas.php`, `bd.php` y el `config.php` de cada copia (nunca va al repositorio). |
+| Armado del paquete | `node servidor-php/herramientas/armar-publicacion.js <destino>` deja la carpeta lista para el hosting. |
+| Pruebas | `bash servidor-php/pruebas/probar.sh` (10 pasos, sección 5). |
+| Documentos para el cliente | `Claude outputs/` (no va al repositorio): informe de seguridad firmado y los ZIP de cada actualización. |
+
+**Cómo funciona por dentro:** toda la información de la empresa es **un solo documento JSON** por empresa en la tabla `vaak_company_data` (con historial de 150 versiones en `vaak_company_data_history`). El navegador guarda una copia de trabajo en `localStorage` (`vaak-local-v8`) y `shared-sync.js` la sincroniza cada 20 segundos (`GET/PUT /api/data`, control por número de revisión). Los usuarios, contraseñas (bcrypt), sesiones y el registro de accesos de clientes viven en tablas propias del servidor.
+
+**Quién ve qué (lo aplica el servidor, no la pantalla):**
+- **Administrador:** todo.
+- **Trabajador:** solo sus proyectos asignados y lo que cuelga de ellos; del resto del equipo solo nombre, cargo y foto. Al guardar, el servidor combina su envío con lo guardado y acepta únicamente lo que su rol permite.
+- **Cliente:** solo sus proyectos, sus **OC aprobadas** y los requerimientos de pago de esas OC. Solo lectura. Su portal siempre en **inglés**.
+- **Sin sesión:** solo la pantalla de inicio; el código de las pantallas internas lo entrega `GET /api/app` (y sus estilos `GET /api/estilos`) únicamente con sesión válida.
+
+**Pendientes reales:** copia de seguridad diaria (la programa el área de TI de HPG; `servidor-php/herramientas/respaldo-diario.php` está listo), poner al día la plataforma de PRUEBA y, más adelante, publicación automática por FTP.
+
+### Historia del traslado (terminado; se conserva como referencia)
 
 | # | Etapa | Quién | Estado |
 |---|---|---|---|
@@ -94,7 +117,13 @@ La plataforma ya está terminada y probada en el entorno de prueba (Vercel + Sup
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
 
-### 📍 Dónde quedamos exactamente (22-sep, tarde) — actualización 8: estilos protegidos, celular y demo que no vuelve
+### 📍 Dónde quedamos exactamente (23-sep) — actualización 10: monedas y áreas
+Publicadas en la OFICIAL: actualizaciones 1 a 9. Lo nuevo es la **actualización 10** (`Claude outputs/actualizaciones/actualizacion-10/actualizacion-10.zip`, paquete completo, `probar.sh` en verde):
+- **Monedas (el error que reportó Datnya):** un spec guardado como «USD 1250.00» no coincidía con el «$» de los selectores, así que la OC se quedaba en soles; y al corregir la moneda a mano, el importe se **convertía** con un tipo de cambio fijo de 3.75 y el costo del spec cambiaba. Arreglado en tres puntos: (1) `money-utils.js` → `currencyFrom()` devuelve siempre la forma canónica (símbolo para sol, dólar y euro; código ISO para el resto), así que specs, OC, RP, saldos y reportes hablan el mismo idioma; (2) `app.js` → se eliminó la conversión automática y la constante `USD_TO_PEN`: cambiar la moneda de un ítem ya no toca el importe; (3) `rp-formulario.js` → el requerimiento de pago toma la moneda de su OC (antes siempre soles).
+- **Mezcla de monedas permitida con aviso:** antes una OC solo admitía una moneda (el selector de las demás filas quedaba bloqueado y no dejaba emitir). Ahora cada ítem conserva la moneda de su spec; si alguna difiere de la del primer ítem aparece un texto rojo bajo esa fila y **la OC se puede emitir igual**. El total se muestra en la moneda del primer ítem y **no se convierte nada** (decisión de Datnya). Se quitaron los dos rechazos de `access-runtime.js` y `avisarMonedaMixta()` reemplaza a `aplicarMonedaUnica()` en `app.js`; `syncReferencePurchaseOrderTotal` también usa la moneda del primer ítem.
+- **Cuadro «Áreas del proyecto»:** en «Ver áreas» y en «Seleccionar áreas» quedan solo el **nombre del área** y el botón de quitar; se fueron rubro, código y tipo. Cada área aparece **una sola vez** aunque varios rubros la compartan (31 áreas en vez de 75 filas repetidas), y quitar un área quita todos sus rubros (`proyecto-areas.js`).
+
+### Dónde quedamos el 22-sep (tarde) — actualización 8: estilos protegidos, celular y demo que no vuelve
 La actualización 7 está en la **OFICIAL** (comprobado desde internet: `/api/app` 401 sin sesión, los .js viejos 403). Actualización 8 (`Claude outputs/actualizaciones/actualizacion-8/actualizacion-8.zip`, paquete completo, `probar.sh` en verde):
 - **Estilos también protegidos:** en público solo queda `acceso.css` (la pantalla de inicio, ~12 KB, sacado de styles.css y refinements.css con las clases de `pantalla-acceso.html` mediante `csso` `usage`). Los de las pantallas internas y de las fichas (OC, requerimiento de pago, ficha técnica) van en `nucleo/estilos.css` y los entrega `GET /api/estilos` solo con sesión; sus rutas `assets/` pasan a `/assets/`. `acceso.js` carga primero los estilos y luego el código. El `.htaccess` bloquea todo .js y .css salvo `acceso.js`/`acceso.css`.
 - **Celular y tablet:** bloque al final de `refinements.css` («Celular y tablet (22-sep-2026)»). Antes, en celular el menú (Dashboard/Tools/Team) y «Sign out» quedaban fuera de la pantalla y las ventanas se salían por la derecha. Ahora: encabezado en dos filas (logo + foto/Sign out; menú a lo ancho), ventanas al ancho de la pantalla, títulos con su botón apilados, specs en columna, métricas de usuarios en 2 columnas compactas, tabla de usuarios deslizable. Revisado con capturas a 375 px y 768 px.

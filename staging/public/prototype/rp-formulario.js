@@ -172,6 +172,16 @@
       campoTerminos.value = terminos;
       campoTerminos.dispatchEvent(new Event("input", { bubbles: true }));
     }
+    // La moneda es SIEMPRE la de la OC elegida (22-sep-2026): antes quedaba en soles aunque la OC
+    // estuviera en dolares u otra moneda.
+    const Money = window.VAAKMoney;
+    const moneda = (order.items || []).map((item) => item.currency).find(Boolean) || (Money ? Money.currencyFrom(order.amount, "S/") : "");
+    if (moneda) for (const nombre of ["currency", "invoiceCurrency"]) {
+      const campo = form.elements.namedItem(nombre);
+      if (!campo) continue;
+      campo.value = moneda;
+      campo.dispatchEvent(new Event("change", { bubbles: true }));
+    }
     const ref = form.elements.namedItem("poReferenceArea");
     if (ref) ref.value = order.number || "";
     recalc(form);

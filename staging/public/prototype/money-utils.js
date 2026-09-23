@@ -24,9 +24,13 @@
   };
   const fixed=value=>{const text=round(value).toFixed(3);return text.endsWith('0')?text.slice(0,-1):text};
   const format=value=>round(value).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:3});
+  // Una moneda tiene una sola forma canonica: el simbolo para sol, dolar y euro; el codigo ISO
+  // para las demas. Antes "USD 680.00" devolvia "USD", que no coincide con el "$" de los selectores
+  // y el formulario se quedaba en soles (22-sep-2026).
+  const canonico=code=>code==="PEN"?"S/":code==="USD"?"$":code==="EUR"?"€":code;
   const currencyFrom=(value,fallback='S/')=>{
     let match=String(value??'').trim().match(/^(PEN|USD|EUR|COP|MXN|CLP|ARS|BRL|UYU|PYG|BOB|VES|CRC|GTQ|HNL|NIO|PAB|DOP|CUP|S\/|\$|€)/i);
-    return match?match[1].toUpperCase():fallback;
+    return match?canonico(match[1].toUpperCase()):canonico(String(fallback||"S/").toUpperCase());
   };
   const currencyValue=(currency,value)=>`${currency||'S/'} ${fixed(value)}`;
   const storedCurrencyValue=(value,fallback='S/')=>currencyValue(currencyFrom(value,fallback),value);

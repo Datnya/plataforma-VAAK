@@ -2,9 +2,10 @@
 // - Las áreas son los rubros de «Configuración del sistema → Rubros de órdenes de compra».
 // - Cada proyecto guarda los códigos de sus áreas en `areaCodes` (datos compartidos).
 //   Si el proyecto aún no tiene selección (`areaCodes` sin definir), tiene TODAS las áreas.
-// - Tarjeta «Áreas del proyecto» → botón «Ver áreas» → cuadro al centro con rubro, código,
-//   tipo y área. Solo el administrador puede seleccionar áreas (selección múltiple) o quitarlas;
-//   trabajadores y clientes solo las ven.
+// - Tarjeta «Áreas del proyecto» → botón «Ver áreas» → cuadro al centro con el nombre del área y,
+//   para el administrador, el botón de quitar. Desde el 22-sep-2026 ya no se muestran rubro,
+//   código ni tipo, y cada área aparece una sola vez aunque varios rubros la compartan; quitar un
+//   área quita todos sus rubros. Trabajadores y clientes solo las ven.
 // - En el formulario de spec (nuevo, editar y revisión), «Área» y «Rubro del spec» muestran
 //   solo las áreas del proyecto.
 (() => {
@@ -44,6 +45,10 @@
     return "";
   }
 
+  // Cada area (BANQUETE, ADMINISTRATION...) se muestra una sola vez, aunque varios rubros la
+  // compartan (pedido de Datnya, 22-sep-2026).
+  const nombreDeArea = (r) => String(r?.area || r?.name || "").trim();
+  const areasUnicas = (lista) => [...new Set((lista || []).map(nombreDeArea).filter(Boolean))];
   const teamPill = (r) => `<span class="rubro-team-pill rubro-team-${r.team === "FFE" ? "ffe" : "ose"}">${r.team === "FFE" ? "FF&amp;E" : "OS&amp;E"}</span>`;
   const searchKey = (r) => escapeHtml(`${r.name} ${r.code} ${r.area} ${r.team === "FFE" ? "ff&e ffe" : "os&e ose"}`.toLowerCase());
 
@@ -68,14 +73,15 @@
       const all = catalog();
       let body, foot;
       if (mode === "view") {
-        const rows = areas.map((r) => `<tr data-search="${searchKey(r)}"><td><strong>${escapeHtml(r.name)}</strong></td><td><span class="rubro-code-pill">${escapeHtml(r.code)}</span></td><td>${teamPill(r)}</td><td>${escapeHtml(r.area)}</td>${admin ? `<td><button type="button" class="danger" data-area-remove="${escapeHtml(r.code)}" title="${es("Quitar del proyecto", "Remove from project")}">✕</button></td>` : ""}</tr>`).join("");
-        const confirmBar = pendingRemove ? `<div class="pa-confirm" role="alert"><span>${es(`¿Quitar «${escapeHtml(pendingRemove.name)}» de este proyecto? Los specs que ya la usan no cambian.`, `Remove «${escapeHtml(pendingRemove.name)}» from this project? Specs already using it are not changed.`)}</span><div><button type="button" class="secondary" data-area-remove-cancel>${es("Cancelar", "Cancel")}</button><button type="button" class="danger" data-area-remove-yes>${es("Sí, quitar", "Yes, remove")}</button></div></div>` : "";
-        body = `<div class="pa-toolbar"><label class="user-search"><input data-pa-search type="search" placeholder="${es("Buscar por rubro, código o área...", "Search by category, code or area...")}"></label><span class="rubros-count">${areas.length} ${es(areas.length === 1 ? "área" : "áreas", areas.length === 1 ? "area" : "areas")}${Array.isArray(project.areaCodes) ? "" : ` · ${es("todas (aún no se seleccionaron)", "all (not selected yet)")}`}</span></div>${confirmBar}${areas.length ? `<div class="pa-table-wrap"><table class="user-directory settings-rubros-table" translate="no"><thead><tr><th>${es("RUBRO", "CATEGORY")}</th><th>${es("CÓDIGO", "CODE")}</th><th>${es("TIPO", "TYPE")}</th><th>${es("ÁREA", "AREA")}</th>${admin ? `<th>${es("QUITAR", "REMOVE")}</th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="pa-empty">${admin ? es("Este proyecto no tiene áreas. Pulsa «Seleccionar áreas» para agregarlas.", "This project has no areas. Press «Select areas» to add them.") : es("Este proyecto todavía no tiene áreas seleccionadas.", "This project has no areas selected yet.")}</p>`}<p class="vaak-form-error" data-pa-error hidden></p>`;
+        const nombres = areasUnicas(areas);
+        const rows = nombres.map((nombre) => `<tr data-search="${escapeHtml(nombre.toLowerCase())}"><td><strong>${escapeHtml(nombre)}</strong></td>${admin ? `<td><button type="button" class="danger" data-area-remove="${escapeHtml(nombre)}" title="${es("Quitar del proyecto", "Remove from project")}">✕</button></td>` : ""}</tr>`).join("");
+        const confirmBar = pendingRemove ? `<div class="pa-confirm" role="alert"><span>${es(`¿Quitar «${escapeHtml(pendingRemove)}» de este proyecto? Los specs que ya la usan no cambian.`, `Remove «${escapeHtml(pendingRemove)}» from this project? Specs already using it are not changed.`)}</span><div><button type="button" class="secondary" data-area-remove-cancel>${es("Cancelar", "Cancel")}</button><button type="button" class="danger" data-area-remove-yes>${es("Sí, quitar", "Yes, remove")}</button></div></div>` : "";
+        body = `<div class="pa-toolbar"><label class="user-search"><input data-pa-search type="search" placeholder="${es("Buscar área...", "Search area...")}"></label><span class="rubros-count">${nombres.length} ${es(nombres.length === 1 ? "área" : "áreas", nombres.length === 1 ? "area" : "areas")}${Array.isArray(project.areaCodes) ? "" : ` · ${es("todas (aún no se seleccionaron)", "all (not selected yet)")}`}</span></div>${confirmBar}${nombres.length ? `<div class="pa-table-wrap"><table class="user-directory settings-rubros-table" translate="no"><thead><tr><th>${es("ÁREA", "AREA")}</th>${admin ? `<th>${es("QUITAR", "REMOVE")}</th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="pa-empty">${admin ? es("Este proyecto no tiene áreas. Pulsa «Seleccionar áreas» para agregarlas.", "This project has no areas. Press «Select areas» to add them.") : es("Este proyecto todavía no tiene áreas seleccionadas.", "This project has no areas selected yet.")}</p>`}<p class="vaak-form-error" data-pa-error hidden></p>`;
         foot = `<button type="button" class="secondary" data-pa-close>${es("Cerrar", "Close")}</button>${admin ? `<button type="button" class="primary" data-pa-select>${es("Seleccionar áreas", "Select areas")}</button>` : ""}`;
       } else {
-        if (!selected) selected = new Set(areas.map((r) => r.code));
-        const group = (label, list) => list.length ? `<fieldset class="pa-group"><legend>${label}</legend>${list.map((r) => `<label class="pa-option" data-search="${searchKey(r)}"><input type="checkbox" value="${escapeHtml(r.code)}"${selected.has(r.code) ? " checked" : ""}><strong>${escapeHtml(r.name)}</strong><span class="rubro-code-pill">${escapeHtml(r.code)}</span><small>${escapeHtml(r.area)}</small></label>`).join("")}</fieldset>` : "";
-        body = `<p class="pa-intro">${es("Marca las áreas que tiene este proyecto. Solo esas aparecerán en el campo «Área» de sus specs.", "Tick the areas this project has. Only those will appear in the «Area» field of its specs.")}</p><div class="pa-toolbar"><label class="user-search"><input data-pa-search type="search" placeholder="${es("Buscar por rubro, código o área...", "Search by category, code or area...")}"></label><span class="rubros-count" data-pa-count>${selected.size} ${es("de", "of")} ${all.length} ${es("seleccionadas", "selected")}</span></div><div class="pa-bulk"><button type="button" class="secondary" data-pa-all>${es("Marcar todas", "Select all")}</button><button type="button" class="secondary" data-pa-none>${es("Quitar todas", "Clear all")}</button></div><div class="pa-options" translate="no">${group("OS&amp;E", all.filter((r) => r.team !== "FFE"))}${group("FF&amp;E", all.filter((r) => r.team === "FFE"))}</div><p class="vaak-form-error" data-pa-error hidden></p>`;
+        if (!selected) selected = new Set(areasUnicas(areas));
+        const opciones = areasUnicas(all).map((nombre) => `<label class="pa-option" data-search="${escapeHtml(nombre.toLowerCase())}"><input type="checkbox" value="${escapeHtml(nombre)}"${selected.has(nombre) ? " checked" : ""}><strong>${escapeHtml(nombre)}</strong></label>`).join("");
+        body = `<p class="pa-intro">${es("Marca las áreas que tiene este proyecto. Solo esas aparecerán en el campo «Área» de sus specs.", "Tick the areas this project has. Only those will appear in the «Area» field of its specs.")}</p><div class="pa-toolbar"><label class="user-search"><input data-pa-search type="search" placeholder="${es("Buscar área...", "Search area...")}"></label><span class="rubros-count" data-pa-count>${selected.size} ${es("de", "of")} ${areasUnicas(all).length} ${es("seleccionadas", "selected")}</span></div><div class="pa-bulk"><button type="button" class="secondary" data-pa-all>${es("Marcar todas", "Select all")}</button><button type="button" class="secondary" data-pa-none>${es("Quitar todas", "Clear all")}</button></div><div class="pa-options" translate="no">${opciones}</div><p class="vaak-form-error" data-pa-error hidden></p>`;
         foot = `<button type="button" class="secondary" data-pa-back>${es("Cancelar", "Cancel")}</button><button type="button" class="primary" data-pa-save>${es("Guardar selección", "Save selection")}</button>`;
       }
       overlay.innerHTML = `<section class="modal pa-modal" role="dialog" aria-modal="true"><header class="modal-head"><div><h2>${mode === "view" ? es("Áreas del proyecto", "Project areas") : es("Seleccionar áreas del proyecto", "Select project areas")}</h2><small class="pa-project" translate="no">${escapeHtml([project.code, project.name].filter(Boolean).join(" · "))}</small></div><button type="button" class="ghost" data-pa-close>✕</button></header><div class="modal-body">${body}</div><footer class="modal-foot">${foot}</footer></section>`;
@@ -93,7 +99,7 @@
       if (event.target.type !== "checkbox" || !selected) return;
       if (event.target.checked) selected.add(event.target.value); else selected.delete(event.target.value);
       const count = overlay.querySelector("[data-pa-count]");
-      if (count) count.textContent = `${selected.size} ${es("de", "of")} ${catalog().length} ${es("seleccionadas", "selected")}`;
+      if (count) count.textContent = `${selected.size} ${es("de", "of")} ${areasUnicas(catalog()).length} ${es("seleccionadas", "selected")}`;
     });
     overlay.addEventListener("click", (event) => {
       const t = event.target.closest("button");
@@ -105,26 +111,26 @@
       if (t.matches("[data-pa-all], [data-pa-none]")) {
         const on = t.matches("[data-pa-all]");
         overlay.querySelectorAll(".pa-option:not([hidden]) input[type=checkbox]").forEach((box) => { box.checked = on; if (on) selected.add(box.value); else selected.delete(box.value); });
-        overlay.querySelector("[data-pa-count]").textContent = `${selected.size} ${es("de", "of")} ${catalog().length} ${es("seleccionadas", "selected")}`;
+        overlay.querySelector("[data-pa-count]").textContent = `${selected.size} ${es("de", "of")} ${areasUnicas(catalog()).length} ${es("seleccionadas", "selected")}`;
         return;
       }
       if (t.matches("[data-pa-save]")) {
         t.disabled = true; t.classList.add("vaak-busy");
         t.innerHTML = `<span class="login-spinner" aria-hidden="true"></span>${es("Guardando…", "Saving…")}`;
-        const order = catalog().map((r) => r.code).filter((code) => selected.has(code));
+        const order = catalog().filter((r) => selected.has(nombreDeArea(r))).map((r) => r.code);
         const error = saveAreaCodes(projectId, order);
         if (error) { t.disabled = false; t.classList.remove("vaak-busy"); t.textContent = es("Guardar selección", "Save selection"); fail(error); return; }
         mode = "view"; selected = null; render(); bridge()?.rerender();
         return;
       }
       if (t.matches("[data-area-remove]")) {
-        pendingRemove = catalog().find((r) => r.code === t.dataset.areaRemove) || { code: t.dataset.areaRemove, name: t.dataset.areaRemove };
+        pendingRemove = t.dataset.areaRemove;
         render(); return;
       }
       if (t.matches("[data-area-remove-cancel]")) { pendingRemove = null; render(); return; }
       if (t.matches("[data-area-remove-yes]") && pendingRemove) {
         const project = projectOf(readState(), projectId);
-        const codes = projectAreas(project).map((r) => r.code).filter((code) => code !== pendingRemove.code);
+        const codes = projectAreas(project).filter((r) => nombreDeArea(r) !== pendingRemove).map((r) => r.code);
         const error = saveAreaCodes(projectId, codes);
         if (error) { fail(error); return; }
         pendingRemove = null; render(); bridge()?.rerender();
@@ -141,7 +147,7 @@
     const projectId = bridge()?.getView()?.selectedProjectId;
     const project = projectOf(readState(), projectId);
     if (!project) return;
-    const total = projectAreas(project).length;
+    const total = areasUnicas(projectAreas(project)).length;
     const footer = document.createElement("div");
     footer.className = "pa-card-foot";
     footer.innerHTML = `<span>${total} ${es(total === 1 ? "área registrada" : "áreas registradas", total === 1 ? "registered area" : "registered areas")}</span><button type="button" class="secondary" data-project-areas="${escapeHtml(project.id)}">${es("Ver áreas", "View areas")}</button>`;
