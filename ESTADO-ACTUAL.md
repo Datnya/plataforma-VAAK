@@ -3,7 +3,7 @@
 > **Si eres un modelo de IA que acaba de llegar a este proyecto: lee este documento completo antes de tocar nada.**
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
-**Última actualización:** 23 de septiembre de 2026 (actualización 10: monedas y áreas)
+**Última actualización:** 23 de septiembre de 2026 (actualización 11: áreas que se agregan y código de spec vacío)
 **Último commit documentado:** el más reciente de `main` (ver `git log -1`); este documento se actualiza en el mismo commit que cada cambio
 
 ---
@@ -56,7 +56,8 @@ El 18-sep (noche) Datnya pidió pausar los commits mientras mandaba cambios; el 
 | 7 | Pantallas internas solo con sesión (`/api/app`), versiones por huella, mensaje único de acceso fallido, margen del pie de «Áreas del proyecto». Paquete completo: `actualizacion-7/actualizacion-7.zip` (32 archivos) | — | ⏳ | ✅ 22-sep |
 | 8 | Estilos internos y de las fichas solo con sesión (`/api/estilos`), diseño para celular y tablet, los datos de demostración ya no pueden volver a guardarse, portal del cliente completo (proyecto, banner, OC aprobadas, RP, reportes Excel de solo lectura) | — | ⏳ | ✅ 22-sep (comprobado: la oficial sirve acceso.css y /api/estilos pide sesión) |
 | 9 | Sin mayúscula automática en ningún campo, «Warehouse address» en el alta de proyecto, ficha del proyecto con todos los campos (contacto y teléfono incluidos) y «Specified by» libre en la OC | — | ⏳ | ✅ 23-sep |
-| 10 | Monedas: la del spec manda en la OC y en el RP, sin conversiones; se permite mezclar monedas con aviso en rojo. Áreas del proyecto: solo el nombre del área (sin repetir) y quitar. Paquete completo: `actualizacion-10/actualizacion-10.zip` | — | ⏳ | ⏳ |
+| 10 | Monedas: la del spec manda en la OC y en el RP, sin conversiones; se permite mezclar monedas con aviso en rojo. Áreas del proyecto: solo el nombre del área (sin repetir) y quitar | — | ⏳ | ✅ 23-sep |
+| 11 | Áreas del proyecto: agregar un área escribiéndola, marcar varias y quitarlas juntas. Código del spec vacío al crear. Paquete completo: `actualizacion-11/actualizacion-11.zip` | — | ⏳ | ⏳ |
 
 Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia → Importar el `.sql` (una sola vez); 2) subir y extraer el ZIP en la carpeta de ESA copia; 3) `verificar.php` debe decir «Todo listo». Los paquetes de instalación completos de `Claude outputs/instalacion-*/` son del 18-sep: para una instalación nueva, regenerarlos con `armar-publicacion.js` y el `esquema.sql` actual.
 
@@ -117,7 +118,12 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
 
-### 📍 Dónde quedamos exactamente (23-sep) — actualización 10: monedas y áreas
+### 📍 Dónde quedamos exactamente (23-sep, tarde) — actualización 11: áreas que se agregan y código de spec vacío
+La actualización 10 ya está en la OFICIAL. Lo nuevo es la **actualización 11** (`Claude outputs/actualizaciones/actualizacion-11/actualizacion-11.zip`, paquete completo, `probar.sh` en verde):
+- **Cuadro «Áreas del proyecto» (`proyecto-areas.js`, reescrito):** el administrador puede **agregar un área escribiendo su nombre** (botón «Agregar área» en el pie, que abre un campo de texto; avisa si ya existe). Esa área vive **solo en ese proyecto**, en `project.areasPropias`, y no toca el catálogo de rubros de OC. Las áreas del catálogo siguen viniendo como hasta ahora (`project.areaCodes`). Además hay **casillas para marcar varias** y quitarlas de una vez («Marcar todas», «Quitar marcas», «Quitar marcadas (N)»), además del ✕ de cada fila; todo pide confirmación. Ya no existe la pantalla de «Seleccionar áreas». El campo «Área» del formulario de spec ofrece exactamente esas áreas, incluidas las escritas a mano.
+- **Código del spec:** el formulario de spec nuevo abre con el campo **vacío** (antes proponía «SPEC-100»); el texto de ayuda sigue mostrando el formato «SPEC-001». Al editar, se mantiene el código guardado.
+
+### Dónde quedamos el 23-sep (mañana) — actualización 10: monedas y áreas
 Publicadas en la OFICIAL: actualizaciones 1 a 9. Lo nuevo es la **actualización 10** (`Claude outputs/actualizaciones/actualizacion-10/actualizacion-10.zip`, paquete completo, `probar.sh` en verde):
 - **Monedas (el error que reportó Datnya):** un spec guardado como «USD 1250.00» no coincidía con el «$» de los selectores, así que la OC se quedaba en soles; y al corregir la moneda a mano, el importe se **convertía** con un tipo de cambio fijo de 3.75 y el costo del spec cambiaba. Arreglado en tres puntos: (1) `money-utils.js` → `currencyFrom()` devuelve siempre la forma canónica (símbolo para sol, dólar y euro; código ISO para el resto), así que specs, OC, RP, saldos y reportes hablan el mismo idioma; (2) `app.js` → se eliminó la conversión automática y la constante `USD_TO_PEN`: cambiar la moneda de un ítem ya no toca el importe; (3) `rp-formulario.js` → el requerimiento de pago toma la moneda de su OC (antes siempre soles).
 - **Mezcla de monedas permitida con aviso:** antes una OC solo admitía una moneda (el selector de las demás filas quedaba bloqueado y no dejaba emitir). Ahora cada ítem conserva la moneda de su spec; si alguna difiere de la del primer ítem aparece un texto rojo bajo esa fila y **la OC se puede emitir igual**. El total se muestra en la moneda del primer ítem y **no se convierte nada** (decisión de Datnya). Se quitaron los dos rechazos de `access-runtime.js` y `avisarMonedaMixta()` reemplaza a `aplicarMonedaUnica()` en `app.js`; `syncReferencePurchaseOrderTotal` también usa la moneda del primer ítem.

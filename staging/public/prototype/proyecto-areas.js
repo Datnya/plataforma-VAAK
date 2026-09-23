@@ -34,12 +34,13 @@
     return all.filter((r) => codes.has(r.code));
   }
 
-  function saveAreaCodes(projectId, codes) {
+  function saveAreaCodes(projectId, codes, propias) {
     if (!isAdmin()) return es("Solo un administrador puede cambiar las áreas del proyecto.", "Only an administrator can change the project areas.");
     const state = readState();
     const project = projectOf(state, projectId);
     if (!project) return es("No se pudo guardar: el proyecto ya no existe. Recarga la página.", "Could not save: the project no longer exists. Reload the page.");
-    project.areaCodes = [...new Set(codes)];
+    if (Array.isArray(codes)) project.areaCodes = [...new Set(codes)];
+    if (Array.isArray(propias)) project.areasPropias = [...new Set(propias)];
     state.meta = { ...(state.meta || {}), storeRevision: Number(state.meta?.storeRevision || 0) + 1 };
     try { localStorage.setItem(STORE, JSON.stringify(state)); } catch { return es("No se pudo guardar en este navegador. Intenta de nuevo.", "Could not save in this browser. Try again."); }
     return "";
@@ -52,7 +53,13 @@
   const teamPill = (r) => `<span class="rubro-team-pill rubro-team-${r.team === "FFE" ? "ffe" : "ose"}">${r.team === "FFE" ? "FF&amp;E" : "OS&amp;E"}</span>`;
   const searchKey = (r) => escapeHtml(`${r.name} ${r.code} ${r.area} ${r.team === "FFE" ? "ff&e ffe" : "os&e ose"}`.toLowerCase());
 
-  // ---- Cuadro «Áreas del proyecto» ----
+  // Las áreas escritas a mano viven solo en su proyecto (project.areasPropias); las del catálogo
+  // siguen viniendo de los rubros (project.areaCodes).
+  const areasPropias = (project) => (Array.isArray(project?.areasPropias) ? project.areasPropias : []).map((x) => String(x || "").trim()).filter(Boolean);
+  const areasDelProyecto = (project) => [...new Set([...areasUnicas(projectAreas(project)), ...areasPropias(project)])];
+  const mismaArea = (a, b) => String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
+
+  // ---- Cuadro «Áreas del proyecto»: ver, marcar varias y quitarlas, o agregar una nueva ----
   function openAreas(projectId) {
     document.getElementById("project-areas-modal")?.remove();
     const overlay = document.createElement("div");
@@ -61,84 +68,120 @@
     overlay.style.zIndex = "1100";
     document.body.appendChild(overlay);
     const admin = isAdmin();
-    let mode = "view";
-    let pendingRemove = null;
-    let selected = null;
+    let porQuitar = null;
+    let agregando = false;
+    let marcadas = new Set();
 
     const render = () => {
       const state = readState();
       const project = projectOf(state, projectId);
       if (!project) { overlay.remove(); return; }
-      const areas = projectAreas(project);
-      const all = catalog();
-      let body, foot;
-      if (mode === "view") {
-        const nombres = areasUnicas(areas);
-        const rows = nombres.map((nombre) => `<tr data-search="${escapeHtml(nombre.toLowerCase())}"><td><strong>${escapeHtml(nombre)}</strong></td>${admin ? `<td><button type="button" class="danger" data-area-remove="${escapeHtml(nombre)}" title="${es("Quitar del proyecto", "Remove from project")}">✕</button></td>` : ""}</tr>`).join("");
-        const confirmBar = pendingRemove ? `<div class="pa-confirm" role="alert"><span>${es(`¿Quitar «${escapeHtml(pendingRemove)}» de este proyecto? Los specs que ya la usan no cambian.`, `Remove «${escapeHtml(pendingRemove)}» from this project? Specs already using it are not changed.`)}</span><div><button type="button" class="secondary" data-area-remove-cancel>${es("Cancelar", "Cancel")}</button><button type="button" class="danger" data-area-remove-yes>${es("Sí, quitar", "Yes, remove")}</button></div></div>` : "";
-        body = `<div class="pa-toolbar"><label class="user-search"><input data-pa-search type="search" placeholder="${es("Buscar área...", "Search area...")}"></label><span class="rubros-count">${nombres.length} ${es(nombres.length === 1 ? "área" : "áreas", nombres.length === 1 ? "area" : "areas")}${Array.isArray(project.areaCodes) ? "" : ` · ${es("todas (aún no se seleccionaron)", "all (not selected yet)")}`}</span></div>${confirmBar}${nombres.length ? `<div class="pa-table-wrap"><table class="user-directory settings-rubros-table" translate="no"><thead><tr><th>${es("ÁREA", "AREA")}</th>${admin ? `<th>${es("QUITAR", "REMOVE")}</th>` : ""}</tr></thead><tbody>${rows}</tbody></table></div>` : `<p class="pa-empty">${admin ? es("Este proyecto no tiene áreas. Pulsa «Seleccionar áreas» para agregarlas.", "This project has no areas. Press «Select areas» to add them.") : es("Este proyecto todavía no tiene áreas seleccionadas.", "This project has no areas selected yet.")}</p>`}<p class="vaak-form-error" data-pa-error hidden></p>`;
-        foot = `<button type="button" class="secondary" data-pa-close>${es("Cerrar", "Close")}</button>${admin ? `<button type="button" class="primary" data-pa-select>${es("Seleccionar áreas", "Select areas")}</button>` : ""}`;
-      } else {
-        if (!selected) selected = new Set(areasUnicas(areas));
-        const opciones = areasUnicas(all).map((nombre) => `<label class="pa-option" data-search="${escapeHtml(nombre.toLowerCase())}"><input type="checkbox" value="${escapeHtml(nombre)}"${selected.has(nombre) ? " checked" : ""}><strong>${escapeHtml(nombre)}</strong></label>`).join("");
-        body = `<p class="pa-intro">${es("Marca las áreas que tiene este proyecto. Solo esas aparecerán en el campo «Área» de sus specs.", "Tick the areas this project has. Only those will appear in the «Area» field of its specs.")}</p><div class="pa-toolbar"><label class="user-search"><input data-pa-search type="search" placeholder="${es("Buscar área...", "Search area...")}"></label><span class="rubros-count" data-pa-count>${selected.size} ${es("de", "of")} ${areasUnicas(all).length} ${es("seleccionadas", "selected")}</span></div><div class="pa-bulk"><button type="button" class="secondary" data-pa-all>${es("Marcar todas", "Select all")}</button><button type="button" class="secondary" data-pa-none>${es("Quitar todas", "Clear all")}</button></div><div class="pa-options" translate="no">${opciones}</div><p class="vaak-form-error" data-pa-error hidden></p>`;
-        foot = `<button type="button" class="secondary" data-pa-back>${es("Cancelar", "Cancel")}</button><button type="button" class="primary" data-pa-save>${es("Guardar selección", "Save selection")}</button>`;
-      }
-      overlay.innerHTML = `<section class="modal pa-modal" role="dialog" aria-modal="true"><header class="modal-head"><div><h2>${mode === "view" ? es("Áreas del proyecto", "Project areas") : es("Seleccionar áreas del proyecto", "Select project areas")}</h2><small class="pa-project" translate="no">${escapeHtml([project.code, project.name].filter(Boolean).join(" · "))}</small></div><button type="button" class="ghost" data-pa-close>✕</button></header><div class="modal-body">${body}</div><footer class="modal-foot">${foot}</footer></section>`;
+      const nombres = areasDelProyecto(project);
+      marcadas = new Set([...marcadas].filter((nombre) => nombres.some((x) => mismaArea(x, nombre))));
+
+      const filas = nombres.map((nombre) => {
+        const casilla = admin ? `<td class="pa-check"><input type="checkbox" data-pa-mark="${escapeHtml(nombre)}"${marcadas.has(nombre) ? " checked" : ""} aria-label="${es("Marcar", "Select")} ${escapeHtml(nombre)}"></td>` : "";
+        const quitarBtn = admin ? `<td><button type="button" class="danger" data-area-remove="${escapeHtml(nombre)}" title="${es("Quitar del proyecto", "Remove from project")}">✕</button></td>` : "";
+        return `<tr data-search="${escapeHtml(nombre.toLowerCase())}">${casilla}<td><strong>${escapeHtml(nombre)}</strong></td>${quitarBtn}</tr>`;
+      }).join("");
+
+      const pregunta = !porQuitar ? "" : porQuitar.length === 1
+        ? es(`¿Quitar «${escapeHtml(porQuitar[0])}» de este proyecto? Los specs que ya la usan no cambian.`, `Remove «${escapeHtml(porQuitar[0])}» from this project? Specs already using it are not changed.`)
+        : es(`¿Quitar ${porQuitar.length} áreas de este proyecto? Los specs que ya las usan no cambian.`, `Remove ${porQuitar.length} areas from this project? Specs already using them are not changed.`);
+      const confirmBar = porQuitar ? `<div class="pa-confirm" role="alert"><span>${pregunta}</span><div><button type="button" class="secondary" data-area-remove-cancel>${es("Cancelar", "Cancel")}</button><button type="button" class="danger" data-area-remove-yes>${es("Sí, quitar", "Yes, remove")}</button></div></div>` : "";
+
+      const agregarBar = admin && agregando ? `<form class="pa-add" data-pa-add-form><label class="user-search"><input data-pa-new type="text" maxlength="60" autocomplete="off" placeholder="${es("Nombre del área (por ejemplo: LOBBY)", "Area name (for example: LOBBY)")}"></label><button type="submit" class="primary">${es("Agregar", "Add")}</button><button type="button" class="secondary" data-pa-add-cancel>${es("Cancelar", "Cancel")}</button></form>` : "";
+
+      const marcadasTexto = es("Quitar marcadas", "Remove selected") + (marcadas.size ? ` (${marcadas.size})` : "");
+      const acciones = admin && nombres.length ? `<div class="pa-bulk"><button type="button" class="secondary" data-pa-all>${es("Marcar todas", "Select all")}</button><button type="button" class="secondary" data-pa-none>${es("Quitar marcas", "Clear selection")}</button><button type="button" class="danger" data-pa-remove-marked${marcadas.size ? "" : " disabled"}>${marcadasTexto}</button></div>` : "";
+
+      const tabla = nombres.length
+        ? `<div class="pa-table-wrap"><table class="user-directory settings-rubros-table" translate="no"><thead><tr>${admin ? `<th class="pa-check"></th>` : ""}<th>${es("ÁREA", "AREA")}</th>${admin ? `<th>${es("QUITAR", "REMOVE")}</th>` : ""}</tr></thead><tbody>${filas}</tbody></table></div>`
+        : `<p class="pa-empty">${admin ? es("Este proyecto no tiene áreas. Pulsa «Agregar área» para escribir la primera.", "This project has no areas. Press «Add area» to write the first one.") : es("Este proyecto todavía no tiene áreas.", "This project has no areas yet.")}</p>`;
+
+      const body = `<div class="pa-toolbar"><label class="user-search"><input data-pa-search type="search" placeholder="${es("Buscar área...", "Search area...")}"></label><span class="rubros-count">${nombres.length} ${es(nombres.length === 1 ? "área" : "áreas", nombres.length === 1 ? "area" : "areas")}</span></div>${agregarBar}${acciones}${confirmBar}${tabla}<p class="vaak-form-error" data-pa-error hidden></p>`;
+      const foot = `<button type="button" class="secondary" data-pa-close>${es("Cerrar", "Close")}</button>${admin ? `<button type="button" class="primary" data-pa-add>${es("Agregar área", "Add area")}</button>` : ""}`;
+      overlay.innerHTML = `<section class="modal pa-modal" role="dialog" aria-modal="true"><header class="modal-head"><div><h2>${es("Áreas del proyecto", "Project areas")}</h2><small class="pa-project" translate="no">${escapeHtml([project.code, project.name].filter(Boolean).join(" · "))}</small></div><button type="button" class="ghost" data-pa-close>✕</button></header><div class="modal-body">${body}</div><footer class="modal-foot">${foot}</footer></section>`;
+      if (agregando) overlay.querySelector("[data-pa-new]")?.focus();
     };
 
     const fail = (text) => { const error = overlay.querySelector("[data-pa-error]"); if (error) { error.textContent = text; error.hidden = false; } };
-    const done = () => { overlay.remove(); bridge()?.rerender(); };
+
+    // Quitar áreas: las del catálogo salen con todos sus rubros; las escritas a mano, de su lista.
+    const quitar = (nombres) => {
+      const project = projectOf(readState(), projectId);
+      if (!project) return es("El proyecto ya no existe. Recarga la página.", "The project no longer exists. Reload the page.");
+      const fuera = (nombre) => nombres.some((x) => mismaArea(x, nombre));
+      const codes = projectAreas(project).filter((r) => !fuera(nombreDeArea(r))).map((r) => r.code);
+      const propias = areasPropias(project).filter((nombre) => !fuera(nombre));
+      return saveAreaCodes(projectId, codes, propias);
+    };
 
     overlay.addEventListener("input", (event) => {
       if (!event.target.matches("[data-pa-search]")) return;
       const term = event.target.value.trim().toLowerCase();
       overlay.querySelectorAll("[data-search]").forEach((row) => { row.hidden = Boolean(term) && !row.dataset.search.includes(term); });
     });
+
     overlay.addEventListener("change", (event) => {
-      if (event.target.type !== "checkbox" || !selected) return;
-      if (event.target.checked) selected.add(event.target.value); else selected.delete(event.target.value);
-      const count = overlay.querySelector("[data-pa-count]");
-      if (count) count.textContent = `${selected.size} ${es("de", "of")} ${areasUnicas(catalog()).length} ${es("seleccionadas", "selected")}`;
+      const box = event.target.closest?.("[data-pa-mark]");
+      if (!box) return;
+      if (box.checked) marcadas.add(box.dataset.paMark); else marcadas.delete(box.dataset.paMark);
+      const boton = overlay.querySelector("[data-pa-remove-marked]");
+      if (boton) {
+        boton.disabled = !marcadas.size;
+        boton.textContent = es("Quitar marcadas", "Remove selected") + (marcadas.size ? ` (${marcadas.size})` : "");
+      }
     });
+
+    overlay.addEventListener("submit", (event) => {
+      if (!event.target.matches("[data-pa-add-form]")) return;
+      event.preventDefault();
+      if (!admin) return;
+      const input = overlay.querySelector("[data-pa-new]");
+      const nombre = String(input?.value || "").trim();
+      if (!nombre) { fail(es("Escribe el nombre del área.", "Type the area name.")); input?.focus(); return; }
+      const project = projectOf(readState(), projectId);
+      if (areasDelProyecto(project).some((x) => mismaArea(x, nombre))) { fail(es("Esa área ya está en el proyecto.", "That area is already in the project.")); input?.focus(); return; }
+      const error = saveAreaCodes(projectId, null, [...areasPropias(project), nombre]);
+      if (error) { fail(error); return; }
+      agregando = true;
+      render();
+      bridge()?.rerender();
+    });
+
     overlay.addEventListener("click", (event) => {
       const t = event.target.closest("button");
       if (!t) return;
-      if (t.matches("[data-pa-close]")) { overlay.remove(); return; }
+      if (t.matches("[data-pa-close]")) { overlay.remove(); bridge()?.rerender(); return; }
       if (!admin) return;
-      if (t.matches("[data-pa-select]")) { mode = "select"; selected = null; pendingRemove = null; render(); return; }
-      if (t.matches("[data-pa-back]")) { mode = "view"; selected = null; render(); return; }
-      if (t.matches("[data-pa-all], [data-pa-none]")) {
-        const on = t.matches("[data-pa-all]");
-        overlay.querySelectorAll(".pa-option:not([hidden]) input[type=checkbox]").forEach((box) => { box.checked = on; if (on) selected.add(box.value); else selected.delete(box.value); });
-        overlay.querySelector("[data-pa-count]").textContent = `${selected.size} ${es("de", "of")} ${areasUnicas(catalog()).length} ${es("seleccionadas", "selected")}`;
-        return;
-      }
-      if (t.matches("[data-pa-save]")) {
-        t.disabled = true; t.classList.add("vaak-busy");
-        t.innerHTML = `<span class="login-spinner" aria-hidden="true"></span>${es("Guardando…", "Saving…")}`;
-        const order = catalog().filter((r) => selected.has(nombreDeArea(r))).map((r) => r.code);
-        const error = saveAreaCodes(projectId, order);
-        if (error) { t.disabled = false; t.classList.remove("vaak-busy"); t.textContent = es("Guardar selección", "Save selection"); fail(error); return; }
-        mode = "view"; selected = null; render(); bridge()?.rerender();
-        return;
-      }
-      if (t.matches("[data-area-remove]")) {
-        pendingRemove = t.dataset.areaRemove;
+      if (t.matches("[data-pa-add]")) { agregando = true; porQuitar = null; render(); return; }
+      if (t.matches("[data-pa-add-cancel]")) { agregando = false; render(); return; }
+      if (t.matches("[data-pa-all]")) {
+        overlay.querySelectorAll("tr:not([hidden]) [data-pa-mark]").forEach((box) => { box.checked = true; marcadas.add(box.dataset.paMark); });
         render(); return;
       }
-      if (t.matches("[data-area-remove-cancel]")) { pendingRemove = null; render(); return; }
-      if (t.matches("[data-area-remove-yes]") && pendingRemove) {
-        const project = projectOf(readState(), projectId);
-        const codes = projectAreas(project).filter((r) => nombreDeArea(r) !== pendingRemove).map((r) => r.code);
-        const error = saveAreaCodes(projectId, codes);
-        if (error) { fail(error); return; }
-        pendingRemove = null; render(); bridge()?.rerender();
+      if (t.matches("[data-pa-none]")) { marcadas = new Set(); render(); return; }
+      if (t.matches("[data-pa-remove-marked]")) { if (marcadas.size) { porQuitar = [...marcadas]; render(); } return; }
+      if (t.matches("[data-area-remove]")) { porQuitar = [t.dataset.areaRemove]; render(); return; }
+      if (t.matches("[data-area-remove-cancel]")) { porQuitar = null; render(); return; }
+      if (t.matches("[data-area-remove-yes]") && porQuitar) {
+        t.disabled = true;
+        t.classList.add("vaak-busy");
+        t.innerHTML = `<span class="login-spinner" aria-hidden="true"></span>${es("Quitando…", "Removing…")}`;
+        const error = quitar(porQuitar);
+        if (error) { t.disabled = false; t.classList.remove("vaak-busy"); t.textContent = es("Sí, quitar", "Yes, remove"); fail(error); return; }
+        porQuitar = null;
+        marcadas = new Set();
+        render();
+        bridge()?.rerender();
       }
     });
-    overlay.addEventListener("keydown", (event) => { if (event.key === "Escape") done(); });
+
+    overlay.addEventListener("keydown", (event) => { if (event.key === "Escape") { overlay.remove(); bridge()?.rerender(); } });
     render();
   }
+
 
   // ---- Botón «Ver áreas» en la tarjeta del proyecto ----
   function decorateCard() {
@@ -147,7 +190,7 @@
     const projectId = bridge()?.getView()?.selectedProjectId;
     const project = projectOf(readState(), projectId);
     if (!project) return;
-    const total = areasUnicas(projectAreas(project)).length;
+    const total = areasDelProyecto(project).length;
     const footer = document.createElement("div");
     footer.className = "pa-card-foot";
     footer.innerHTML = `<span>${total} ${es(total === 1 ? "área registrada" : "áreas registradas", total === 1 ? "registered area" : "registered areas")}</span><button type="button" class="secondary" data-project-areas="${escapeHtml(project.id)}">${es("Ver áreas", "View areas")}</button>`;
@@ -174,7 +217,15 @@
     select.dataset.projectAreasReady = "1";
     const project = projectOf(readState(), projectId);
     if (!project) return;
-    const allowed = new Set(projectAreas(project).map((r) => r.name));
+    const esArea = select.name === "area";
+    const allowed = new Set(esArea ? areasDelProyecto(project) : projectAreas(project).map((r) => r.name));
+    // Las áreas escritas a mano no están en el catálogo: se agregan como opción.
+    if (esArea) for (const nombre of areasDelProyecto(project)) {
+      if ([...select.options].some((o) => o.value === nombre)) continue;
+      const opcion = document.createElement("option");
+      opcion.value = nombre; opcion.textContent = nombre;
+      select.appendChild(opcion);
+    }
     const current = select.value;
     select.querySelectorAll("option").forEach((option) => {
       // «Otros» (rubro escrito a mano) se mantiene en «Rubro del spec».
