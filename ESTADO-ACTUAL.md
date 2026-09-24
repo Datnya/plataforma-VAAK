@@ -20,16 +20,19 @@ La plataforma ya **no vive en Vercel**. Vive en el **hosting del cliente** (Per�
 | Quién la usa | Datnya (y Claude) para probar | El cliente y su equipo, con datos **reales** |
 | Datos | De prueba; se pueden borrar | **Reales. Nunca se borran ni se tocan a mano** |
 
-### 1. Todo cambio va primero a PRUEBA y solo después al OFICIAL
-Orden obligatorio, sin excepciones:
-1. Datnya pide el cambio.
-2. Se hace **en el repositorio** (`staging/public/prototype/` para la interfaz, `servidor-php/` para el servidor) y se prueba **en local** (sección «Servidor PHP» más abajo).
-3. Commit + push a `main`, con este documento actualizado en el mismo commit.
-4. Se publica en **PRUEBA** (`staging.hpgilatam.com`).
-5. **Datnya lo revisa en PRUEBA** y da el visto bueno.
-6. Recién entonces se publica **exactamente lo mismo** en el **OFICIAL** (`plataforma.hpgilatam.com`).
+### 1. Cómo se entrega un cambio (desde el 22-sep-2026: directo al OFICIAL)
+Hasta el 21-sep cada cambio pasaba primero por PRUEBA (`staging.hpgilatam.com`). Desde el 22-sep **Datnya decidió publicar directo en el OFICIAL**, porque la plataforma ya está en uso y PRUEBA quedó atrasada. La red de seguridad es la batería local: **nada se entrega sin `bash servidor-php/pruebas/probar.sh` en verde** (10 pasos, sección 5).
 
-**Prohibido:** probar cambios en el OFICIAL; editar archivos a mano en el cPanel (el código vive en GitHub y lo editado a mano se pierde en la siguiente publicación); publicar en el OFICIAL algo que Datnya no revisó en PRUEBA.
+Orden de trabajo, sin excepciones:
+1. Datnya pide el cambio. Si algo no está claro, se le pregunta **antes** de programar.
+2. Se hace **en el repositorio**: `staging/public/prototype/` para la interfaz, `servidor-php/publico/` para el servidor.
+3. Se prueba en la copia local (`probar.sh`) y, si el cambio se ve en pantalla, además con una prueba puntual en el navegador. Nunca se dice «está listo» sin haberlo comprobado.
+4. Se arma el paquete: `node servidor-php/herramientas/armar-publicacion.js "Claude outputs/actualizaciones/actualizacion-N/sitio"` y se comprime **sin `nucleo/config.php`** en `actualizacion-N.zip` (N es el número siguiente al último publicado; ver la tabla de actualizaciones).
+5. Se actualiza **este documento** y se hace commit + push a `main` (GitHub: `Datnya/plataforma-VAAK`).
+6. Se le entregan a Datnya los pasos del cPanel: Administrador de archivos → carpeta `/plataforma.hpgilatam.com` → **Cargar** el ZIP → clic derecho → **Extraer** (reemplazando) → **Eliminar** el ZIP → abrir la plataforma con **Ctrl + Shift + R**. Ella los ejecuta; Claude no entra al cPanel.
+7. Después de publicar se comprueba desde internet lo que se pueda (por ejemplo `curl https://plataforma.hpgilatam.com/api/health`).
+
+**Prohibido:** editar archivos a mano en el cPanel (el código vive en GitHub y lo editado a mano se pierde en la siguiente publicación); incluir `nucleo/config.php` en un ZIP; publicar algo que no pasó la batería de pruebas.
 
 ### 1 bis. GitHub: el molde de la plataforma, nunca datos del cliente
 El 18-sep (noche) Datnya pidió pausar los commits mientras mandaba cambios; el **19-sep pidió retomarlos**: todo lo del 18 y 19 de septiembre ya está subido. Reglas:
@@ -83,6 +86,14 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 ## 0. EN QUÉ ESTAMOS AHORA — léelo primero
 
 > **Resumen para una IA que llega hoy (23-sep-2026).** La plataforma **ya vive en el hosting del cliente** y está en uso real. El traslado desde Vercel/Supabase terminó el 19-sep. Lo que sigue son mejoras, y cada una se entrega como un ZIP numerado que Datnya sube por el cPanel.
+
+**Primeros pasos si eres una IA que recién llega:**
+1. Lee este documento completo (sobre todo las «Reglas de trabajo» de arriba y la sección 5, «Cómo probar sin romper nada»).
+2. Habla con Datnya **siempre en español**, sin tecnicismos, y guíala **un paso a la vez** con los nombres exactos de los botones del cPanel. Ella no es técnica.
+3. Programa solo en `staging/public/prototype/` (interfaz) y `servidor-php/publico/` (servidor). La carpeta `prototype/` de la raíz y todo lo de `staging/app`, `staging/components` son restos de la versión vieja en Next.js: **no se usan**.
+4. Prueba con `bash servidor-php/pruebas/probar.sh` antes de decir que algo está listo.
+5. Entrega el cambio como un ZIP numerado (regla 1) y dale a Datnya los pasos del cPanel; ella lo sube a la plataforma oficial.
+6. **Nunca** subas al repositorio datos del cliente, contraseñas ni `nucleo/config.php`; la carpeta `Claude outputs/` está fuera del repositorio por eso.
 
 **Qué es:** plataforma web de gestión de compras (proyectos, specs, órdenes de compra, requerimientos de pago, proveedores, reportes Excel y PDF) para **HPG INTERNATIONAL LATINOAMERICANA S.A.C.**. La desarrolla Datnya Monzón; el molde es suyo y se puede revender a otros clientes.
 
@@ -334,11 +345,11 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 
 | Archivo | Responsabilidad |
 |---|---|
-| `index.html` | Carga los scripts **en orden** y lleva el `?v=N` de caché |
+| `index.html` | Carga los scripts **en orden**. Al armar el paquete, `armar-publicacion.js` lo reescribe: deja solo la pantalla de inicio y `acceso.js`, y el resto del código se junta en `nucleo/interfaz.js` (lo entrega `/api/app` con sesión). El `?v=` es la huella del contenido |
 | `app.js` | La interfaz completa. Enorme y minificado (~300 KB, pocas líneas larguísimas) |
 | `access-control.js` | ACL: `ACTION_POLICY`, permisos por rol, `validateState` |
 | `access-runtime.js` | Motor: store en localStorage, acciones, tokens de operación |
-| `access-test-fixtures.js` | Datos semilla de demostración |
+| `access-test-fixtures.js` | Datos semilla de demostración. **En el paquete publicado se reemplaza por el punto de partida VACÍO** de `servidor-php/publico/access-test-fixtures.js` |
 | `staging-bridge.js` | Puente con el backend: login, sesión, usuarios, foto, presencia |
 | `shared-sync.js` | Sincroniza los datos de la empresa entre todos los usuarios |
 | `a4-preview.js` | Escala las previsualizaciones a A4 real |
@@ -349,6 +360,9 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 | `technical-sheet-template.js` | Formato de la ficha técnica del spec |
 | `money-utils.js` | Dinero y **catálogo de 19 monedas** |
 | `oc-saldo.js` | Saldo de cada OC frente a sus requerimientos de pago: tarjeta del RP, aviso al pasarse (RP nuevo y revisión) y cálculo que usa el Excel (`window.VAAKSaldoOC`) |
+| `limpiar-demo.js` | Aviso para el administrador si el servidor todavía tiene datos de demostración, con la ventana «Revisar y quitar» |
+| `portal-cliente.js` | Portal del cliente: carrusel del banner y la sección «Project reports» (Excel de solo lectura) |
+| `spec-rubros.js` | Campo «Rubro del spec»: buscador, lista sin división por equipos, ✕ que elimina del catálogo y «+» que agrega un rubro del proyecto (`project.rubrosPropios`) |
 | `proyecto-areas.js` | Áreas de cada proyecto: botón «Ver áreas», cuadro con selección múltiple (solo admin) y filtro del campo «Área» del spec |
 | `oc-formulario.js` | Formulario de OC: título editable del valor CIF (`cifLabel`) y «Especificado por» bloqueado con el nombre de quien llena |
 | `spec-formulario.js` | Unidad de medida del spec como desplegable (Each, Un., Lot., Case, Box, SQM, M2, M, Yard, SQY, Pies, Pie2, Pack, Otro) |
@@ -356,7 +370,8 @@ La interfaz **no es React**. Es JavaScript "vanilla" en `staging/public/prototyp
 | `oc-impresion.js` | Al imprimir la OC, compacta las firmas si así caben en la hoja anterior |
 | `rp-formulario.js` | Formulario de requerimiento de pago: partes desde la OC, total de factura = total de la solicitud, conceptos propios del desglose (`breakdownExtras`), monto a pagar = suma del desglose, «pagar a» bloqueado |
 | `oc-direcciones.js` | Direcciones del formulario de OC: dirección del proveedor (automática) y almacenes del hotel (Ship To), con botón para agregar más |
-| `presentation.js` | Traductor automático es/en de nodos de texto |
+| `presentation.js` | Traductor automático es/en de nodos de texto. **Ojo:** también traduce datos escritos por el usuario; los textos que no deben tocarse llevan `translate="no"` o `class="notranslate"` |
+| `servidor-php/publico/acceso.js` | Pantalla de inicio de sesión publicada (lo único que se descarga sin sesión). Carga `/api/estilos` y `/api/app` al entrar |
 
 ### ⚠️ Trampas que te van a morder
 
