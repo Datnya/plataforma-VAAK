@@ -1181,3 +1181,6 @@ textarea.auto-grow{resize:vertical;min-height:2.6rem;overflow:hidden;line-height
 .pa-bulk .danger[disabled] { opacity: .5; cursor: not-allowed; }
 .settings-rubros-table th.pa-check, .settings-rubros-table td.pa-check { width: 38px; text-align: center; }
 .settings-rubros-table td.pa-check input { width: 17px; height: 17px; cursor: pointer; }
+.pa-add .pa-team { flex: 0 0 auto; }
+.pa-add .pa-team select { height: 42px; padding: 0 .7rem; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-weight: 700; }
+.settings-rubros-table .rubro-team-pill { margin-left: .4rem; }

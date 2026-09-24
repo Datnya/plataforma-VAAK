@@ -8,7 +8,7 @@
   // Everything else the app keeps in localStorage that must be shared: catalogs, company contact,
   // purchase order drafts and each user's dismissed notifications (an object keyed by user id).
   // The client access log is not here: the server writes it at login (/api/admin/access-log).
-  const EXTRAS = ["vaak-custom-oc-rubros", "vaak-custom-rubros", "vaak-removed-spec-rubros", "vaak-company-contact", "vaak-oc-drafts", "vaak-dismissed-notifs"];
+  const EXTRAS = ["vaak-custom-oc-rubros", "vaak-custom-rubros", "vaak-removed-spec-rubros", "vaak-removed-oc-rubros", "vaak-company-contact", "vaak-oc-drafts", "vaak-dismissed-notifs"];
   const DISMISSED = "vaak-dismissed-notifs";
   const LINK_KEYS = { projectCompanies: ["projectId", "companyId"], supplierProjectLinks: ["supplierId", "projectId"] };
   const ASSET_MIN = 4096;

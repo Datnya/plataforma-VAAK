@@ -3,7 +3,7 @@
 > **Si eres un modelo de IA que acaba de llegar a este proyecto: lee este documento completo antes de tocar nada.**
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
-**Última actualización:** 23 de septiembre de 2026 (actualización 11: áreas que se agregan y código de spec vacío)
+**Última actualización:** 23 de septiembre de 2026 (actualización 12: rubros, áreas con equipo y decimales)
 **Último commit documentado:** el más reciente de `main` (ver `git log -1`); este documento se actualiza en el mismo commit que cada cambio
 
 ---
@@ -57,7 +57,8 @@ El 18-sep (noche) Datnya pidió pausar los commits mientras mandaba cambios; el 
 | 8 | Estilos internos y de las fichas solo con sesión (`/api/estilos`), diseño para celular y tablet, los datos de demostración ya no pueden volver a guardarse, portal del cliente completo (proyecto, banner, OC aprobadas, RP, reportes Excel de solo lectura) | — | ⏳ | ✅ 22-sep (comprobado: la oficial sirve acceso.css y /api/estilos pide sesión) |
 | 9 | Sin mayúscula automática en ningún campo, «Warehouse address» en el alta de proyecto, ficha del proyecto con todos los campos (contacto y teléfono incluidos) y «Specified by» libre en la OC | — | ⏳ | ✅ 23-sep |
 | 10 | Monedas: la del spec manda en la OC y en el RP, sin conversiones; se permite mezclar monedas con aviso en rojo. Áreas del proyecto: solo el nombre del área (sin repetir) y quitar | — | ⏳ | ✅ 23-sep |
-| 11 | Áreas del proyecto: agregar un área escribiéndola, marcar varias y quitarlas juntas. Código del spec vacío al crear. Paquete completo: `actualizacion-11/actualizacion-11.zip` | — | ⏳ | ⏳ |
+| 11 | Áreas del proyecto: agregar un área escribiéndola, marcar varias y quitarlas juntas. Código del spec vacío al crear | — | ⏳ | ✅ 23-sep |
+| 12 | Campo de rubro del spec buscable, sin división por equipos, con «+» por proyecto y ✕ que elimina del catálogo; áreas con equipo OS&E/FF&E y campo «Área» agrupado; impresión con 2 decimales; sin la sección de rubros en Configuración del sistema. Paquete completo: `actualizacion-12/actualizacion-12.zip` | — | ⏳ | ⏳ |
 
 Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia → Importar el `.sql` (una sola vez); 2) subir y extraer el ZIP en la carpeta de ESA copia; 3) `verificar.php` debe decir «Todo listo». Los paquetes de instalación completos de `Claude outputs/instalacion-*/` son del 18-sep: para una instalación nueva, regenerarlos con `armar-publicacion.js` y el `esquema.sql` actual.
 
@@ -118,7 +119,14 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
 
-### 📍 Dónde quedamos exactamente (23-sep, tarde) — actualización 11: áreas que se agregan y código de spec vacío
+### 📍 Dónde quedamos exactamente (23-sep, noche) — actualización 12: rubros, áreas con equipo y decimales
+Las actualizaciones 1 a 11 ya están en la OFICIAL. Lo nuevo es la **actualización 12** (`Claude outputs/actualizaciones/actualizacion-12/actualizacion-12.zip`, paquete completo, `probar.sh` en verde):
+- **Campo «Rubro del spec» (nuevo módulo `spec-rubros.js`):** se escribe para buscar, la lista ya **no está dividida** en OS&E / FF&E, cada rubro trae un **✕** que lo elimina (pregunta antes) y el **«+»** agrega un rubro que queda guardado **en ese proyecto** (`project.rubrosPropios`), así aparece en todos sus specs, nuevos o editados. El `<select name="category">` original sigue existiendo oculto, así que el guardado, las revisiones y la ficha técnica no cambian. Antes el «+» guardaba en `vaak-custom-rubros`, una lista que ese desplegable no leía: por eso el rubro nuevo solo se veía en ese spec. Eliminar un rubro del catálogo se guarda en `vaak-removed-oc-rubros` (nueva clave sincronizada, también en la lista de extras que el servidor acepta de un trabajador) y `getOcRubros()` la respeta; antes solo se borraba de la memoria y volvía al recargar. La lista va con `translate="no"`: el traductor automático renombraba los rubros escritos a mano.
+- **Áreas con equipo:** al agregar un área en «Ver áreas» se elige **OS&E o FF&E**; las 31 del catálogo lo heredan de sus rubros (se comprobó que ninguna mezcla equipos). En el cuadro el equipo aparece como etiqueta junto al nombre, y el campo **«Área» del formulario de spec** muestra solo las áreas del proyecto **agrupadas por equipo**. Las áreas escritas a mano se guardan como `{name, team}` (se siguen leyendo las viejas, que eran texto).
+- **Impresión con 2 decimales:** la OC y el requerimiento de pago impresos (y sus previsualizaciones) muestran todos los montos con 2 decimales; los cálculos internos siguen con 3.
+- **Configuración del sistema:** se quitó la sección «Rubros de órdenes de compra»; los rubros se administran desde el propio campo del spec.
+
+### Dónde quedamos el 23-sep (tarde) — actualización 11: áreas que se agregan y código de spec vacío
 La actualización 10 ya está en la OFICIAL. Lo nuevo es la **actualización 11** (`Claude outputs/actualizaciones/actualizacion-11/actualizacion-11.zip`, paquete completo, `probar.sh` en verde):
 - **Cuadro «Áreas del proyecto» (`proyecto-areas.js`, reescrito):** el administrador puede **agregar un área escribiendo su nombre** (botón «Agregar área» en el pie, que abre un campo de texto; avisa si ya existe). Esa área vive **solo en ese proyecto**, en `project.areasPropias`, y no toca el catálogo de rubros de OC. Las áreas del catálogo siguen viniendo como hasta ahora (`project.areaCodes`). Además hay **casillas para marcar varias** y quitarlas de una vez («Marcar todas», «Quitar marcas», «Quitar marcadas (N)»), además del ✕ de cada fila; todo pide confirmación. Ya no existe la pantalla de «Seleccionar áreas». El campo «Área» del formulario de spec ofrece exactamente esas áreas, incluidas las escritas a mano.
 - **Código del spec:** el formulario de spec nuevo abre con el campo **vacío** (antes proponía «SPEC-100»); el texto de ayuda sigue mostrando el formato «SPEC-001». Al editar, se mantiene el código guardado.

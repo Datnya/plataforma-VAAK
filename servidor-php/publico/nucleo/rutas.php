@@ -527,7 +527,7 @@ function vaak_combinar_trabajador($actual, object $enviado, array $miembro, stri
   $ea = is_object($actual->extras ?? null) ? $actual->extras : new stdClass();
   $ee = is_object($enviado->extras ?? null) ? $enviado->extras : new stdClass();
   $extras = clone $ea;
-  foreach (['vaak-custom-oc-rubros', 'vaak-custom-rubros', 'vaak-removed-spec-rubros'] as $clave) {
+  foreach (['vaak-custom-oc-rubros', 'vaak-custom-rubros', 'vaak-removed-spec-rubros', 'vaak-removed-oc-rubros'] as $clave) {
     if (property_exists($ee, $clave) && ($ee->{$clave} === null || is_string($ee->{$clave}))) $extras->{$clave} = $ee->{$clave};
   }
   $bActual = vaak_lista(vaak_extra($ea, 'vaak-oc-drafts'));

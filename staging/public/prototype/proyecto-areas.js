@@ -55,8 +55,20 @@
 
   // Las áreas escritas a mano viven solo en su proyecto (project.areasPropias); las del catálogo
   // siguen viniendo de los rubros (project.areaCodes).
-  const areasPropias = (project) => (Array.isArray(project?.areasPropias) ? project.areasPropias : []).map((x) => String(x || "").trim()).filter(Boolean);
-  const areasDelProyecto = (project) => [...new Set([...areasUnicas(projectAreas(project)), ...areasPropias(project)])];
+  // Las escritas a mano pueden ser texto (formato viejo) u objeto {name, team}.
+  const areasPropias = (project) => (Array.isArray(project?.areasPropias) ? project.areasPropias : [])
+    .map((x) => (typeof x === "string" ? { name: x.trim(), team: "" } : { name: String(x?.name || "").trim(), team: x?.team === "FFE" ? "FFE" : x?.team === "OSE" ? "OSE" : "" }))
+    .filter((x) => x.name);
+  const nombresPropios = (project) => areasPropias(project).map((x) => x.name);
+  // Equipo de un área: el que tiene en el proyecto o, si viene del catálogo, el de sus rubros.
+  const equipoDeArea = (project, nombre) => {
+    const propia = areasPropias(project).find((x) => mismaArea(x.name, nombre));
+    if (propia && propia.team) return propia.team;
+    const rubro = catalog().find((r) => mismaArea(nombreDeArea(r), nombre));
+    return rubro ? (rubro.team === "FFE" ? "FFE" : "OSE") : "OSE";
+  };
+  const etiquetaEquipo = (team) => (team === "FFE" ? "FF&E" : "OS&E");
+  const areasDelProyecto = (project) => [...new Set([...areasUnicas(projectAreas(project)), ...nombresPropios(project)])];
   const mismaArea = (a, b) => String(a || "").trim().toLowerCase() === String(b || "").trim().toLowerCase();
 
   // ---- Cuadro «Áreas del proyecto»: ver, marcar varias y quitarlas, o agregar una nueva ----
@@ -82,7 +94,8 @@
       const filas = nombres.map((nombre) => {
         const casilla = admin ? `<td class="pa-check"><input type="checkbox" data-pa-mark="${escapeHtml(nombre)}"${marcadas.has(nombre) ? " checked" : ""} aria-label="${es("Marcar", "Select")} ${escapeHtml(nombre)}"></td>` : "";
         const quitarBtn = admin ? `<td><button type="button" class="danger" data-area-remove="${escapeHtml(nombre)}" title="${es("Quitar del proyecto", "Remove from project")}">✕</button></td>` : "";
-        return `<tr data-search="${escapeHtml(nombre.toLowerCase())}">${casilla}<td><strong>${escapeHtml(nombre)}</strong></td>${quitarBtn}</tr>`;
+        const equipo = equipoDeArea(project, nombre);
+        return `<tr data-search="${escapeHtml((nombre + " " + etiquetaEquipo(equipo)).toLowerCase())}">${casilla}<td><strong>${escapeHtml(nombre)}</strong> <span class="rubro-team-pill rubro-team-${equipo === "FFE" ? "ffe" : "ose"}">${equipo === "FFE" ? "FF&amp;E" : "OS&amp;E"}</span></td>${quitarBtn}</tr>`;
       }).join("");
 
       const pregunta = !porQuitar ? "" : porQuitar.length === 1
@@ -90,7 +103,7 @@
         : es(`¿Quitar ${porQuitar.length} áreas de este proyecto? Los specs que ya las usan no cambian.`, `Remove ${porQuitar.length} areas from this project? Specs already using them are not changed.`);
       const confirmBar = porQuitar ? `<div class="pa-confirm" role="alert"><span>${pregunta}</span><div><button type="button" class="secondary" data-area-remove-cancel>${es("Cancelar", "Cancel")}</button><button type="button" class="danger" data-area-remove-yes>${es("Sí, quitar", "Yes, remove")}</button></div></div>` : "";
 
-      const agregarBar = admin && agregando ? `<form class="pa-add" data-pa-add-form><label class="user-search"><input data-pa-new type="text" maxlength="60" autocomplete="off" placeholder="${es("Nombre del área (por ejemplo: LOBBY)", "Area name (for example: LOBBY)")}"></label><button type="submit" class="primary">${es("Agregar", "Add")}</button><button type="button" class="secondary" data-pa-add-cancel>${es("Cancelar", "Cancel")}</button></form>` : "";
+      const agregarBar = admin && agregando ? `<form class="pa-add" data-pa-add-form><label class="user-search"><input data-pa-new type="text" maxlength="60" autocomplete="off" placeholder="${es("Nombre del área (por ejemplo: LOBBY)", "Area name (for example: LOBBY)")}"></label><label class="user-search pa-team"><select data-pa-team aria-label="${es("Equipo", "Team")}"><option value="OSE">OS&amp;E</option><option value="FFE">FF&amp;E</option></select></label><button type="submit" class="primary">${es("Agregar", "Add")}</button><button type="button" class="secondary" data-pa-add-cancel>${es("Cancelar", "Cancel")}</button></form>` : "";
 
       const marcadasTexto = es("Quitar marcadas", "Remove selected") + (marcadas.size ? ` (${marcadas.size})` : "");
       const acciones = admin && nombres.length ? `<div class="pa-bulk"><button type="button" class="secondary" data-pa-all>${es("Marcar todas", "Select all")}</button><button type="button" class="secondary" data-pa-none>${es("Quitar marcas", "Clear selection")}</button><button type="button" class="danger" data-pa-remove-marked${marcadas.size ? "" : " disabled"}>${marcadasTexto}</button></div>` : "";
@@ -113,7 +126,7 @@
       if (!project) return es("El proyecto ya no existe. Recarga la página.", "The project no longer exists. Reload the page.");
       const fuera = (nombre) => nombres.some((x) => mismaArea(x, nombre));
       const codes = projectAreas(project).filter((r) => !fuera(nombreDeArea(r))).map((r) => r.code);
-      const propias = areasPropias(project).filter((nombre) => !fuera(nombre));
+      const propias = areasPropias(project).filter((x) => !fuera(x.name));
       return saveAreaCodes(projectId, codes, propias);
     };
 
@@ -143,7 +156,8 @@
       if (!nombre) { fail(es("Escribe el nombre del área.", "Type the area name.")); input?.focus(); return; }
       const project = projectOf(readState(), projectId);
       if (areasDelProyecto(project).some((x) => mismaArea(x, nombre))) { fail(es("Esa área ya está en el proyecto.", "That area is already in the project.")); input?.focus(); return; }
-      const error = saveAreaCodes(projectId, null, [...areasPropias(project), nombre]);
+      const equipo = overlay.querySelector("[data-pa-team]")?.value === "FFE" ? "FFE" : "OSE";
+      const error = saveAreaCodes(projectId, null, [...areasPropias(project), { name: nombre, team: equipo }]);
       if (error) { fail(error); return; }
       agregando = true;
       render();
@@ -217,15 +231,19 @@
     select.dataset.projectAreasReady = "1";
     const project = projectOf(readState(), projectId);
     if (!project) return;
-    const esArea = select.name === "area";
-    const allowed = new Set(esArea ? areasDelProyecto(project) : projectAreas(project).map((r) => r.name));
-    // Las áreas escritas a mano no están en el catálogo: se agregan como opción.
-    if (esArea) for (const nombre of areasDelProyecto(project)) {
-      if ([...select.options].some((o) => o.value === nombre)) continue;
-      const opcion = document.createElement("option");
-      opcion.value = nombre; opcion.textContent = nombre;
-      select.appendChild(opcion);
-    }
+    // «Área» ofrece las áreas del proyecto agrupadas por equipo; «Rubro del spec» ya no se filtra
+    // (lo maneja spec-rubros.js con el catálogo completo).
+    if (select.name !== "area") return;
+    const actual = select.value;
+    const nombres = areasDelProyecto(project);
+    const grupo = (team) => {
+      const items = nombres.filter((nombre) => equipoDeArea(project, nombre) === team);
+      if (!items.length) return "";
+      return `<optgroup label="${etiquetaEquipo(team)}">` + items.map((nombre) => `<option value="${escapeHtml(nombre)}"${mismaArea(nombre, actual) ? " selected" : ""}>${escapeHtml(nombre)}</option>`).join("") + "</optgroup>";
+    };
+    const sueltas = actual && !nombres.some((nombre) => mismaArea(nombre, actual)) ? `<option value="${escapeHtml(actual)}" selected>${escapeHtml(actual)}</option>` : "";
+    select.innerHTML = `<option value="">${es("Selecciona un área...", "Select an area...")}</option>` + sueltas + grupo("OSE") + grupo("FFE");
+    const allowed = new Set(nombres);
     const current = select.value;
     select.querySelectorAll("option").forEach((option) => {
       // «Otros» (rubro escrito a mano) se mantiene en «Rubro del spec».
