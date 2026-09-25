@@ -9,7 +9,7 @@
   const value=value=>value===null||value===undefined||String(value).trim()===''?'-':String(value);
   const number=value=>{const parsed=Number(String(value??'').replace(/[^0-9.-]/g,''));return Number.isFinite(parsed)?parsed:0};
   const rounded=value=>Money?Money.round(value):Math.round(number(value)*1000)/1000;
-  const amount=value=>value===null||value===undefined||String(value).trim()===''?'-':rounded(value).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
+  const amount=value=>value===null||value===undefined||String(value).trim()===''?'-':rounded(value).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:3});
   const displayDate=input=>{const match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(input||''));return match?`${match[2]}/${match[3]}/${match[1].slice(-2)}`:value(input)};
   const projectLine=project=>[project.code,project.name].filter(Boolean).join(' · ');
   const currencyCode=invoice=>String(invoice.currency||invoice.invoiceCurrency||'PEN').replace(/^S\/$/,'PEN').replace(/^\$$/,'USD');

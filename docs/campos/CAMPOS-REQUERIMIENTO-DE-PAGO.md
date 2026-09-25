@@ -167,7 +167,9 @@ El requerimiento se guarda **dentro del proyecto**, en su lista `invoices`, con:
 | `requestedBy` | siempre «HPG International Latinoamericana SAC» |
 | `invoiceCurrency` | copia de la moneda elegida |
 
-Todos los importes se guardan con **dos decimales**.
+Los importes se guardan con los **decimales de la OC de la que salen**: dos casi siempre, tres
+solo si esa OC se trabajó con tres (ver «Totales» en el documento de la orden de compra). Así el
+requerimiento se ve con los mismos decimales que su OC en la pantalla, en el PDF y en el Excel.
 
 ## 7. Registro del pago («Pago realizado»)
 

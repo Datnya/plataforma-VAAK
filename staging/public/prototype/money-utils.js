@@ -5,23 +5,38 @@
 })(typeof globalThis!=='undefined'?globalThis:this,function(){
   'use strict';
 
-  const parse=value=>{
-    if(typeof value==='number')return Number.isFinite(value)?value:0;
+  // Un importe escrito («1,450.50», «1450,5», 1450.5) se lleva a un solo texto numerico.
+  const normalizado=value=>{
     let text=String(value??'').trim();
-    if(!text)return 0;
+    if(!text)return '';
     let normalized=text.replace(/[^0-9,.-]/g,'');
     if(normalized.includes('.')&&normalized.includes(','))normalized=normalized.replace(/,/g,'');
     else if(normalized.includes(',')&&!normalized.includes('.')){
       let parts=normalized.split(',');
       normalized=parts.length===2&&parts[1].length<=2?`${parts[0]}.${parts[1]}`:parts.join('');
     }
-    let result=Number(normalized);
+    return normalized;
+  };
+  const parse=value=>{
+    if(typeof value==='number')return Number.isFinite(value)?value:0;
+    let result=Number(normalizado(value));
     return Number.isFinite(result)?result:0;
   };
-  const round=value=>{
-    let amount=parse(value);
-    return Number(`${Math.round(Number(`${amount}e3`))}e-3`);
+  // Con cuantos decimales se escribio un importe (0 a 3). La OC lo usa para no inventar un tercer
+  // decimal cuando todo el formulario se trabajo con dos (pedido de Datnya, 24-sep-2026).
+  const decimalsOf=value=>{
+    let text=typeof value==='number'?String(value):normalizado(value);
+    let cut=text.indexOf('.');
+    return cut<0?0:Math.min(text.slice(cut+1).replace(/[^0-9]/g,'').length,3);
   };
+  const decimales=value=>Math.min(Math.max(Number(value)||0,0),3);
+  const roundTo=(value,decimals=3)=>{
+    let amount=parse(value),d=decimales(decimals);
+    return Number(`${Math.round(Number(`${amount}e${d}`))}e-${d}`);
+  };
+  const fixedTo=(value,decimals=2)=>{let d=decimales(decimals);return roundTo(value,d).toFixed(d)};
+  const formatTo=(value,decimals=2)=>{let d=decimales(decimals);return roundTo(value,d).toLocaleString('en-US',{minimumFractionDigits:d,maximumFractionDigits:d})};
+  const round=value=>roundTo(value,3);
   const fixed=value=>{const text=round(value).toFixed(3);return text.endsWith('0')?text.slice(0,-1):text};
   const format=value=>round(value).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:3});
   // Una moneda tiene una sola forma canonica: el simbolo para sol, dolar y euro; el codigo ISO
@@ -60,5 +75,5 @@
   ]);
   const codeOf=value=>value==="$"?"USD":value==="S/"?"PEN":value==="€"?"EUR":String(value||"").toUpperCase();
   const nameOf=(value,spanish=true)=>{let found=CURRENCIES.find(item=>item.value===value||codeOf(item.value)===codeOf(value));return found?(spanish?found.name:found.english):String(value||"")};
-  return Object.freeze({parse,round,fixed,format,currencyFrom,currencyValue,storedCurrencyValue,CURRENCIES,codeOf,nameOf});
+  return Object.freeze({parse,round,fixed,format,roundTo,fixedTo,formatTo,decimalsOf,currencyFrom,currencyValue,storedCurrencyValue,CURRENCIES,codeOf,nameOf});
 });

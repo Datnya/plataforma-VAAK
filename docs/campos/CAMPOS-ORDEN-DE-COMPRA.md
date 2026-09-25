@@ -196,7 +196,8 @@ Ocultos: `projectId`, `amountCurrency`, `amountValue`, y los datos del proveedor
 - **IGV fija el 18% y bloquea el porcentaje** (Perú). IVA y VAT se escriben, con una ayuda:
   IVA → México 16 · Colombia/Chile 19 · España/Argentina 21; VAT → Reino Unido 20 · Alemania 19
   · Francia 20.
-- El **monto del impuesto no se escribe**: es `subtotal × porcentaje ÷ 100`, siempre bloqueado.
+- El **monto del impuesto no se escribe**: es `subtotal × porcentaje ÷ 100`, siempre bloqueado, y
+  se redondea a los decimales de esa OC (ver «Totales»).
 
 ### 23. Contacto del proyecto impreso (`contactName`, `contactPhone`, `contactEmail`)
 - Bloque propio con el aviso «(sale impreso en la OC)». Viene relleno con el contacto de la
@@ -225,6 +226,15 @@ Botón **«Agregar otro ítem»** para sumar filas.
 - **La moneda de la OC es la de la primera fila.** Si se mezclan monedas entre filas, la
   plataforma **deja guardar** pero muestra un aviso rojo: nunca convierte importes.
 - **Total de la OC** = subtotal de los ítems + impuesto + valor CIF + descuentos/recargos.
+- **Decimales: los manda el formulario** (24-sep-2026). Si todos los importes escritos en esa OC
+  —costos unitarios, valor CIF, descuentos o recargos— llevan **dos decimales**, entonces el
+  impuesto y el total también salen con dos. Si alguien escribe **tres decimales** en cualquiera
+  de esos importes, esa OC pasa a trabajarse con tres. Antes el impuesto se calculaba siempre con
+  tres decimales y arrastraba un tercer decimal al total (IGV de 1.234,56 daba 222.221 y el total
+  1,456.781, en vez de 222.22 y 1,456.78).
+- Esos decimales son los que quedan guardados, así que la OC **se ve igual en todas partes**: el
+  formulario, el documento impreso, la tarjeta del registro, el requerimiento de pago que se
+  genere a partir de ella y el reporte de Excel.
 - Se guarda en tres lugares a la vez: `amountValue` (número), `amountCurrency` (moneda) y
   `amount` (el texto «S/ 1234.00»), que es el que muestran las listas y los reportes.
 
@@ -285,6 +295,8 @@ lleva sus ítems con la copia congelada de cada spec.
 5. El tope de cantidad por spec y el aviso rojo cuando se excede.
 6. La moneda de la OC es la de la primera fila; **nunca** se convierten importes; mezclar
    monedas avisa en rojo pero deja guardar.
+6 bis. Los decimales los manda el formulario: dos salvo que se escriban tres, y los mismos en el
+   PDF, el requerimiento de pago, el registro y el Excel.
 7. El total sigue siendo subtotal + impuesto + CIF + ajustes, con IGV fijo en 18%.
 8. «Preparado por» bloqueado y «Especificado por» libre.
 9. La copia congelada del spec en cada ítem.

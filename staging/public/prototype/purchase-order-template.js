@@ -36,7 +36,8 @@
   const moneyApi=root.VAAKMoney||(typeof module==='object'&&module.exports?require('./money-utils.js'):null);
   const amount=value=>moneyApi?moneyApi.round(value):Math.round(number(value)*1000)/1000;
   const currencyLabel=currency=>currency==='$'?'US Dollars':currency==='S/'?'Soles':currency||'US Dollars';
-  const money=(currency,value)=>`${currency||'$'}${amount(value).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})}`;
+  // Se imprime con los decimales que tenga la OC: dos casi siempre, tres si asi se trabajo (24-sep-2026).
+  const money=(currency,value)=>`${currency||'$'}${amount(value).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:3})}`;
   const displayDate=value=>{let match=/^(\d{4})-(\d{2})-(\d{2})$/.exec(String(value||''));return match?`${match[2]}/${match[3]}/${match[1].slice(-2)}`:String(value||'')};
   const party=(label,name,data,changed)=>`<div class="hpg-ref-party"><span class="hpg-ref-label">${label}</span><strong>${changed?`<span class="rev-mark">${esc(name)}</span>`:esc(name)}</strong><p>${esc(data.address||'')}</p><p>${data.contact||data.phone?`Contact: ${esc([data.contact,data.phone].filter(Boolean).join(' · '))}`:''}</p><p>${esc(data.email||'')}</p></div>`;
   function conditionsFor(order){if(Array.isArray(order.conditions))return order.conditions.map(String);if(typeof order.conditionsJson==='string'){try{let parsed=JSON.parse(order.conditionsJson);if(Array.isArray(parsed))return parsed.map(String)}catch{}}return []}

@@ -24,10 +24,12 @@ module.exports = async (run) => {
     document.querySelector('[data-action="new-order"]').click(); await wait(1500);
     let f=document.getElementById('authorized-form'); const set=async(n,v)=>{const e=f.elements.namedItem(n); if(!e) return; e.value=v; e.dispatchEvent(new Event('input',{bubbles:true})); e.dispatchEvent(new Event('change',{bubbles:true})); await wait(150);};
     await set('ocTeam','FFE'); await set('ocRubro','ADM'); const prov=[...f.elements.namedItem('supplier').options].map(o=>o.value).find(Boolean); await set('supplier',prov); await set('source',prov);
-    const spec=[...f.elements.namedItem('itemSpec0').options].map(o=>o.value).find(Boolean); await set('itemSpec0',spec); await set('itemQuantity0','1'); await set('paymentTerms','Contado'); await set('specifiedBy','ESTUDIO XYZ');
+    const spec=[...f.elements.namedItem('itemSpec0').options].map(o=>o.value).find(Boolean); await set('itemSpec0',spec); await set('itemQuantity0','1'); await set('itemCost0','1234.56'); await set('taxType','IGV'); await set('paymentTerms','Contado'); await set('specifiedBy','ESTUDIO XYZ'); await wait(400);
+    // Dos decimales en el formulario -> dos decimales en el impuesto y en el total (24-sep-2026).
+    r.decimales={enPantalla:document.getElementById('po-grand-total')?.textContent.trim(), impuesto:f.elements.namedItem('taxAmount')?.value};
     [...document.querySelectorAll('.modal-foot button')].find(b=>/Continue|Continuar/.test(b.textContent)).click(); await wait(1500);
     [...document.querySelectorAll('.modal-foot button')].find(b=>/Generate purchase|Generar orden/.test(b.textContent))?.click(); await wait(2500);
-    let st=JSON.parse(localStorage.getItem('vaak-local-v8')); const oc=st.orders.at(-1); r.oc={numero:oc.number, total:oc.amount, especificadoPor:oc.specifiedBy};
+    let st=JSON.parse(localStorage.getItem('vaak-local-v8')); const oc=st.orders.at(-1); r.oc={numero:oc.number, total:oc.amount, impuesto:oc.taxAmount, especificadoPor:oc.specifiedBy};
     // 2) Requerimiento de pago
     document.querySelector('[data-new-invoice]').click(); await wait(1500); f=document.getElementById('invoice-editor-form');
     const po=f.elements.namedItem('poNumber'); po.value=oc.number; po.dispatchEvent(new Event('change',{bubbles:true})); await wait(900);
