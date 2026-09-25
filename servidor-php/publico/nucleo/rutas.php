@@ -572,6 +572,222 @@ function vaak_json_con_estado(array $cuerpo, ?string $estadoTexto, int $estado =
   echo substr($base, 0, -1) . ',"state":' . ($estadoTexto ?? 'null') . '}';
 }
 
+// ================= REGISTROS EN FILAS (etapa 1 de la migracion, 25-sep-2026) =================
+// Cada spec, orden de compra y requerimiento de pago vive en su propia fila de
+// vaak_company_records; el documento de la empresa se queda con lo demas (proyectos, proveedores,
+// usuarios, catalogos, objetivos). Ver docs/migracion/PLAN-MIGRACION-GUARDADO.md.
+//
+// Las pantallas NO cambian: GET /api/data devuelve el mismo estado de siempre, armado con el
+// documento y sus filas, en el mismo orden (por eso cada fila guarda su posicion original).
+// Si la tabla todavia no esta importada, todo sigue funcionando como antes.
+
+function vaak_registros_hay_tabla(): bool {
+  static $hay = null;
+  if ($hay !== null) return $hay;
+  try { vaak_db()->query('SELECT 1 FROM vaak_company_records LIMIT 1'); $hay = true; }
+  catch (Throwable $e) { $hay = false; }
+  return $hay;
+}
+
+// Saca del estado los registros. Devuelve las filas; el estado queda con las listas vacias.
+// OJO: modifica el objeto recibido (hay que clonarlo antes si se necesita el original).
+function vaak_registros_separar(object $estado): array {
+  $filas = [];
+  $store = $estado->store ?? null;
+  if (!is_object($store)) return $filas;
+  $tomar = function (array $lista, string $kind, string $proyecto = '') use (&$filas) {
+    $pos = 0;
+    foreach ($lista as $registro) {
+      if (!is_object($registro)) continue;
+      $id = (string)($registro->id ?? '');
+      if ($id === '') continue;
+      $datos = json_encode($registro, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+      $proyectoId = $proyecto !== '' ? $proyecto : (string)($registro->projectId ?? '');
+      $posicion = $pos++;
+      $filas[$kind . "\0" . $id] = [
+        'kind' => $kind, 'id' => $id, 'project_id' => $proyectoId,
+        'created_at' => (string)($registro->createdAt ?? ''), 'pos' => $posicion,
+        'hash' => md5($posicion . '|' . $proyectoId . '|' . $datos), 'data' => $datos,
+      ];
+    }
+  };
+  if (is_array($store->specs ?? null)) { $tomar($store->specs, 'spec'); $store->specs = []; }
+  if (is_array($store->orders ?? null)) { $tomar($store->orders, 'order'); $store->orders = []; }
+  foreach (vaak_lista($store->projects ?? null) as $proyecto) {
+    if (!is_object($proyecto) || !is_array($proyecto->invoices ?? null)) continue;
+    $tomar($proyecto->invoices, 'invoice', (string)($proyecto->id ?? ''));
+    $proyecto->invoices = [];
+  }
+  return $filas;
+}
+
+// Vuelve a armar el estado completo: el documento con sus registros, en su orden.
+function vaak_registros_unir(object $estado, array $filas): object {
+  $store = $estado->store ?? null;
+  if (!is_object($store) || !$filas) return $estado;
+  $specs = []; $ordenes = []; $porProyecto = [];
+  foreach ($filas as $fila) {
+    $registro = json_decode($fila['data']);
+    if (!is_object($registro)) continue;
+    if ($fila['kind'] === 'spec') $specs[] = $registro;
+    elseif ($fila['kind'] === 'order') $ordenes[] = $registro;
+    else $porProyecto[(string)$fila['project_id']][] = $registro;
+  }
+  if ($specs) $store->specs = array_merge(is_array($store->specs ?? null) ? $store->specs : [], $specs);
+  if ($ordenes) $store->orders = array_merge(is_array($store->orders ?? null) ? $store->orders : [], $ordenes);
+  foreach (vaak_lista($store->projects ?? null) as $proyecto) {
+    if (!is_object($proyecto)) continue;
+    $id = (string)($proyecto->id ?? '');
+    if (!isset($porProyecto[$id])) continue;
+    $proyecto->invoices = array_merge(is_array($proyecto->invoices ?? null) ? $proyecto->invoices : [], $porProyecto[$id]);
+  }
+  return $estado;
+}
+
+function vaak_registros_leer(string $empresa): array {
+  if (!vaak_registros_hay_tabla()) return [];
+  $q = vaak_db()->prepare('SELECT kind, id, project_id, data FROM vaak_company_records WHERE company_id = ? ORDER BY kind, pos, id');
+  $q->execute([$empresa]);
+  return $q->fetchAll();
+}
+
+// Deja la tabla con exactamente estas filas: escribe las nuevas o cambiadas y borra las que ya no
+// estan. Se llama SIEMPRE dentro de la misma transaccion que guarda el documento.
+function vaak_registros_guardar(string $empresa, array $filas): void {
+  if (!vaak_registros_hay_tabla()) return;
+  $db = vaak_db();
+  $q = $db->prepare('SELECT kind, id, hash FROM vaak_company_records WHERE company_id = ?');
+  $q->execute([$empresa]);
+  $actuales = [];
+  foreach ($q->fetchAll() as $f) $actuales[$f['kind'] . "\0" . $f['id']] = $f['hash'];
+  $guardar = $db->prepare('INSERT INTO vaak_company_records (company_id, kind, id, project_id, created_at, pos, hash, data) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+    . ' ON DUPLICATE KEY UPDATE project_id = VALUES(project_id), created_at = VALUES(created_at), pos = VALUES(pos), hash = VALUES(hash), data = VALUES(data)');
+  foreach ($filas as $clave => $fila) {
+    if (($actuales[$clave] ?? null) === $fila['hash']) continue;
+    $guardar->execute([$empresa, $fila['kind'], $fila['id'], $fila['project_id'], $fila['created_at'], $fila['pos'], $fila['hash'], $fila['data']]);
+  }
+  $borrar = null;
+  foreach (array_keys($actuales) as $clave) {
+    if (isset($filas[$clave])) continue;
+    [$kind, $id] = explode("\0", $clave, 2);
+    $borrar = $borrar ?: $db->prepare('DELETE FROM vaak_company_records WHERE company_id = ? AND kind = ? AND id = ?');
+    $borrar->execute([$empresa, $kind, $id]);
+  }
+}
+
+// El estado completo tal como lo conoce la plataforma: documento + registros.
+function vaak_estado_completo(string $empresa, ?string $documento): ?object {
+  $estado = json_decode((string)($documento ?? 'null'));
+  if (!is_object($estado)) return null;
+  return vaak_registros_unir($estado, vaak_registros_leer($empresa));
+}
+
+// POST /api/admin/migrar-registros — pasa los registros del documento a sus filas.
+// Solo administrador. Copia, verifica y recien entonces vacia las listas del documento; si la
+// comprobacion falla, la transaccion se deshace y NO cambia nada. Se puede repetir sin riesgo.
+function ruta_registros_migrar(): void {
+  vaak_exigir_escritura();
+  $admin = vaak_admin();
+  if (!$admin) vaak_fallar(['ok' => false, 'error' => 'forbidden'], 403);
+  if (!vaak_registros_hay_tabla()) vaak_fallar(['ok' => false, 'error' => 'sin_tabla'], 503);
+  $empresa = $admin['companyId'];
+  $db = vaak_db();
+  $db->beginTransaction();
+  $q = $db->prepare('SELECT state, revision FROM vaak_company_data WHERE company_id = ? FOR UPDATE');
+  $q->execute([$empresa]);
+  $fila = $q->fetch();
+  if (!$fila) { $db->rollBack(); vaak_json(['ok' => true, 'sinDatos' => true]); return; }
+  // Estado completo de hoy (documento + lo que ya estuviera en filas): es el patron a respetar.
+  $antes = vaak_estado_completo($empresa, $fila['state']);
+  if (!$antes) { $db->rollBack(); vaak_fallar(['ok' => false, 'error' => 'estado_invalido'], 500); }
+  $textoAntes = json_encode($antes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  // Cuantos registros hay ANTES, para detectar ids repetidos (dos registros con el mismo id se
+  // convertirian en uno solo). La comprobacion final lo atraparia igual, pero asi se dice por que.
+  $cuantos = fn($lista) => count(vaak_lista($lista));
+  $totalAntes = $cuantos($antes->store->specs ?? null) + $cuantos($antes->store->orders ?? null);
+  foreach (vaak_lista($antes->store->projects ?? null) as $p) $totalAntes += $cuantos(is_object($p) ? ($p->invoices ?? null) : null);
+  $filas = vaak_registros_separar($antes); // $antes queda sin registros: es el documento nuevo
+  $conteo = ['spec' => 0, 'order' => 0, 'invoice' => 0];
+  foreach ($filas as $f) $conteo[$f['kind']]++;
+  if (count($filas) !== $totalAntes) {
+    $db->rollBack();
+    vaak_fallar(['ok' => false, 'error' => 'ids_repetidos', 'detalle' => 'hay registros con el mismo id; no se cambio nada', 'enDocumento' => $totalAntes, 'enFilas' => count($filas)], 409);
+  }
+  vaak_registros_guardar($empresa, $filas);
+  $documento = json_encode($antes, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  $db->prepare('UPDATE vaak_company_data SET state = ?, updated_at = UTC_TIMESTAMP(3) WHERE company_id = ?')->execute([$documento, $empresa]);
+  // Comprobacion: lo que la plataforma devolvera tiene que ser IDENTICO a lo que habia.
+  $despues = vaak_estado_completo($empresa, $documento);
+  $textoDespues = $despues ? json_encode($despues, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : '';
+  if ($textoDespues !== $textoAntes) {
+    $db->rollBack();
+    vaak_fallar(['ok' => false, 'error' => 'verificacion_fallida', 'detalle' => 'el estado reconstruido no coincide; no se cambio nada'], 500);
+  }
+  $db->prepare("INSERT INTO vaak_audit_events (company_id, actor_user_id, action, resource_type, resource_id) VALUES (?, ?, 'records.migrated', 'company_data', NULL)")->execute([$empresa, $admin['userId']]);
+  $db->commit();
+  vaak_json(['ok' => true, 'verificado' => true, 'registros' => $conteo, 'documento' => strlen($documento), 'estadoCompleto' => strlen($textoAntes), 'revision' => (int)$fila['revision']]);
+}
+
+// POST /api/admin/revertir-registros — la vuelta atras de la migracion.
+// Devuelve los registros al documento y vacia la tabla, con la misma verificacion. Sirve para
+// volver a la version anterior de la plataforma sin perder nada. Solo administrador.
+function ruta_registros_revertir(): void {
+  vaak_exigir_escritura();
+  $admin = vaak_admin();
+  if (!$admin) vaak_fallar(['ok' => false, 'error' => 'forbidden'], 403);
+  if (!vaak_registros_hay_tabla()) vaak_fallar(['ok' => false, 'error' => 'sin_tabla'], 503);
+  $empresa = $admin['companyId'];
+  $db = vaak_db();
+  $db->beginTransaction();
+  $q = $db->prepare('SELECT state, revision FROM vaak_company_data WHERE company_id = ? FOR UPDATE');
+  $q->execute([$empresa]);
+  $fila = $q->fetch();
+  if (!$fila) { $db->rollBack(); vaak_json(['ok' => true, 'sinDatos' => true]); return; }
+  $completo = vaak_estado_completo($empresa, $fila['state']);
+  if (!$completo) { $db->rollBack(); vaak_fallar(['ok' => false, 'error' => 'estado_invalido'], 500); }
+  $texto = json_encode($completo, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+  if (strlen($texto) > VAAK_MAX_ESTADO) {
+    $db->rollBack();
+    vaak_fallar(['ok' => false, 'error' => 'no_cabe', 'detalle' => 'ya hay mas datos de los que entran en el documento unico', 'bytes' => strlen($texto)], 409);
+  }
+  $db->prepare('UPDATE vaak_company_data SET state = ?, updated_at = UTC_TIMESTAMP(3) WHERE company_id = ?')->execute([$texto, $empresa]);
+  $db->prepare('DELETE FROM vaak_company_records WHERE company_id = ?')->execute([$empresa]);
+  // Comprobacion: el documento solo tiene que devolver exactamente lo mismo.
+  $q = $db->prepare('SELECT state FROM vaak_company_data WHERE company_id = ?');
+  $q->execute([$empresa]);
+  $despues = vaak_estado_completo($empresa, (string)$q->fetchColumn());
+  if (!$despues || json_encode($despues, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) !== $texto) {
+    $db->rollBack();
+    vaak_fallar(['ok' => false, 'error' => 'verificacion_fallida', 'detalle' => 'no se cambio nada'], 500);
+  }
+  $db->prepare("INSERT INTO vaak_audit_events (company_id, actor_user_id, action, resource_type, resource_id) VALUES (?, ?, 'records.reverted', 'company_data', NULL)")->execute([$empresa, $admin['userId']]);
+  $db->commit();
+  vaak_json(['ok' => true, 'verificado' => true, 'bytes' => strlen($texto), 'revision' => (int)$fila['revision']]);
+}
+
+// GET /api/admin/registros — cuantos registros hay en filas y cuantos quedan en el documento.
+function ruta_registros_contar(): void {
+  $miembro = vaak_miembro();
+  if (!$miembro || $miembro['role'] === 'client') vaak_fallar(['ok' => false, 'error' => 'forbidden'], 403);
+  $empresa = $miembro['companyId'];
+  $filas = ['spec' => 0, 'order' => 0, 'invoice' => 0];
+  if (vaak_registros_hay_tabla()) {
+    $q = vaak_db()->prepare('SELECT kind, COUNT(*) AS total FROM vaak_company_records WHERE company_id = ? GROUP BY kind');
+    $q->execute([$empresa]);
+    foreach ($q->fetchAll() as $f) $filas[(string)$f['kind']] = (int)$f['total'];
+  }
+  $q = vaak_db()->prepare('SELECT state FROM vaak_company_data WHERE company_id = ?');
+  $q->execute([$empresa]);
+  $estado = json_decode((string)($q->fetchColumn() ?: 'null'));
+  $enDocumento = ['spec' => 0, 'order' => 0, 'invoice' => 0];
+  if (is_object($estado) && is_object($estado->store ?? null)) {
+    $enDocumento['spec'] = count(vaak_lista($estado->store->specs ?? null));
+    $enDocumento['order'] = count(vaak_lista($estado->store->orders ?? null));
+    foreach (vaak_lista($estado->store->projects ?? null) as $p) $enDocumento['invoice'] += count(vaak_lista(is_object($p) ? ($p->invoices ?? null) : null));
+  }
+  vaak_json(['ok' => true, 'tabla' => vaak_registros_hay_tabla(), 'enFilas' => $filas, 'enDocumento' => $enDocumento]);
+}
+
 // GET /api/data
 function ruta_datos_leer(): void {
   $miembro = vaak_miembro();
@@ -585,17 +801,20 @@ function ruta_datos_leer(): void {
   if ($fila && $desde === $revision) { vaak_json(['ok' => true, 'role' => $rol, 'revision' => $revision, 'unchanged' => true]); return; }
   $cuerpo = ['ok' => true, 'role' => $rol, 'revision' => $revision, 'updatedAt' => $fila ? vaak_iso($fila['updated_at']) : null];
   if (!$fila) { vaak_json_con_estado($cuerpo, null); return; }
+  // El estado que ve la plataforma es el documento con sus registros (etapa 1 de la migracion).
+  $completo = vaak_estado_completo($miembro['companyId'], $fila['state']);
+  if (!$completo) { vaak_json_con_estado($cuerpo, $fila['state']); return; }
   if ($rol === 'client') {
-    $filtrado = vaak_estado_para_miembro(json_decode($fila['state']), $miembro);
+    $filtrado = vaak_estado_para_miembro($completo, $miembro);
     vaak_json_con_estado($cuerpo, json_encode($filtrado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     return;
   }
   if ($rol !== 'admin') {
-    $filtrado = vaak_estado_para_trabajador(json_decode($fila['state']), $miembro, vaak_id_app($miembro['userId']));
+    $filtrado = vaak_estado_para_trabajador($completo, $miembro, vaak_id_app($miembro['userId']));
     vaak_json_con_estado($cuerpo, json_encode($filtrado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
     return;
   }
-  vaak_json_con_estado($cuerpo, $fila['state']);
+  vaak_json_con_estado($cuerpo, json_encode($completo, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES));
 }
 
 // PUT /api/data  — solo se guarda sobre la revision que el navegador conoce.
@@ -636,7 +855,11 @@ function ruta_datos_guardar(): void {
     $q = $db->prepare('SELECT state, revision FROM vaak_company_data WHERE company_id = ?');
     $q->execute([$empresa]);
     $f = $q->fetch();
-    vaak_json_con_estado(['ok' => false, 'error' => 'conflict', 'revision' => $f ? (int)$f['revision'] : 0], $f ? $f['state'] : null, 409);
+    // Se devuelve el estado COMPLETO (documento + registros): si se devolviera solo el documento,
+    // el navegador adoptaria una copia sin specs ni ordenes y las borraria al guardar.
+    $completo = $f ? vaak_estado_completo($empresa, $f['state']) : null;
+    $texto = $completo ? json_encode($completo, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : ($f ? $f['state'] : null);
+    vaak_json_con_estado(['ok' => false, 'error' => 'conflict', 'revision' => $f ? (int)$f['revision'] : 0], $texto, 409);
     throw new VaakYaRespondido();
   };
 
@@ -644,8 +867,15 @@ function ruta_datos_guardar(): void {
     // Solo un administrador publica el espacio de trabajo inicial.
     if ($miembro['role'] !== 'admin') $conflicto();
     try {
-      $db->prepare('INSERT INTO vaak_company_data (company_id, state, revision, updated_at, updated_by) VALUES (?, ?, 1, UTC_TIMESTAMP(3), ?)')->execute([$empresa, $texto, $miembro['userId']]);
+      $db->beginTransaction();
+      // Sin la tabla nueva, el documento sigue llevando los registros, igual que antes.
+      $primeras = vaak_registros_hay_tabla() ? vaak_registros_separar($estado) : [];
+      $documento = $primeras ? json_encode($estado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES) : $texto;
+      $db->prepare('INSERT INTO vaak_company_data (company_id, state, revision, updated_at, updated_by) VALUES (?, ?, 1, UTC_TIMESTAMP(3), ?)')->execute([$empresa, $documento, $miembro['userId']]);
+      vaak_registros_guardar($empresa, $primeras);
+      $db->commit();
     } catch (mysqli_sql_exception $e) {
+      if ($db->inTransaction()) $db->rollBack();
       if (vaak_bd_errno($e) === 1062) $conflicto();
       vaak_fallar(['ok' => false, 'error' => 'service_unavailable'], 503);
     }
@@ -664,19 +894,43 @@ function ruta_datos_guardar(): void {
   $vistaCorregida = $demoQuitada ? $texto : null;
   if ($miembro['role'] !== 'admin') {
     $miId = vaak_id_app($miembro['userId']);
-    $combinado = vaak_combinar_trabajador(json_decode($actual['state']), $estado, $miembro, $miId);
+    // El estado guardado se arma con sus registros: si se combinara solo el documento, el
+    // trabajador borraria todos los specs y ordenes que no vienen en su envio.
+    $combinado = vaak_combinar_trabajador(vaak_estado_completo($empresa, $actual['state']), $estado, $miembro, $miId);
     $combinado = vaak_sin_demo($combinado)[0];
     $texto = json_encode($combinado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $vista = json_encode(vaak_estado_para_trabajador($combinado, $miembro, $miId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     $vistaCorregida = ($demoQuitada || $vista !== json_encode(vaak_estado_para_trabajador($estado, $miembro, $miId), JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES)) ? $vista : null;
   }
-  // Copia de la version anterior; se conservan las ultimas 150.
-  $db->prepare('INSERT INTO vaak_company_data_history (company_id, revision, state, updated_by) VALUES (?, ?, ?, ?)')->execute([$empresa, $actual['revision'], $actual['state'], $actual['updated_by']]);
+  // Copia de la version anterior; se conservan las ultimas 150. Mientras el estado completo quepa
+  // en el tope, la copia guarda TODO (documento y registros), igual que antes de la migracion: es
+  // la red de seguridad que ya existia. Cuando no quepa, guarda el documento solo.
+  $anterior = $actual['state'];
+  if (vaak_registros_hay_tabla()) {
+    $completoAnterior = vaak_estado_completo($empresa, $actual['state']);
+    if ($completoAnterior) {
+      $textoAnterior = json_encode($completoAnterior, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+      if (strlen($textoAnterior) <= VAAK_MAX_ESTADO) $anterior = $textoAnterior;
+    }
+  }
+  $db->prepare('INSERT INTO vaak_company_data_history (company_id, revision, state, updated_by) VALUES (?, ?, ?, ?)')->execute([$empresa, $actual['revision'], $anterior, $actual['updated_by']]);
   $q = $db->prepare('SELECT id FROM vaak_company_data_history WHERE company_id = ? ORDER BY id DESC LIMIT 1 OFFSET 149');
   $q->execute([$empresa]);
   $corte = $q->fetchColumn();
   if ($corte) $db->prepare('DELETE FROM vaak_company_data_history WHERE company_id = ? AND id < ?')->execute([$empresa, $corte]);
-  $db->prepare('UPDATE vaak_company_data SET state = ?, revision = ?, updated_at = UTC_TIMESTAMP(3), updated_by = ? WHERE company_id = ?')->execute([$texto, $base + 1, $miembro['userId'], $empresa]);
+  // Los registros van a su tabla y el documento se queda con lo demas, todo en esta transaccion.
+  // Si la tabla todavia no existe NO se separa nada: el documento sigue llevandolos, como antes.
+  $documento = $texto;
+  $filasNuevas = [];
+  if (vaak_registros_hay_tabla()) {
+    $paraGuardar = json_decode($texto);
+    if (is_object($paraGuardar)) {
+      $filasNuevas = vaak_registros_separar($paraGuardar);
+      $documento = json_encode($paraGuardar, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
+    }
+  }
+  $db->prepare('UPDATE vaak_company_data SET state = ?, revision = ?, updated_at = UTC_TIMESTAMP(3), updated_by = ? WHERE company_id = ?')->execute([$documento, $base + 1, $miembro['userId'], $empresa]);
+  vaak_registros_guardar($empresa, $filasNuevas);
   $db->commit();
   if ($vistaCorregida !== null) { vaak_json_con_estado(['ok' => true, 'revision' => $base + 1, 'corrected' => true], $vistaCorregida); return; }
   vaak_json(['ok' => true, 'revision' => $base + 1]);
@@ -841,14 +1095,19 @@ function ruta_demo_limpiar(): void {
   $q = $db->prepare('SELECT state, revision, updated_by FROM vaak_company_data WHERE company_id = ? FOR UPDATE');
   $q->execute([$admin['companyId']]);
   $fila = $q->fetch();
-  $estado = $fila ? json_decode($fila['state']) : null;
+  // Los datos de demostracion tambien pueden estar en las filas de registros (etapa 1).
+  $estado = $fila ? vaak_estado_completo($admin['companyId'], $fila['state']) : null;
   if (!is_object($estado)) { $db->rollBack(); vaak_json(['ok' => true, 'total' => 0, 'summary' => null]); return; }
+  $textoCompleto = json_encode($estado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
   [$limpio, $resumen, $total] = vaak_sin_demo($estado);
   if (($b['confirm'] ?? false) !== true || $total === 0) { $db->rollBack(); vaak_json(['ok' => true, 'total' => $total, 'summary' => $resumen]); return; }
-  $db->prepare('INSERT INTO vaak_company_data_history (company_id, revision, state, updated_by) VALUES (?, ?, ?, ?)')->execute([$admin['companyId'], $fila['revision'], $fila['state'], $fila['updated_by']]);
+  $db->prepare('INSERT INTO vaak_company_data_history (company_id, revision, state, updated_by) VALUES (?, ?, ?, ?)')->execute([$admin['companyId'], $fila['revision'], strlen($textoCompleto) <= VAAK_MAX_ESTADO ? $textoCompleto : $fila['state'], $fila['updated_by']]);
   $nueva = (int)$fila['revision'] + 1;
+  // Sin la tabla nueva no se separa nada: el documento sigue llevando los registros.
+  $filasLimpias = vaak_registros_hay_tabla() ? vaak_registros_separar($limpio) : [];
   $db->prepare('UPDATE vaak_company_data SET state = ?, revision = ?, updated_at = UTC_TIMESTAMP(3), updated_by = ? WHERE company_id = ?')
     ->execute([json_encode($limpio, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES), $nueva, $admin['userId'], $admin['companyId']]);
+  vaak_registros_guardar($admin['companyId'], $filasLimpias);
   $db->prepare("INSERT INTO vaak_audit_events (company_id, actor_user_id, action, resource_type, resource_id) VALUES (?, ?, 'demo.removed', 'company_data', NULL)")->execute([$admin['companyId'], $admin['userId']]);
   $db->commit();
   vaak_json(['ok' => true, 'removed' => true, 'total' => $total, 'summary' => $resumen, 'revision' => $nueva]);

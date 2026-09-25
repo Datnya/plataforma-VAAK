@@ -31,7 +31,7 @@ const OMITIR = new Set(["password-recovery.js", "LOGO VAAK.png"]);
 const SOLO_EQUIPO = new Set([
   "form-defaults.js", "oc-direcciones.js", "oc-formulario.js", "proyecto-areas.js",
   "spec-formulario.js", "oc-borradores.js", "campos-multilinea.js", "rp-formulario.js",
-  "limpiar-demo.js", "spec-rubros.js", "listados.js",
+  "limpiar-demo.js", "spec-rubros.js", "listados.js", "migracion-guardado.js",
 ]);
 // Marcas de las pantallas del equipo. Si alguna aparece en el paquete del cliente, algo se coló y
 // el armado se detiene. Son trozos de los formularios y de los datos internos, no palabras sueltas:

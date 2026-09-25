@@ -84,4 +84,10 @@ ayudante sin-bloqueos
 
 paso "11. Secciones del proyecto: últimos registros en la página y registro completo en el cuadro"
 node "$P/navegador.js" "$P/paso7-listados.js"
+
+paso "12. Migración del guardado: nada se pierde al pasar los registros a sus filas"
+ayudante sin-bloqueos
+node "$P/migracion.js" > "$L/migracion.json"
+node -e 'const t=require("fs").readFileSync(process.argv[1],"utf8");const a=JSON.parse(t.slice(t.indexOf("[")));a.forEach(x=>console.log(`  ${x.ok?"✔":"✗"} ${x.prueba}${x.detalle?" — "+x.detalle:""}`));const mal=a.filter(x=>!x.ok).length;console.log(`  ${a.length-mal} de ${a.length} correctas`);if(mal)process.exitCode=1' "$L/migracion.json"
+
 echo; echo "Listo. Resultados completos en $L"

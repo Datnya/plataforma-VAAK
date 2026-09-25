@@ -132,6 +132,29 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
 
+### 📍 Dónde quedamos exactamente (25-sep, tarde) — MIGRACIÓN DEL GUARDADO, etapa 1 lista para ensayar
+Datnya autorizó el cambio de guardado con una condición: **no se puede perder ni un dato**. El plan completo, en tres etapas, está en [`docs/migracion/PLAN-MIGRACION-GUARDADO.md`](docs/migracion/PLAN-MIGRACION-GUARDADO.md). **La etapa 1 está programada y probada; falta ensayarla en PRUEBA con los datos reales.**
+
+**Qué hace la etapa 1.** Cada spec, orden de compra y requerimiento de pago pasa a tener **su propia fila** en la tabla nueva `vaak_company_records`; el documento de la empresa se queda con lo demás (proyectos, proveedores, usuarios, catálogos, objetivos). `GET /api/data` vuelve a armar exactamente el mismo estado de siempre, en el mismo orden (cada fila guarda su posición original), así que **ninguna pantalla cambia**.
+
+**Cómo se garantiza que no se pierde nada:**
+- La migración **copia**; el documento original no se toca hasta que la copia está verificada, dentro de la misma transacción.
+- Al terminar, el servidor **reconstruye el estado y lo compara carácter por carácter** con el de antes. Si no coincide, deshace todo y no cambia nada (`verificacion_fallida`).
+- Si hubiera dos registros con el mismo id, se detiene y lo dice (`ids_repetidos`), en vez de fusionarlos.
+- **Hay vuelta atrás**: el botón «Volver atrás» devuelve los registros al documento con la misma verificación.
+- Mientras el estado completo quepa en el tope, el historial de 150 versiones sigue guardando **todo**, igual que antes.
+- Si la tabla nueva no está creada, la plataforma **sigue funcionando como antes** (no separa nada).
+
+**Dónde está el botón:** Herramientas → Configuración del sistema → tarjeta «Guardado de la plataforma» (solo administrador), con la cuenta de registros y los dos botones (`migracion-guardado.js`, fuera del paquete del cliente).
+
+**Rutas nuevas:** `POST /api/admin/migrar-registros`, `POST /api/admin/revertir-registros`, `GET /api/admin/registros`. Tabla: `servidor-php/sql/actualizacion-3-registros.sql`.
+
+**Prueba nueva (paso 12 de `probar.sh`, `migracion.js`):** guarda 630 registros, comprueba que lo devuelto es **idéntico** a lo guardado, que cada registro tiene su fila y el documento queda vacío, que la vuelta atrás y la migración se verifican solas y devuelven lo mismo, que migrar dos veces no cambia nada y que después se sigue editando y borrando. 12 de 12 correctas; el documento pasó de 438 KB a 2 KB.
+
+**Lo que la etapa 1 todavía NO da:** el navegador sigue trayéndose y mandando todo, así que el techo real sigue siendo el de hoy. Los 5.000 por proyecto llegan con la **etapa 2** (pedir los registros por páginas).
+
+**Aviso del 25-sep:** el disco de la computadora de Datnya estaba **lleno (0 bytes libres de 238 GB)**. Eso hacía fallar las pruebas locales con «The table is full» y colgaba el navegador. Se liberaron ~575 MB de archivos de prueba propios, pero **la computadora sigue casi llena**: conviene liberar espacio antes de descargar el respaldo de la base.
+
 ### 📍 Dónde quedamos exactamente (25-sep) — actualización 14 (las tres secciones iguales y las capas del cuadro)
 La **actualización 13 ya está publicada en la OFICIAL**. Lo de hoy es la **actualización 14**, pedida por Datnya tras revisarla:
 

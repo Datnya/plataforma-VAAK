@@ -17,13 +17,25 @@ $db->set_charset('utf8mb4');
 $local = __DIR__ . '/.local';
 if (!is_dir($local)) mkdir($local, 0700, true);
 
+// Las actualizaciones del esquema se aplican siempre (traen IF NOT EXISTS), tambien sobre una
+// base que ya existia: asi la bateria prueba lo mismo que hay en el hosting.
+$actualizaciones = ['/sql/actualizacion-2-registro-accesos.sql', '/sql/actualizacion-3-registros.sql'];
+$aplicar = function (mysqli $db, array $archivos) {
+  foreach ($archivos as $archivo) {
+    $ruta = dirname(__DIR__) . $archivo;
+    if (!is_file($ruta)) continue;
+    $db->multi_query(file_get_contents($ruta));
+    do { if ($r = $db->store_result()) $r->free(); } while ($db->more_results() && $db->next_result());
+  }
+};
 if ($accion === 'instalar') {
   $existe = $db->query("SHOW DATABASES LIKE '" . BASE . "'")->num_rows > 0;
-  if ($existe) { echo "La base " . BASE . " ya existe\n"; exit(0); }
+  if ($existe) { $db->select_db(BASE); $aplicar($db, $actualizaciones); echo "La base " . BASE . " ya existe\n"; exit(0); }
   $db->query('CREATE DATABASE ' . BASE . ' CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci');
   $db->select_db(BASE);
   $db->multi_query(file_get_contents(dirname(__DIR__) . '/sql/esquema.sql'));
   do { if ($r = $db->store_result()) $r->free(); } while ($db->more_results() && $db->next_result());
+  $aplicar($db, $actualizaciones);
   echo "Base " . BASE . " creada\n";
   exit(0);
 }
@@ -37,7 +49,7 @@ switch ($accion) {
     passthru(escapeshellarg(PHP_BINARY) . ' -d extension_dir=' . escapeshellarg((string)ini_get('extension_dir')) . ' -d extension=mysqli ' . escapeshellarg(dirname(__DIR__) . '/herramientas/crear-admin.php') . ' ' . escapeshellarg("$local/sitio/nucleo") . ' "Empresa de prueba" auditor.admin auditor@ejemplo.test ' . escapeshellarg($clave) . ' "Auditor Admin"');
     break;
   case 'vaciar':
-    foreach (['vaak_company_data', 'vaak_company_data_history', 'vaak_auth_rate_limits', 'vaak_sessions', 'vaak_client_access_log'] as $t) $db->query("DELETE FROM $t");
+    foreach (['vaak_company_data', 'vaak_company_data_history', 'vaak_company_records', 'vaak_auth_rate_limits', 'vaak_sessions', 'vaak_client_access_log'] as $t) $db->query("DELETE FROM $t");
     echo "Datos vaciados\n";
     break;
   case 'sin-bloqueos':

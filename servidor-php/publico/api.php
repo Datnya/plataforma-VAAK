@@ -32,6 +32,9 @@ $tabla = [
   'GET admin/access-log' => 'ruta_accesos_listar',
   'DELETE admin/access-log' => 'ruta_accesos_vaciar',
   'POST admin/demo-cleanup' => 'ruta_demo_limpiar',
+  'POST admin/migrar-registros' => 'ruta_registros_migrar',
+  'POST admin/revertir-registros' => 'ruta_registros_revertir',
+  'GET admin/registros' => 'ruta_registros_contar',
   'GET app' => 'ruta_interfaz',
   'GET estilos' => 'ruta_estilos',
 ];
