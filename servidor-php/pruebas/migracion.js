@@ -135,5 +135,18 @@ const requerimiento = (i) => ({
     && tras6.json?.state?.store?.specs.find((s) => s.id === "sp-m-5")?.name === "Spec editado después de migrar"
     && !tras6.json?.state?.store?.orders.some((o) => o.id === "o-m-7"), `HTTP ${r6.estado}`);
 
+  // --- 7) Registros raros: sin id o con el id repetido. No pueden tener fila propia, así que se
+  // quedan en el documento. Lo que no puede pasar es que desaparezcan.
+  const base7 = await admin.pedir("GET", "/api/data");
+  const raro = JSON.parse(JSON.stringify(base7.json.state));
+  raro.store.specs.push({ projectId, name: "Spec sin id", code: "SIN-ID" });          // sin id
+  raro.store.specs.push({ id: "sp-m-9", projectId, name: "Spec con id repetido" });   // id repetido
+  const r7 = await admin.pedir("PUT", "/api/data", { baseRevision: base7.json.revision, state: raro });
+  const tras7 = await admin.pedir("GET", "/api/data");
+  const lista7 = tras7.json?.state?.store?.specs || [];
+  anotar("Un spec sin id no se pierde", r7.estado === 200 && lista7.some((s) => s.code === "SIN-ID"), `HTTP ${r7.estado}`);
+  anotar("Un spec con id repetido no se pierde", lista7.filter((s) => s.id === "sp-m-9").length === 2,
+    `hay ${lista7.filter((s) => s.id === "sp-m-9").length} con ese id`);
+
   console.log(JSON.stringify(resultados, null, 1));
-})().catch((e) => { console.error("FALLO", e); process.exit(1); });
+})().catch((e) => { console.error("FALLO", e); console.log(JSON.stringify(resultados, null, 1)); process.exit(1); });

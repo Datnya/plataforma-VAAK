@@ -595,12 +595,15 @@ function vaak_registros_separar(object $estado): array {
   $filas = [];
   $store = $estado->store ?? null;
   if (!is_object($store)) return $filas;
+  // Devuelve lo que NO pudo pasar a una fila (sin id, repetido o que no es un registro). Eso se
+  // queda en el documento: nada se tira, aunque venga con una forma rara.
   $tomar = function (array $lista, string $kind, string $proyecto = '') use (&$filas) {
     $pos = 0;
+    $quedan = [];
     foreach ($lista as $registro) {
-      if (!is_object($registro)) continue;
+      if (!is_object($registro)) { $quedan[] = $registro; continue; }
       $id = (string)($registro->id ?? '');
-      if ($id === '') continue;
+      if ($id === '' || isset($filas[$kind . "\0" . $id])) { $quedan[] = $registro; continue; }
       $datos = json_encode($registro, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
       $proyectoId = $proyecto !== '' ? $proyecto : (string)($registro->projectId ?? '');
       $posicion = $pos++;
@@ -610,13 +613,13 @@ function vaak_registros_separar(object $estado): array {
         'hash' => md5($posicion . '|' . $proyectoId . '|' . $datos), 'data' => $datos,
       ];
     }
+    return $quedan;
   };
-  if (is_array($store->specs ?? null)) { $tomar($store->specs, 'spec'); $store->specs = []; }
-  if (is_array($store->orders ?? null)) { $tomar($store->orders, 'order'); $store->orders = []; }
+  if (is_array($store->specs ?? null)) $store->specs = $tomar($store->specs, 'spec');
+  if (is_array($store->orders ?? null)) $store->orders = $tomar($store->orders, 'order');
   foreach (vaak_lista($store->projects ?? null) as $proyecto) {
     if (!is_object($proyecto) || !is_array($proyecto->invoices ?? null)) continue;
-    $tomar($proyecto->invoices, 'invoice', (string)($proyecto->id ?? ''));
-    $proyecto->invoices = [];
+    $proyecto->invoices = $tomar($proyecto->invoices, 'invoice', (string)($proyecto->id ?? ''));
   }
   return $filas;
 }
