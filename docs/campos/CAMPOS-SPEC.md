@@ -264,3 +264,21 @@ ahora». Esto es justo lo que cambia con la migración a tablas propias.
 
 `bash servidor-php/pruebas/probar.sh` — pasos 2 (crear spec), 4 (OC con specs), 8 (revisión
 con motivo), 10 (roles) y 11 (últimos 5 + cuadro con buscador y filtros).
+
+## 9. Formato de la ficha técnica (25-sep-2026)
+
+La cabecera de la ficha (logo, recuadro **ITEM CODE**, título y el renglón «HPG International -
+FF&E Procurement») tenía **altura fija**. Cuando el código del spec era largo y ocupaba dos
+líneas, ese renglón se desbordaba y quedaba pegado —o encima— de la tabla del proyecto: por eso
+unas fichas se veían bien y otras no.
+
+Ahora:
+
+- la cabecera **crece** si el contenido lo necesita, y la separación bajo el título es **siempre
+  11 px**, la del documento de referencia de HPG;
+- los códigos de más de 10 caracteres se **achican** lo justo para caber en una sola línea
+  (17 px), y los de más de 16, un poco más (13 px).
+
+Comprobado con `CG-01A`, `GR-10-CG-01A` y `GR-10-CG-01A-REV2`: los tres en una línea y con el
+mismo espaciado. Se toca en `technical-sheet-reference.css` (regla `.hpg-ts-header`) y en
+`technical-sheet-template.js` (la clase del código).

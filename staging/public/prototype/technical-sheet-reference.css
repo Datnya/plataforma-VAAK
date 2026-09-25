@@ -4,7 +4,14 @@
 .hpg-technical-sheet,.hpg-technical-sheet *{box-sizing:border-box}
 .hpg-technical-sheet{width:794px;min-height:1122px;margin:0 auto;padding:17px 48px 18px;background:#fff;border-top:10px solid #9b7a5b;border-bottom:10px solid #9b7a5b;color:#333;font-family:Aptos,'Segoe UI',Arial,sans-serif;font-size:12px;line-height:1.35;display:flex;flex-direction:column}
 .hpg-ts-content{width:100%}
-.hpg-ts-header{height:128px;display:flex;align-items:flex-start;justify-content:space-between}
+/* La cabecera tenia alto fijo: si el codigo del spec ocupaba dos lineas, el renglon «HPG
+   International - FF&E Procurement» se desbordaba y quedaba pegado (o encima) de la tabla del
+   proyecto (lo vio Datnya el 25-sep-2026). Ahora crece si hace falta y el espacio bajo el titulo
+   es siempre el mismo: 11 px, el del documento de referencia. */
+.hpg-ts-header{min-height:128px;padding-bottom:11px;display:flex;align-items:flex-start;justify-content:space-between}
+/* Y el codigo se achica lo justo para caber en una sola linea, como en la referencia. */
+.hpg-ts-code strong.es-largo{font-size:17px}
+.hpg-ts-code strong.es-muy-largo{font-size:13px}
 .hpg-ts-header>img{display:block;width:149px;height:auto;max-height:66px;object-fit:contain}
 .hpg-ts-heading{width:470px;text-align:right;color:#39221c}
 .hpg-ts-code{width:183px;min-height:66px;margin-left:auto;padding:6px 12px 7px;border-radius:8px;background:#c8b89e;text-align:center;color:#39221c}

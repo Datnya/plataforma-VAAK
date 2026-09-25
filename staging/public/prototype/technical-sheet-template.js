@@ -18,7 +18,7 @@
         <header class="hpg-ts-header">
           <img src="assets/hpg-international-reference.png" alt="HPG International Latinoamericana">
           <div class="hpg-ts-heading">
-            <div class="hpg-ts-code"><span>ITEM CODE</span><strong>${mk(['code'],esc(code))}</strong></div>
+            <div class="hpg-ts-code"><span>ITEM CODE</span><strong class="${String(code).length>16?'es-muy-largo':String(code).length>10?'es-largo':''}">${mk(['code'],esc(code))}</strong></div>
             <h1>TECHNICAL SPECIFICATION SHEET</h1>
             <p>HPG International - ${esc(procurementLabel(spec))}</p>
           </div>
