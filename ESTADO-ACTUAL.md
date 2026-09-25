@@ -3,7 +3,7 @@
 > **Si eres un modelo de IA que acaba de llegar a este proyecto: lee este documento completo antes de tocar nada.**
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
-**Última actualización:** 23 de septiembre de 2026 (actualización 12: rubros, áreas con equipo y decimales)
+**Última actualización:** 24 de septiembre de 2026 (en preparación: guardado sin fallos silenciosos y nuevas secciones de specs y OC)
 **Último commit documentado:** el más reciente de `main` (ver `git log -1`); este documento se actualiza en el mismo commit que cada cambio
 
 ---
@@ -61,6 +61,7 @@ El 18-sep (noche) Datnya pidió pausar los commits mientras mandaba cambios; el 
 | 9 | Sin mayúscula automática en ningún campo, «Warehouse address» en el alta de proyecto, ficha del proyecto con todos los campos (contacto y teléfono incluidos) y «Specified by» libre en la OC | — | ⏳ | ✅ 23-sep |
 | 10 | Monedas: la del spec manda en la OC y en el RP, sin conversiones; se permite mezclar monedas con aviso en rojo. Áreas del proyecto: solo el nombre del área (sin repetir) y quitar | — | ⏳ | ✅ 23-sep |
 | 11 | Áreas del proyecto: agregar un área escribiéndola, marcar varias y quitarlas juntas. Código del spec vacío al crear | — | ⏳ | ✅ 23-sep |
+| 13 | *(en preparación, sin ZIP todavía)* Guardado con aviso visible, envío comprimido y tope de 8 MB; secciones de specs y OC con los 5 últimos y registro completo en un cuadro con buscador y filtros | — | ⏳ | ⏳ |
 | 12 | Campo de rubro del spec buscable, sin división por equipos, con «+» por proyecto y ✕ que elimina del catálogo; áreas con equipo OS&E/FF&E y campo «Área» agrupado; impresión con 2 decimales; sin la sección de rubros en Configuración del sistema. Paquete completo: `actualizacion-12/actualizacion-12.zip` | — | ⏳ | ⏳ |
 
 Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia → Importar el `.sql` (una sola vez); 2) subir y extraer el ZIP en la carpeta de ESA copia; 3) `verificar.php` debe decir «Todo listo». Los paquetes de instalación completos de `Claude outputs/instalacion-*/` son del 18-sep: para una instalación nueva, regenerarlos con `armar-publicacion.js` y el `esquema.sql` actual.
@@ -129,6 +130,21 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 | 4 | ~~Trasladar los datos de Supabase~~ | — | ⛔ **No hace falta (decidido 18-sep):** Datnya confirmó que **todo lo que hay en Vercel/Supabase es de prueba** (proyectos, proveedores, usuarios). El cliente llenará sus datos reales en la plataforma oficial. No se copia nada |
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
+
+### 📍 Dónde quedamos exactamente (24-sep) — en preparación: actualización 13 (SIN publicar todavía)
+Las actualizaciones 1 a 12 están en la OFICIAL. Lo de hoy **está en el repositorio y probado, pero Datnya pidió no armar aún el ZIP** porque enviará más cambios.
+
+**1. Guardado: ya no falla en silencio (lo más importante).** Se comprobó con datos reales: el documento de la empresa tenía un tope de 4 MB y, al pasarse, `PUT /api/data` respondía 413 y **el navegador no avisaba**: el spec quedaba en pantalla pero nunca llegaba al servidor. Medidas del ensayo (`servidor-php/pruebas/.local/limite.js`): un spec pesa ~520 bytes y una OC ~3,7 KB; 5.000 specs = 2,8 MB, 8.000 = 4,5 MB, 12.000 = 6,6 MB. Cambios:
+- Tope de `VAAK_MAX_ESTADO` a **8 MB** y guardia por memoria: procesar el documento gasta ~10 veces su tamaño y con 11 MB PHP moría con «Allowed memory size exhausted» (respuesta rota). Ahora, si no alcanza la memoria, responde **413 claro** (`vaak_memoria_disponible()` en `arranque.php`).
+- **Envío comprimido**: el navegador manda el documento en gzip+base64 con la cabecera `x-vaak-gzip: 1` (11 MB → 0,33 MB). El servidor lo descomprime si tiene `gzdecode`; si no, responde 415 y el navegador reenvía sin comprimir. `GET /api/health` informa `gzip`, `maxState` y `memoryLimit` (**verificar en la oficial tras publicar**).
+- **Aviso visible en rojo** cuando el guardado no llega, con botón «Reintentar ahora» (`shared-sync.js`), explicando que lo último quedó solo en ese navegador.
+- `.htaccess`: `php_value memory_limit 256M` (si el hosting lo ignora, no rompe nada).
+- La limpieza de datos de demostración solo se ejecuta si el texto menciona un id de demo, para no clonar el documento entero en cada guardado.
+
+**2. Cuántos registros aguanta (respuesta a Datnya).** Con el diseño actual —toda la empresa en un solo documento JSON— entran cómodamente **unos 5.000 specs por empresa**, pero **no** 5.000 OC (5.000 × 3,7 KB ≈ 18 MB). Para llegar a 5.000 + 5.000 **por proyecto** hay que guardar specs y órdenes en **sus propias tablas** y pedirlos por páginas: es el próximo proyecto grande, no un ajuste.
+
+**3. Secciones del proyecto (specs y órdenes):** la página muestra solo los **5 más recientes** de cada una, con el botón «Ver todos los specs registrados» / «Ver registro completo» que abre un cuadro con el registro entero (`listados.js`, nuevo). El cuadro dibuja las mismas tarjetas de la página (`VAAKAppBridge.specCardsHtml` / `orderCardsHtml`, con `filaDelRegistro()` extraída en `app.js`) **de a 40 por vez**, así abre rápido con miles de registros. Filtros del cuadro de specs: buscador por **nombre, código y proveedor** (sin tildes), equipo **FF&E / OS&E** y rubro —la lista de rubros sale del catálogo vivo más los del proyecto y **se reduce al equipo elegido**—. Cuadro de OC: buscador por **N° de orden o proveedor**, estado (todas/aprobada/anulada/pendiente), **rango de fechas de emisión** y equipo. Probado con 600 specs y 60 OC: el cuadro abre en 1,4 s y los filtros responden. Antes, el buscador de la página no encontraba por proveedor y el filtro de rubros usaba una lista fija de 19 nombres en español que no tenía relación con el catálogo.
+- Prueba permanente nueva: `servidor-php/pruebas/paso7-listados.js` (paso 11 de `probar.sh`).
 
 ### 📍 Dónde quedamos exactamente (23-sep, noche) — actualización 12: rubros, áreas con equipo y decimales
 Las actualizaciones 1 a 11 ya están en la OFICIAL. Lo nuevo es la **actualización 12** (`Claude outputs/actualizaciones/actualizacion-12/actualizacion-12.zip`, paquete completo, `probar.sh` en verde):

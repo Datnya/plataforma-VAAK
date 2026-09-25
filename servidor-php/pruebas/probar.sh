@@ -80,4 +80,8 @@ ayudante sin-bloqueos
 
 paso "10. Portal del cliente: su proyecto, OC aprobadas, requerimientos, reportes de solo lectura y tracking"
 node "$P/navegador.js" "$P/paso6-portal-cliente.js"
+ayudante sin-bloqueos
+
+paso "11. Secciones del proyecto: últimos registros en la página y registro completo en el cuadro"
+node "$P/navegador.js" "$P/paso7-listados.js"
 echo; echo "Listo. Resultados completos en $L"

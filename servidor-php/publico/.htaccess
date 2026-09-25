@@ -54,6 +54,15 @@ AddHandler application/x-httpd-alt-php82___lsphp .php
   Require all granted
 </FilesMatch>
 
+# Memoria para PHP: el documento de la empresa se procesa entero en cada guardado (24-sep-2026).
+# Si el hosting no admite esta linea, la ignora sin romper nada (se comprueba en /api/health).
+<IfModule lsapi_module>
+  php_value memory_limit 256M
+</IfModule>
+<IfModule mod_php.c>
+  php_value memory_limit 256M
+</IfModule>
+
 # Compresión (auditoría del 21-sep-2026): la plataforma pasa de ~1 MB a ~250 KB por visita.
 <IfModule mod_deflate.c>
   AddOutputFilterByType DEFLATE text/html text/css text/plain text/xml application/javascript text/javascript application/json application/xml image/svg+xml

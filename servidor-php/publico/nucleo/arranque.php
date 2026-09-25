@@ -78,6 +78,17 @@ function vaak_cuerpo_crudo(): string {
   if ($crudo === null) $crudo = (string)file_get_contents('php://input');
   return $crudo;
 }
+// Memoria que PHP permite usar en esta peticion, en bytes (0 = sin limite).
+function vaak_memoria_disponible(): int {
+  $valor = trim((string)ini_get('memory_limit'));
+  if ($valor === '' || $valor === '-1') return 0;
+  $numero = (float)$valor;
+  $sufijo = strtolower(substr($valor, -1));
+  if ($sufijo === 'g') $numero *= 1024 * 1024 * 1024;
+  elseif ($sufijo === 'm') $numero *= 1024 * 1024;
+  elseif ($sufijo === 'k') $numero *= 1024;
+  return (int)$numero;
+}
 function vaak_cuerpo_json(): ?array {
   $datos = json_decode(vaak_cuerpo_crudo(), true);
   return is_array($datos) ? $datos : null;

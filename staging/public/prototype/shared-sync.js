@@ -30,6 +30,50 @@
   let chain = Promise.resolve();
   const assetCache = new Map();
 
+  // Aviso visible cuando el servidor NO aceptó el guardado (24-sep-2026). Antes fallaba en silencio:
+  // el registro quedaba en la pantalla pero nunca llegaba al servidor.
+  let avisoFallo = null;
+  const textoEs = () => { try { const id = sessionStorage.getItem("vaak-session-tab-v1"); const v = localStorage.getItem("vaak-language-" + (id || "guest")); return v ? v === "es" : document.documentElement.lang === "es"; } catch { return false; } };
+  const frase = (es, en) => (textoEs() ? es : en);
+  function mostrarFallo(motivo) {
+    if (!avisoFallo) {
+      avisoFallo = document.createElement("div");
+      avisoFallo.className = "vaak-sync-alerta";
+      avisoFallo.setAttribute("role", "alert");
+      document.body.appendChild(avisoFallo);
+      if (!document.getElementById("vaak-sync-estilo")) {
+        const estilo = document.createElement("style");
+        estilo.id = "vaak-sync-estilo";
+        estilo.textContent = ".vaak-sync-alerta{position:fixed;left:50%;bottom:1rem;transform:translateX(-50%);z-index:1400;display:flex;flex-wrap:wrap;align-items:center;gap:.7rem;width:min(660px,calc(100% - 2rem));padding:.85rem 1.1rem;border:1px solid #e7aaa2;border-radius:12px;background:#fdecea;color:#8a1c13;box-shadow:0 10px 30px rgba(39,27,21,.2);font-size:.88rem;font-weight:600}.vaak-sync-alerta p{flex:1 1 280px;margin:0}.vaak-sync-alerta button{white-space:nowrap}";
+        document.head.appendChild(estilo);
+      }
+    }
+    avisoFallo.innerHTML = "<p>" + motivo + "</p><button type=\"button\" class=\"secondary\" data-sync-retry>" + frase("Reintentar ahora", "Retry now") + "</button>";
+    avisoFallo.querySelector("[data-sync-retry]").addEventListener("click", () => { avisoFallo.querySelector("[data-sync-retry]").disabled = true; run(() => push()); });
+  }
+  const ocultarFallo = () => { avisoFallo?.remove(); avisoFallo = null; };
+  const motivoDeFallo = (error) => {
+    if (error?.status === 413) return frase(
+      "No se pudo guardar: la información del proyecto superó el tamaño que admite el servidor. Avisa al soporte antes de seguir cargando; lo último que hiciste está solo en este navegador.",
+      "Could not save: the project data went over the size the server accepts. Contact support before adding more; your latest changes are only in this browser.");
+    if (error?.status === 401 || error?.status === 403) return frase(
+      "No se pudo guardar: tu sesión terminó. Vuelve a iniciar sesión para que se guarden tus cambios.",
+      "Could not save: your session ended. Sign in again so your changes are saved.");
+    return frase(
+      "No se pudo guardar en el servidor. Tus cambios están solo en este navegador; se reintentará solo.",
+      "Could not save to the server. Your changes are only in this browser; it will retry on its own.");
+  };
+
+  // El documento viaja comprimido cuando el navegador y el servidor pueden (unas diez veces menos).
+  let puedeComprimir = typeof CompressionStream === "function";
+  async function comprimir(texto) {
+    const flujo = new Blob([texto]).stream().pipeThrough(new CompressionStream("gzip"));
+    const bytes = new Uint8Array(await new Response(flujo).arrayBuffer());
+    let binario = "";
+    for (let i = 0; i < bytes.length; i += 8192) binario += String.fromCharCode.apply(null, bytes.subarray(i, i + 8192));
+    return btoa(binario);
+  }
+
   const isOurKey = (key) => key === STORE || EXTRAS.includes(key);
   Storage.prototype.setItem = function (key, value) {
     nativeSet.call(this, key, value);
@@ -309,7 +353,20 @@
       return;
     }
     try {
-      const result = await request("/api/data", { method: "PUT", headers: { "content-type": "application/json" }, body: JSON.stringify({ baseRevision: revision, state: outgoing }) });
+      const cuerpo = JSON.stringify({ baseRevision: revision, state: outgoing });
+      let opciones = { method: "PUT", headers: { "content-type": "application/json" }, body: cuerpo };
+      if (puedeComprimir && cuerpo.length > 200000) {
+        try { opciones = { method: "PUT", headers: { "content-type": "application/json", "x-vaak-gzip": "1" }, body: await comprimir(cuerpo) }; }
+        catch { puedeComprimir = false; }
+      }
+      let result;
+      try { result = await request("/api/data", opciones); }
+      catch (error) {
+        // Un servidor sin descompresión (415) se atiende sin comprimir y ya no se vuelve a intentar.
+        if (error?.status === 415) { puedeComprimir = false; result = await request("/api/data", { method: "PUT", headers: { "content-type": "application/json" }, body: cuerpo }); }
+        else throw error;
+      }
+      ocultarFallo();
       revision = Number(result.revision);
       remote = outgoing;
       // The server keeps only what this user's role may change (workers): it answers with the
@@ -332,6 +389,7 @@
         return push(attempt + 1);
       }
       failures++;
+      mostrarFallo(motivoDeFallo(error));
       setTimeout(() => schedulePush(), Math.min(60000, 5000 * failures));
       throw error;
     }

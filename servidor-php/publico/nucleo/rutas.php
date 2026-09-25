@@ -330,7 +330,21 @@ function ruta_presencia_latido(): void {
 
 // ======================= DATOS COMPARTIDOS =======================
 
-const VAAK_MAX_ESTADO = 4000000;
+// 24-sep-2026: el documento de la empresa puede pesar hasta 12 MB (antes 4 MB, y al pasarse el
+// guardado se rechazaba sin que el usuario se enterara). El navegador puede mandarlo comprimido
+// (cabecera x-vaak-gzip), asi que por la red viaja unas diez veces mas liviano.
+const VAAK_MAX_ESTADO = 8000000;
+const VAAK_MAX_ESTADO_COMPRIMIDO = 3000000;
+
+function vaak_cuerpo_estado(): string {
+  $crudo = vaak_cuerpo_crudo();
+  if (strtolower(vaak_cabecera("x-vaak-gzip")) !== "1") return $crudo;
+  if (strlen($crudo) > VAAK_MAX_ESTADO_COMPRIMIDO) vaak_fallar(["ok" => false, "error" => "too_large"], 413);
+  if (!function_exists("gzdecode")) vaak_fallar(["ok" => false, "error" => "gzip_not_supported"], 415);
+  $texto = @gzdecode(base64_decode($crudo, true) ?: "");
+  if ($texto === false) vaak_fallar(["ok" => false, "error" => "invalid_json"], 400);
+  return $texto;
+}
 
 // Los clientes solo reciben sus proyectos y lo que pertenece a ellos.
 // Trabaja con objetos (json_decode sin true) para no convertir {} en [].
@@ -590,8 +604,11 @@ function ruta_datos_guardar(): void {
   $miembro = vaak_miembro();
   if (!$miembro) vaak_fallar(['ok' => false, 'error' => 'unauthorized'], 401);
   if ($miembro['role'] === 'client') vaak_fallar(['ok' => false, 'error' => 'forbidden'], 403);
-  $crudo = vaak_cuerpo_crudo();
+  $crudo = vaak_cuerpo_estado();
   if (strlen($crudo) > VAAK_MAX_ESTADO) vaak_fallar(['ok' => false, 'error' => 'too_large'], 413);
+  // Procesar el documento necesita unas diez veces su tamano en memoria: si no alcanza, se dice.
+  $memoria = vaak_memoria_disponible();
+  if ($memoria > 0 && strlen($crudo) * 10 > $memoria) vaak_fallar(['ok' => false, 'error' => 'too_large'], 413);
   $b = json_decode($crudo);
   if (!is_object($b)) vaak_fallar(['ok' => false, 'error' => 'invalid_json'], 400);
   $base = $b->baseRevision ?? null;
@@ -602,8 +619,16 @@ function ruta_datos_guardar(): void {
   // Los datos de demostración (ids fijos p1, o1, t-own…) nunca se guardan: un navegador con una copia
   // vieja podía volver a subirlos después de quitarlos (22-sep-2026). Se le devuelve la versión limpia.
   $demoQuitada = null;
-  [$sinDemo, , $demoTotal] = vaak_sin_demo($estado);
-  if ($demoTotal > 0) { $estado = $sinDemo; $demoQuitada = true; }
+  // Solo se revisa si el texto menciona algun id de demostracion: clonar el documento entero en
+  // cada guardado gastaba memoria de mas (24-sep-2026).
+  $hayPista = false;
+  foreach (array_merge(VAAK_DEMO['projects'], VAAK_DEMO['orders'], VAAK_DEMO['suppliers'], VAAK_DEMO['specs'], VAAK_DEMO['tasks']) as $idDemo) {
+    if (strpos($crudo, '"' . $idDemo . '"') !== false) { $hayPista = true; break; }
+  }
+  if ($hayPista) {
+    [$sinDemo, , $demoTotal] = vaak_sin_demo($estado);
+    if ($demoTotal > 0) { $estado = $sinDemo; $demoQuitada = true; }
+  }
   $texto = json_encode($estado, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
   $db = vaak_db();
   $empresa = $miembro['companyId'];
@@ -860,7 +885,7 @@ function ruta_estilos(): void {
 function ruta_salud(): void {
   try {
     vaak_db()->query('SELECT 1');
-    vaak_json(['ok' => true, 'service' => 'vaak-' . (vaak_config()['entorno'] ?? 'php'), 'releaseId' => (string)(vaak_config()['release_id'] ?? 'local')]);
+    vaak_json(['ok' => true, 'service' => 'vaak-' . (vaak_config()['entorno'] ?? 'php'), 'releaseId' => (string)(vaak_config()['release_id'] ?? 'local'), 'gzip' => function_exists('gzdecode'), 'maxState' => VAAK_MAX_ESTADO, 'memoryLimit' => ini_get('memory_limit')]);
   } catch (Throwable $e) {
     vaak_json(['ok' => false, 'error' => 'environment_not_configured'], 503);
   }
