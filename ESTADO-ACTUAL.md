@@ -132,6 +132,15 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
 
+### 📍 Dónde quedamos (25-sep, noche) — actualización 16: formato de la ficha técnica
+La **etapa 1 de la migración ya está publicada en la OFICIAL** y Datnya la verificó: los 128 registros (108 specs, 19 OC, 1 requerimiento) quedaron cada uno en su fila, con 0 en el documento, y la plataforma funciona igual.
+
+**Corrección de la ficha técnica.** La cabecera tenía altura fija: con un código de spec largo (dos líneas), el renglón «HPG International - FF&E Procurement» se desbordaba y quedaba pegado o encima de la tabla del proyecto (medido: 11 px de separación con código corto, −5 px con uno largo). Ahora la cabecera crece y la separación es siempre 11 px, la del documento de referencia; además los códigos largos se achican para caber en una línea. Detalle en docs/campos/CAMPOS-SPEC.md, sección 9.
+
+**Decisión de Datnya (25-sep):** a partir de aquí se publica **directo en la OFICIAL**, sin ensayo previo en PRUEBA.
+
+**Sigue pendiente:** la **etapa 2** de la migración, que es la que sube el tope a 5.000 por proyecto. Hoy el tope sigue siendo el de siempre (unos 5.000 specs o 1.000 OC para toda la empresa), porque el navegador aún se trae y manda todos los registros en cada guardado.
+
 ### 📍 Dónde quedamos exactamente (25-sep, tarde) — MIGRACIÓN DEL GUARDADO, etapa 1 lista para ensayar
 Datnya autorizó el cambio de guardado con una condición: **no se puede perder ni un dato**. El plan completo, en tres etapas, está en [`docs/migracion/PLAN-MIGRACION-GUARDADO.md`](docs/migracion/PLAN-MIGRACION-GUARDADO.md). **La etapa 1 está programada y probada; falta ensayarla en PRUEBA con los datos reales.**
 
