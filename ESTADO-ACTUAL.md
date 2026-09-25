@@ -3,7 +3,7 @@
 > **Si eres un modelo de IA que acaba de llegar a este proyecto: lee este documento completo antes de tocar nada.**
 > Es la única fuente de verdad sobre el estado de la plataforma. La carpeta `HANDOFF/` es histórica y está desactualizada desde el 2 de septiembre de 2026; no la uses para entender el estado actual.
 
-**Última actualización:** 24 de septiembre de 2026 (actualización 13 armada: guardado sin fallos silenciosos, nuevas secciones de specs y OC, decimales de la OC y código separado por rol)
+**Última actualización:** 25 de septiembre de 2026 (actualización 14 en preparación: las tres secciones del proyecto con su cuadro de registro completo y las capas corregidas)
 **Último commit documentado:** el más reciente de `main` (ver `git log -1`); este documento se actualiza en el mismo commit que cada cambio
 
 ---
@@ -132,8 +132,24 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 | 5 | Publicar en el dominio oficial en un momento de baja actividad (≈1 hora sin usar la plataforma para la copia final) | Claude + Datnya | ⏳ |
 | 6 | Publicación automática desde GitHub por FTP (prueba y oficial), retirar Vercel, actualizar este documento | Claude + Datnya | ⏳ |
 
-### 📍 Dónde quedamos exactamente (24-sep) — actualización 13 ARMADA, pendiente de subir al OFICIAL
-Las actualizaciones 1 a 12 están en la OFICIAL. La **actualización 13** ya está armada y probada: `Claude outputs/actualizaciones/actualizacion-13/actualizacion-13.zip` (8,5 MB, 30 archivos, los mismos bytes que la copia con la que se corrieron las pruebas). **Falta que Datnya la suba por el cPanel a `/plataforma.hpgilatam.com`.** Batería completa en verde: 41 de 41 comprobaciones de seguridad y cero errores en los tres roles. Al terminar de subirla hay que revisar `https://plataforma.hpgilatam.com/api/health` (debe decir `gzip`, `maxState` y `memoryLimit`) y entrar una vez como cliente para confirmar que su portal sigue completo.
+### 📍 Dónde quedamos exactamente (25-sep) — actualización 14 (las tres secciones iguales y las capas del cuadro)
+La **actualización 13 ya está publicada en la OFICIAL**. Lo de hoy es la **actualización 14**, pedida por Datnya tras revisarla:
+
+**1. Las tres secciones del proyecto funcionan igual.** Antes solo los specs tenían el botón; las órdenes de compra seguían mostrándose enteras (las dibuja `renderUnifiedProjectOrders()`, no el registro aparte que se había agregado) y los requerimientos de pago no tenían nada. Ahora:
+- **Specs**, **Órdenes de compra** y **Requerimiento de pago** muestran en la página **los 5 más recientes**, con un aviso de cuántos hay en total.
+- Cada sección tiene su botón a la **izquierda del botón de crear**: «Ver todos los specs registrados», «Ver todas las OC registradas» y «Ver todos los requerimientos registrados».
+- El registro suelto de órdenes que se había agregado el 24-sep **se retiró**: duplicaba la lista.
+- Cuadro de OC: busca por **número, proveedor, fabricante, fuente y número de seguimiento**; filtra por **estado**, por **equipo FF&E/OS&E** y por **rango de fecha de emisión**.
+- Cuadro de requerimientos (nuevo, `abrirRequerimientos()` en `listados.js`): busca por **número de requerimiento, número de OC, código de factura y proveedor**; filtra por **pago (con pago registrado / sin pago)**, por **equipo** —que sale de la OC del requerimiento— y por **rango de fecha de solicitud**.
+
+**2. Lo que se abre desde el cuadro ya sale por delante.** La ficha técnica (y la orden, y el requerimiento) se abría **por detrás** del cuadro y había que cerrarlo para verla. Ahora, mientras hay un documento abierto, el cuadro pasa detrás (clase `.lst-atras` en `listados.js`) y al cerrarlo vuelve al frente.
+
+**3. Comprobado con muchos registros:** con 13 órdenes y 13 requerimientos, la página muestra 5 de cada uno y el cuadro los 13. El paso 11 de `probar.sh` verifica las tres secciones, los tres cuadros, sus buscadores y filtros, y que la ficha técnica quede por delante del cuadro.
+
+**Sigue pendiente (no se ha hecho):** el **cambio de guardado** para que specs, OC y requerimientos sean ilimitados. Hoy siguen viviendo todos en el mismo documento de la empresa, con los topes ya medidos (unos 5.000 specs y 1.000 OC **para toda la empresa**). Mostrar solo 5 en pantalla hace la página rápida, pero **no cambia cuánto entra**.
+
+### 📍 Dónde quedamos el 24-sep — actualización 13 (ya publicada en la OFICIAL el 25-sep)
+Las actualizaciones 1 a 13 están en la OFICIAL. El paquete de la 13 quedó en: `Claude outputs/actualizaciones/actualizacion-13/actualizacion-13.zip` (8,5 MB, 30 archivos, los mismos bytes que la copia con la que se corrieron las pruebas). Datnya la subió por el cPanel a `/plataforma.hpgilatam.com` el 25-sep. Batería completa en verde: 41 de 41 comprobaciones de seguridad y cero errores en los tres roles. Queda por revisar `https://plataforma.hpgilatam.com/api/health` (debe decir `gzip`, `maxState` y `memoryLimit`) y entrar una vez como cliente para confirmar que su portal sigue completo.
 
 **1. Guardado: ya no falla en silencio (lo más importante).** Se comprobó con datos reales: el documento de la empresa tenía un tope de 4 MB y, al pasarse, `PUT /api/data` respondía 413 y **el navegador no avisaba**: el spec quedaba en pantalla pero nunca llegaba al servidor. Medidas del ensayo (`servidor-php/pruebas/.local/limite.js`): un spec pesa ~520 bytes y una OC ~3,7 KB; 5.000 specs = 2,8 MB, 8.000 = 4,5 MB, 12.000 = 6,6 MB. Cambios:
 - Tope de `VAAK_MAX_ESTADO` a **8 MB** y guardia por memoria: procesar el documento gasta ~10 veces su tamaño y con 11 MB PHP moría con «Allowed memory size exhausted» (respuesta rota). Ahora, si no alcanza la memoria, responde **413 claro** (`vaak_memoria_disponible()` en `arranque.php`).

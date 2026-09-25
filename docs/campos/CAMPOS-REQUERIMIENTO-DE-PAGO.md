@@ -24,6 +24,7 @@ hay que corregir el documento en el mismo commit.
 | Numeración | `access-runtime.js` → `nextPaymentRequestNumber()` |
 | Documento impreso | `staging/public/prototype/payment-request-template.js` |
 | Registro del pago | `app.js` (formulario `payment-register-form`) + `rp-formulario.js` |
+| Sección del proyecto y cuadro «Ver todos los requerimientos registrados» | `app.js` → `invoiceSection()`, `listados.js` |
 
 ## 2. Cómo se abre y quién puede
 
@@ -170,6 +171,15 @@ El requerimiento se guarda **dentro del proyecto**, en su lista `invoices`, con:
 Los importes se guardan con los **decimales de la OC de la que salen**: dos casi siempre, tres
 solo si esa OC se trabajó con tres (ver «Totales» en el documento de la orden de compra). Así el
 requerimiento se ve con los mismos decimales que su OC en la pantalla, en el PDF y en el Excel.
+
+## 6 bis. Dónde se ve el requerimiento en la página
+
+La sección **Requerimiento de pago → Historial** muestra **los 5 más recientes**, con un aviso de cuántos hay en total. El resto se ve con el botón **«Ver todos los requerimientos registrados»**, a la izquierda de «Emisión de nueva solicitud de pago» (25-sep-2026). Ese cuadro:
+
+- **busca** por número de requerimiento, número de OC, código de factura y proveedor;
+- **filtra** por pago (todos / con pago registrado / sin pago), por equipo **FF&E u OS&E** —el equipo sale de la OC a la que pertenece el requerimiento— y por **rango de fecha de solicitud**;
+- dibuja las mismas tarjetas de la página, de a 40 por vez, así abre rápido con miles de registros;
+- si desde ahí se abre un requerimiento o una orden, **el documento queda por delante** y el cuadro pasa detrás hasta que se cierre.
 
 ## 7. Registro del pago («Pago realizado»)
 

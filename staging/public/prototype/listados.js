@@ -23,10 +23,22 @@
   // Búsqueda sin tildes ni mayúsculas.
   const norm = (v) => String(v ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase().trim();
   const equipoDe = (valor) => (String(valor || "").toUpperCase().includes("FF") ? "FFE" : "OSE");
+  // Las fechas se guardan como dd/mm/aaaa o aaaa-mm-dd según el campo.
+  const aFecha = (valor) => {
+    const texto = String(valor || "").trim();
+    let m = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+    if (m) return Date.UTC(+m[3], +m[2] - 1, +m[1]);
+    m = texto.match(/^(\d{4})-(\d{2})-(\d{2})/);
+    if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
+    const d = Date.parse(texto);
+    return Number.isNaN(d) ? null : d;
+  };
 
   const estilo = document.createElement("style");
   estilo.textContent = ".lst-acciones{display:flex;flex-wrap:wrap;align-items:center;gap:.7rem;margin:.2rem 0 1rem}.lst-acciones small{color:#8b7a6c;font-size:.8rem}"
     + ".lst-fondo{position:fixed;inset:0;z-index:1250;display:grid;place-items:center;padding:1rem;background:rgba(39,27,21,.55)}"
+    + ".lst-fondo.lst-atras{z-index:5}" // con una ficha o una orden abierta encima, este cuadro pasa detrás
+    + ".lst-nota{margin:.2rem 0 1rem;color:#8b7a6c;font-size:.8rem}"
     + ".lst-caja{display:flex;flex-direction:column;width:min(1100px,100%);max-height:92vh;border-radius:14px;background:#fcfbfa;box-shadow:0 24px 60px rgba(39,27,21,.35);overflow:hidden}"
     + ".lst-cabecera{display:flex;align-items:center;justify-content:space-between;gap:.8rem;padding:1rem 1.2rem .6rem;background:#fff;border-bottom:1px solid #eee4da}.lst-cabecera h2{margin:0;font-size:1.15rem;color:#35251d}"
     + ".lst-filtros{display:flex;flex-wrap:wrap;gap:.6rem;align-items:center;padding:.8rem 1.2rem;background:#fff;border-bottom:1px solid #eee4da}"
@@ -156,6 +168,51 @@
     fondo.addEventListener("click", (e) => { if (e.target.closest('[data-lst-grupo="equipo"] .lst-chip')) llenarRubros(); });
   }
 
+  // ---- Requerimientos de pago ----
+  // Viven dentro del proyecto (project.invoices). El equipo sale de la OC a la que pertenecen.
+  function abrirRequerimientos() {
+    const { proyecto } = proyectoActual();
+    if (!proyecto) return;
+    const ordenDe = (estado, invoice) => (estado?.orders || []).find((o) =>
+      (invoice.orderId && o.id === invoice.orderId) || (invoice.poNumber && o.number === invoice.poNumber)) || null;
+    const filtros = `<label class="lst-buscar"><input type="search" data-lst-q placeholder="${es("Buscar por N° de requerimiento, OC, factura o proveedor...", "Search by request no., PO, invoice or supplier...")}"></label>`
+      + chips(es("Pago", "Payment"), [
+        { valor: "", texto: es("Todos", "All") },
+        { valor: "pagado", texto: es("Con pago registrado", "Payment recorded") },
+        { valor: "pendiente", texto: es("Sin pago", "Not paid") },
+      ], "pago")
+      + chips(es("Equipo", "Team"), [{ valor: "", texto: es("Todos", "All") }, { valor: "FFE", texto: "FF&E" }, { valor: "OSE", texto: "OS&E" }], "equipo")
+      + `<div class="lst-grupo"><span>${es("Solicitado", "Requested")}</span><input type="date" data-lst-desde aria-label="${es("Desde", "From")}"><input type="date" data-lst-hasta aria-label="${es("Hasta", "To")}"></div>`;
+    abrirCuadro({
+      titulo: es("Requerimientos de pago registrados", "Registered payment requests"),
+      filtros,
+      cuenta: (caja) => {
+        const q = norm(caja.querySelector("[data-lst-q]").value);
+        const pago = valorChip(caja, "pago");
+        const equipo = valorChip(caja, "equipo");
+        const desde = caja.querySelector("[data-lst-desde]").value ? aFecha(caja.querySelector("[data-lst-desde]").value) : null;
+        const hasta = caja.querySelector("[data-lst-hasta]").value ? aFecha(caja.querySelector("[data-lst-hasta]").value) : null;
+        const actual = leer();
+        const proyectoActualizado = (actual?.projects || []).find((p) => p.id === proyecto.id) || proyecto;
+        return ultimos(proyectoActualizado.invoices || [], "createdAt").filter((inv) => {
+          const tienePago = String(inv.paidAmount ?? "").trim() !== "" || Boolean(inv.paymentRegisteredAt);
+          if (pago === "pagado" && !tienePago) return false;
+          if (pago === "pendiente" && tienePago) return false;
+          if (equipo) {
+            const orden = ordenDe(actual, inv);
+            if (!orden || equipoDe(orden.ocTeam) !== equipo) return false;
+          }
+          const fecha = aFecha(inv.requestDate || inv.createdAt);
+          if (desde !== null && (fecha === null || fecha < desde)) return false;
+          if (hasta !== null && (fecha === null || fecha > hasta)) return false;
+          if (!q) return true;
+          return norm([inv.number, inv.poNumber, inv.poReferenceArea, inv.invoiceNumber, inv.payableTo, inv.paymentPayableTo, inv.sourceManufacturer].join(" ")).includes(q);
+        });
+      },
+      dibujar: (trozo) => bridge()?.invoiceCardsHtml?.(trozo) || "",
+    });
+  }
+
   // ---- Órdenes de compra ----
   function abrirOrdenes() {
     const { proyecto } = proyectoActual();
@@ -169,16 +226,6 @@
       ], "estado")
       + chips(es("Equipo", "Team"), [{ valor: "", texto: es("Todos", "All") }, { valor: "FFE", texto: "FF&E" }, { valor: "OSE", texto: "OS&E" }], "equipo")
       + `<div class="lst-grupo"><span>${es("Emitida", "Issued")}</span><input type="date" data-lst-desde aria-label="${es("Desde", "From")}"><input type="date" data-lst-hasta aria-label="${es("Hasta", "To")}"></div>`;
-    // Las fechas de la OC se guardan como dd/mm/aaaa o aaaa-mm-dd.
-    const aFecha = (valor) => {
-      const texto = String(valor || "").trim();
-      let m = texto.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-      if (m) return Date.UTC(+m[3], +m[2] - 1, +m[1]);
-      m = texto.match(/^(\d{4})-(\d{2})-(\d{2})/);
-      if (m) return Date.UTC(+m[1], +m[2] - 1, +m[3]);
-      const d = Date.parse(texto);
-      return Number.isNaN(d) ? null : d;
-    };
     abrirCuadro({
       titulo: es("Órdenes de compra registradas", "Registered purchase orders"),
       filtros,
@@ -206,6 +253,18 @@
 
   document.addEventListener("click", (event) => {
     if (event.target.closest("[data-lst-ver-specs]")) { event.preventDefault(); abrirSpecs(); return; }
-    if (event.target.closest("[data-lst-ver-oc]")) { event.preventDefault(); abrirOrdenes(); }
+    if (event.target.closest("[data-lst-ver-oc]")) { event.preventDefault(); abrirOrdenes(); return; }
+    if (event.target.closest("[data-lst-ver-rp]")) { event.preventDefault(); abrirRequerimientos(); }
   });
+
+  // La ficha técnica, la orden y el requerimiento se abren en el cuadro de siempre (#modal-root).
+  // Mientras haya uno abierto, este cuadro se queda DETRÁS (pedido de Datnya, 25-sep-2026: la ficha
+  // se abría por debajo y había que cerrar el registro para verla). Al cerrarlo, vuelve al frente.
+  const raizModal = document.getElementById("modal-root");
+  const ordenarCapas = () => {
+    const fondo = document.querySelector(".lst-fondo");
+    if (!fondo) return;
+    fondo.classList.toggle("lst-atras", Boolean(raizModal && raizModal.querySelector(".modal-backdrop")));
+  };
+  if (raizModal) new MutationObserver(ordenarCapas).observe(raizModal, { childList: true, subtree: true });
 })();

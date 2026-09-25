@@ -29,7 +29,7 @@ hay que corregir el documento en el mismo commit.
 | Guardado real | `staging/public/prototype/access-runtime.js` (`new-order`, `revise-order`) |
 | Numeración | `access-runtime.js` → `nextPurchaseOrderNumber()` |
 | Documento impreso | `staging/public/prototype/purchase-order-template.js` |
-| Registro del proyecto y cuadro «Ver registro completo» | `app.js` → `filaDelRegistro()`, `listados.js` |
+| Sección del proyecto y cuadro «Ver todas las OC registradas» | `app.js` → `renderUnifiedProjectOrders()`, `listados.js` |
 
 ## 2. Cómo se abre, quién puede y cuántos pasos tiene
 
@@ -112,7 +112,7 @@ Ocultos: `projectId`, `amountCurrency`, `amountValue`, y los datos del proveedor
 ### 4. Fecha de emisión (`date`)
 - Obligatoria. Se rellena sola con **la fecha de hoy** al abrir el formulario.
 - Se imprime junto a «Preparado por» en el bloque PREP BY / DATE, con formato `24 Sept. 2026`.
-- Es el campo por el que se filtra «desde / hasta» en el cuadro «Ver registro completo».
+- Es el campo por el que se filtra «desde / hasta» en el cuadro «Ver todas las OC registradas».
 
 ### 5. Contacto del proyecto (`projectContact`)
 - Lista con los **usuarios Cliente** vinculados a ese proyecto (por alcance total, por lista de
@@ -259,9 +259,7 @@ El número se calcula mirando las OC **ya existentes de ese proyecto y de ese eq
 mayor usado + 1. El número de seguimiento, en cambio, es aleatorio a propósito: con datos
 compartidos, dos personas emitiendo a la vez podrían repetir un correlativo.
 
-`createdAt` ordena el registro: la página del proyecto muestra **las 5 OC más recientes** y el
-resto se ve con **«Ver registro completo»** (busca por número, proveedor, fabricante, fuente y
-número de seguimiento; filtra por estado, por equipo y por rango de fecha de emisión).
+`createdAt` ordena la sección: la página del proyecto muestra **las 5 OC más recientes**, con un aviso de cuántas hay en total, y el resto se ve con el botón **«Ver todas las OC registradas»**, a la izquierda de «Generar nueva orden de compra». El cuadro busca por número, proveedor, fabricante, fuente y número de seguimiento, y filtra por estado, por equipo (FF&E / OS&E) y por rango de fecha de emisión. Dibuja las mismas tarjetas de la página, de a 40 por vez. Si desde ese cuadro se abre una orden o una ficha, **el documento queda por delante** y el cuadro pasa detrás hasta que se cierre.
 
 ## 6. Cambio de orden (revisión)
 
@@ -301,7 +299,7 @@ lleva sus ítems con la copia congelada de cada spec.
 8. «Preparado por» bloqueado y «Especificado por» libre.
 9. La copia congelada del spec en cada ítem.
 10. El documento impreso mantiene todos sus casilleros y el aviso del Bill To.
-11. La página del proyecto sigue mostrando las 5 más recientes, con «Ver registro completo».
+11. La página del proyecto sigue mostrando las 5 más recientes, con «Ver todas las OC registradas», y lo que se abra desde ese cuadro queda por delante de él.
 
 ## 9. Pruebas que lo verifican
 
