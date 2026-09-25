@@ -135,6 +135,8 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 ### 📍 Dónde quedamos exactamente (25-sep, tarde) — MIGRACIÓN DEL GUARDADO, etapa 1 lista para ensayar
 Datnya autorizó el cambio de guardado con una condición: **no se puede perder ni un dato**. El plan completo, en tres etapas, está en [`docs/migracion/PLAN-MIGRACION-GUARDADO.md`](docs/migracion/PLAN-MIGRACION-GUARDADO.md). **La etapa 1 está programada y probada; falta ensayarla en PRUEBA con los datos reales.**
 
+**Estado (25-sep, noche): probada y empaquetada para el ENSAYO en PRUEBA.** Batería completa en verde: 41 de 41 de seguridad, 15 de 15 de migración, cero errores en los tres roles, los 12 pasos. Paquete:  (8,5 MB, 30 archivos, mismos bytes que la copia probada) junto con . **No se publica en la OFICIAL hasta que el ensayo en PRUEBA salga perfecto.**
+
 **Qué hace la etapa 1.** Cada spec, orden de compra y requerimiento de pago pasa a tener **su propia fila** en la tabla nueva `vaak_company_records`; el documento de la empresa se queda con lo demás (proyectos, proveedores, usuarios, catálogos, objetivos). `GET /api/data` vuelve a armar exactamente el mismo estado de siempre, en el mismo orden (cada fila guarda su posición original), así que **ninguna pantalla cambia**.
 
 **Cómo se garantiza que no se pierde nada:**
