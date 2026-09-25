@@ -95,6 +95,7 @@ Para publicar una actualización con SQL: 1) phpMyAdmin → base de ESA copia �
 4. Prueba con `bash servidor-php/pruebas/probar.sh` antes de decir que algo está listo.
 5. Entrega el cambio como un ZIP numerado (regla 1) y dale a Datnya los pasos del cPanel; ella lo sube a la plataforma oficial.
 6. **Nunca** subas al repositorio datos del cliente, contraseñas ni `nucleo/config.php`; la carpeta `Claude outputs/` está fuera del repositorio por eso.
+7. Antes de tocar el formulario de **spec**, de **orden de compra** o de **requerimiento de pago**, lee su documento en [`docs/campos/`](docs/campos/README.md): está cada campo explicado (qué hace, de dónde sale, qué calcula y dónde se imprime). Si cambias un campo, actualiza ese documento en el mismo commit.
 
 **Qué es:** plataforma web de gestión de compras (proyectos, specs, órdenes de compra, requerimientos de pago, proveedores, reportes Excel y PDF) para **HPG INTERNATIONAL LATINOAMERICANA S.A.C.**. La desarrolla Datnya Monzón; el molde es suyo y se puede revender a otros clientes.
 
@@ -145,6 +146,15 @@ Las actualizaciones 1 a 12 están en la OFICIAL. Lo de hoy **está en el reposit
 
 **3. Secciones del proyecto (specs y órdenes):** la página muestra solo los **5 más recientes** de cada una, con el botón «Ver todos los specs registrados» / «Ver registro completo» que abre un cuadro con el registro entero (`listados.js`, nuevo). El cuadro dibuja las mismas tarjetas de la página (`VAAKAppBridge.specCardsHtml` / `orderCardsHtml`, con `filaDelRegistro()` extraída en `app.js`) **de a 40 por vez**, así abre rápido con miles de registros. Filtros del cuadro de specs: buscador por **nombre, código y proveedor** (sin tildes), equipo **FF&E / OS&E** y rubro —la lista de rubros sale del catálogo vivo más los del proyecto y **se reduce al equipo elegido**—. Cuadro de OC: buscador por **N° de orden o proveedor**, estado (todas/aprobada/anulada/pendiente), **rango de fechas de emisión** y equipo. Probado con 600 specs y 60 OC: el cuadro abre en 1,4 s y los filtros responden. Antes, el buscador de la página no encontraba por proveedor y el filtro de rubros usaba una lista fija de 19 nombres en español que no tenía relación con el catálogo.
 - Prueba permanente nueva: `servidor-php/pruebas/paso7-listados.js` (paso 11 de `probar.sh`).
+
+**4. Diccionario de los tres formularios (`docs/campos/`, nuevo).** Pedido de Datnya: dejar por escrito, antes de cambiar el guardado, **qué hace exactamente cada campo** para que ningún modelo de IA tenga que recordarlo de memoria. Tres documentos, leídos directamente del código:
+- [`docs/campos/CAMPOS-SPEC.md`](docs/campos/CAMPOS-SPEC.md) — 18 campos del formulario de spec, qué imprime la ficha técnica, el tope de compra por cantidad y el cambio de spec.
+- [`docs/campos/CAMPOS-ORDEN-DE-COMPRA.md`](docs/campos/CAMPOS-ORDEN-DE-COMPRA.md) — 27 campos, los dos pasos (formulario → vista previa → generar), numeración por proyecto y equipo, totales, seguimiento y cambio de orden.
+- [`docs/campos/CAMPOS-REQUERIMIENTO-DE-PAGO.md`](docs/campos/CAMPOS-REQUERIMIENTO-DE-PAGO.md) — relleno automático desde la OC, campos bloqueados, desglose, saldo y registro del pago.
+
+Cada uno termina con «Lo que no se puede perder al cambiar el guardado» y con el paso de `probar.sh` que lo verifica. **Regla nueva: si se cambia un campo de estos formularios, se actualiza su documento en el mismo commit.**
+
+**5. Corrección encontrada al documentar:** «Especificado por» se escribe libre desde el 22-sep, pero al **generar** la OC el motor lo reemplazaba por el nombre de quien la emitía (`new-order` en `access-runtime.js`); solo se respetaba en el cambio de orden. Ahora se guarda lo escrito y, si se deja vacío, se usa el nombre de quien emite.
 
 ### 📍 Dónde quedamos exactamente (23-sep, noche) — actualización 12: rubros, áreas con equipo y decimales
 Las actualizaciones 1 a 11 ya están en la OFICIAL. Lo nuevo es la **actualización 12** (`Claude outputs/actualizaciones/actualizacion-12/actualizacion-12.zip`, paquete completo, `probar.sh` en verde):
