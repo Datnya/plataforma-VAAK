@@ -24,6 +24,48 @@ const comprimir = !banderas.has("--sin-comprimir");
 // Archivos de la interfaz que no van al hosting.
 const OMITIR = new Set(["password-recovery.js", "LOGO VAAK.png"]);
 
+// El cliente recibe SU PROPIO código (24-sep-2026). Estos archivos son solo de las pantallas del
+// equipo (formularios de OC, spec y requerimiento, áreas, listados, borradores, datos de demo):
+// no entran en el paquete del cliente. Lo de app.js que es solo del equipo va marcado dentro del
+// propio archivo entre //@equipo-inicio y //@equipo-fin.
+const SOLO_EQUIPO = new Set([
+  "form-defaults.js", "oc-direcciones.js", "oc-formulario.js", "proyecto-areas.js",
+  "spec-formulario.js", "oc-borradores.js", "campos-multilinea.js", "rp-formulario.js",
+  "limpiar-demo.js", "spec-rubros.js", "listados.js",
+]);
+// Marcas de las pantallas del equipo. Si alguna aparece en el paquete del cliente, algo se coló y
+// el armado se detiene. Son trozos de los formularios y de los datos internos, no palabras sueltas:
+// el diccionario de traducción (presentation.js) sí viaja, porque no permite rehacer ninguna pantalla.
+const NADA_DEL_EQUIPO = [
+  "po-form-grid",            // formulario de orden de compra
+  "invoice-breakdown",       // formulario de requerimiento de pago
+  "payment-register-form",   // registro del pago
+  "order-revision-form",     // cambio de orden
+  "access-editor-host",      // editor de accesos de usuarios
+  "data-add-rubro",          // catálogo de rubros
+  "ALICORP",                 // base de RUC de proveedores
+  "user-directory",          // directorio de usuarios
+];
+
+// Version del cliente de app.js: sin los bloques marcados como del equipo.
+function soloCliente(texto) {
+  const salida = [];
+  let saltando = false;
+  for (const linea of texto.split(/\r?\n/)) {
+    const marca = linea.trim();
+    if (marca.startsWith("//@equipo-inicio")) {
+      saltando = true;
+      const igual = marca.indexOf("=");
+      if (igual > 0) salida.push("  " + marca.slice(igual + 1)); // reemplazo (deja el nombre vivo)
+      continue;
+    }
+    if (marca === "//@equipo-fin") { saltando = false; continue; }
+    if (!saltando) salida.push(linea);
+  }
+  if (saltando) { console.error("AVISO: app.js tiene un //@equipo-inicio sin su //@equipo-fin."); process.exit(1); }
+  return salida.join("\n");
+}
+
 function copiar(origen, dest) {
   fs.mkdirSync(dest, { recursive: true });
   for (const nombre of fs.readdirSync(origen)) {
@@ -82,8 +124,14 @@ function copiar(origen, dest) {
   fs.writeFileSync(ruta, html);
 
   const rutaApp = path.join(destino, "app.js");
-  const app = fs.readFileSync(rutaApp, "utf8");
-  fs.writeFileSync(rutaApp, app.split("${location.origin}/prototype/assets/").join("${location.origin}/assets/"));
+  const app = fs.readFileSync(rutaApp, "utf8").split("${location.origin}/prototype/assets/").join("${location.origin}/assets/");
+  fs.writeFileSync(rutaApp, app);
+  // El cliente recibe su propia copia, sin las pantallas del equipo. Se escribe antes de comprimir
+  // porque la compresión borra los comentarios que marcan los bloques.
+  const appCliente = soloCliente(app);
+  try { new (require("vm").Script)(appCliente); }
+  catch (e) { console.error("AVISO: la versión del cliente de app.js no es válida: " + e.message); process.exit(1); }
+  fs.writeFileSync(path.join(destino, "app-cliente.js"), appCliente);
 
   // Datos de demostración: nunca en el hosting (el archivo del servidor trae el punto de partida vacío).
   const semilla = fs.readFileSync(path.join(destino, "access-test-fixtures.js"), "utf8");
@@ -124,12 +172,19 @@ function copiar(origen, dest) {
   const scripts = [...pagina.matchAll(/<script src="([^"?]+)(?:\?[^"]*)?"><\/script>/g)].map((m) => m[1]);
   if (!scripts.includes("app.js") || scripts.includes("acceso.js")) { console.error("AVISO: la lista de scripts de index.html no es la esperada."); process.exit(1); }
   // «;» al inicio de cada archivo: ninguno cambia el modo de los que siguen al juntarlos.
-  const interfaz = scripts.map((n) => {
+  const leerScript = (n) => {
     const f = path.join(destino, n);
     if (!fs.existsSync(f)) { console.error("AVISO: index.html usa " + n + " pero no existe."); process.exit(1); }
     return ";" + fs.readFileSync(f, "utf8");
-  }).join("\n");
+  };
+  const interfaz = scripts.map(leerScript).join("\n");
   fs.writeFileSync(path.join(destino, "nucleo", "interfaz.js"), interfaz);
+  // Paquete del cliente: sin los archivos del equipo y con la versión recortada de app.js.
+  const scriptsCliente = scripts.filter((n) => !SOLO_EQUIPO.has(n)).map((n) => (n === "app.js" ? "app-cliente.js" : n));
+  const interfazCliente = scriptsCliente.map(leerScript).join("\n");
+  const coladas = NADA_DEL_EQUIPO.filter((t) => interfazCliente.includes(t));
+  if (coladas.length) { console.error("AVISO: el paquete del cliente lleva código del equipo (" + coladas.join(", ") + "); no se arma."); process.exit(1); }
+  fs.writeFileSync(path.join(destino, "nucleo", "interfaz-cliente.js"), interfazCliente);
   for (const n of fs.readdirSync(destino)) if (n.endsWith(".js") && n !== "acceso.js") fs.rmSync(path.join(destino, n));
   const acceso = fs.readFileSync(path.join(destino, "acceso.js"), "utf8");
   const pantalla = fs.readFileSync(path.join(__dirname, "pantalla-acceso.html"), "utf8").replace(/^<!--[\s\S]*?-->\s*/, "").trim();
@@ -165,5 +220,6 @@ function copiar(origen, dest) {
   console.log(`Listo: ${destino}`);
   console.log(`index.html: ${antes - html.length} caracteres de Supabase quitados${config ? "; config.php incluido" : "; falta config.php"}`);
   console.log(`Pantallas internas: ${scripts.length} archivos en nucleo/interfaz.js (${Math.round(interfaz.length / 1024)} KB) y ${hojas.length} hojas de estilo en nucleo/estilos.css, solo con sesión`);
+  console.log(`Paquete del cliente: ${scriptsCliente.length} archivos en nucleo/interfaz-cliente.js (${Math.round(interfazCliente.length / 1024)} KB), sin las pantallas del equipo`);
   console.log(`${instalacion ? "Con" : "Sin"} verificar.php · código ${comprimir ? `comprimido (${Math.round(ahorro / 1024)} KB menos)` : "SIN comprimir (no subir así)"}`);
 })();

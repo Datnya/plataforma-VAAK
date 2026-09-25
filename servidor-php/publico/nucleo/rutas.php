@@ -862,8 +862,14 @@ function ruta_demo_limpiar(): void {
 function ruta_interfaz(): void {
   vaak_no_store();
   header('Content-Type: application/javascript; charset=utf-8');
-  if (!vaak_miembro()) { http_response_code(401); echo "/* Sign in to use the platform. */\n"; return; }
+  $miembro = vaak_miembro();
+  if (!$miembro) { http_response_code(401); echo "/* Sign in to use the platform. */\n"; return; }
+  // Cada rol recibe su propio codigo (24-sep-2026): el cliente NUNCA recibe las pantallas del
+  // administrador ni del trabajador, ni siquiera vacias. Las arma armar-publicacion.js.
   $archivo = __DIR__ . '/interfaz.js';
+  if (($miembro['role'] ?? '') === 'client' && is_file(__DIR__ . '/interfaz-cliente.js')) {
+    $archivo = __DIR__ . '/interfaz-cliente.js';
+  }
   if (!is_file($archivo)) { http_response_code(404); echo "/* not found */\n"; return; }
   header('Content-Length: ' . filesize($archivo));
   readfile($archivo);

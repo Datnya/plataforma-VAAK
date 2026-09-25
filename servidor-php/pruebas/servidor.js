@@ -87,6 +87,29 @@ const uuid = () => crypto.randomUUID();
   const nc = await cli.pedir("POST", "/api/admin/users", { name: "X", username: "hack", email: "h@ejemplo.test", password: "Clave12345", role: "Admin", idempotencyKey: uuid() });
   anotar("Permisos", "El cliente NO puede crearse un administrador", nc.estado === 403, `HTTP ${nc.estado}`);
 
+  // Codigo de las pantallas: cada rol recibe el suyo (24-sep-2026). Aunque el cliente mire el
+  // codigo con «Inspeccionar», no puede rehacer la pantalla del administrador: no la tiene.
+  const DEL_EQUIPO = [
+    ["el formulario de orden de compra", "po-form-grid"],
+    ["el formulario de requerimiento de pago", "invoice-breakdown"],
+    ["el registro del pago", "payment-register-form"],
+    ["el cambio de orden", "order-revision-form"],
+    ["el editor de accesos", "access-editor-host"],
+    ["el catálogo de rubros", "data-add-rubro"],
+    ["la base de RUC de proveedores", "ALICORP"],
+    ["el directorio de usuarios", "user-directory"],
+  ];
+  const appCliente = await cli.pedir("GET", "/api/app");
+  const appAdmin = await admin.pedir("GET", "/api/app");
+  anotar("Código", "El cliente recibe su propio código, más liviano", appCliente.texto.length < appAdmin.texto.length * 0.8,
+    `cliente ${Math.round(appCliente.texto.length / 1024)} KB, equipo ${Math.round(appAdmin.texto.length / 1024)} KB`);
+  for (const [que, marca] of DEL_EQUIPO) {
+    anotar("Código", `El cliente NO recibe ${que}`, !appCliente.texto.includes(marca), appCliente.texto.includes(marca) ? `encontró «${marca}»` : "");
+  }
+  anotar("Código", "El equipo sí recibe sus pantallas completas", DEL_EQUIPO.every(([, marca]) => appAdmin.texto.includes(marca)), "");
+  const sinSesion = await new Agente("anonimo").pedir("GET", "/api/app");
+  anotar("Código", "Sin sesión no se entrega ningún código de pantallas", sinSesion.estado === 401, `HTTP ${sinSesion.estado}`);
+
   // Trabajador.
   const tra = new Agente("trabajador");
   await tra.entrar("trab.prueba", claveT);
